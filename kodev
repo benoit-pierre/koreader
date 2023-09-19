@@ -939,6 +939,13 @@ function kodev-ci-install-reqs-linux() {
             )
             xtools=(kindlepw2 arm-kindlepw2-linux-gnueabi)
             ;;
+        kobo)
+            packages+=(
+                gcc-multilib
+                pigz
+            )
+            xtools=(kobo arm-kobo-linux-gnueabihf)
+            ;;
         remarkable)
             packages+=(
                 gcc-multilib
