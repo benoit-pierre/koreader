@@ -225,7 +225,7 @@ foreach _spec : [
   ['gif.7'          , 'giflib'     , giflib_dep      ],
   ['harfbuzz.0'     , 'harfbuzz'   , harfbuzz_dep    ],
   ['k2pdfopt.2'     , 'koptcontext', k2pdfopt_dep    ],
-  ['lept.5'         , 'leptonica'  , lept_dep        ],
+  ['lept.6'         , 'leptonica'  , lept_dep        ],
   ['lodepng'        , 'lodepng'    , lodepng_dep     ],
   ['mupdf'          , 'mupdf'      , libmupdf_dep    ],
   ['SDL2-2.0.0'     , 'SDL2_0'     , sdl2_dep        ],

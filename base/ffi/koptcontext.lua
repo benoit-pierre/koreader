@@ -4,7 +4,7 @@ local C = ffi.C
 require("ffi/koptcontext_h")
 require("ffi/leptonica_h")
 local Blitbuffer = require("ffi/blitbuffer")
-local leptonica = ffi.loadlib("lept", 5)
+local leptonica = ffi.loadlib("lept", 6)
 local k2pdfopt = ffi.loadlib("k2pdfopt", 2)
 
 local KOPTContext = {
