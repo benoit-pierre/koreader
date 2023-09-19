@@ -300,10 +300,10 @@ function KOPTContext_mt.__index:nativeToReflowPosTransform(xc, yc)
     return rectmap.coords[1].x + rectmap.coords[2].x/2, rectmap.coords[1].y + rectmap.coords[2].y/2
 end
 
-function KOPTContext_mt.__index:getTOCRWord(bmp, x, y, w, h, datadir, lang, ocr_type, allow_spaces, std_proc)
+function KOPTContext_mt.__index:getTOCRWord(bmp, x, y, w, h, datadir, lang, ocr_type, allow_spaces, std_proc, dpi)
     local word = ffi.new("char[256]")
     k2pdfopt.k2pdfopt_tocr_single_word(bmp == "src" and self.src or self.dst,
-        x, y, w, h, word, 255, ffi.cast("char*", datadir), ffi.cast("char*", lang),
+        x, y, w, h, dpi or self.dev_dpi, word, 256, ffi.cast("char*", datadir), ffi.cast("char*", lang),
         ocr_type, allow_spaces, std_proc)
     return ffi.string(word)
 end

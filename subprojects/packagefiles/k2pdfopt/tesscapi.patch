@@ -1,8 +1,8 @@
 diff --git a/include_mod/tesseract.h b/include_mod/tesseract.h
 --- a/include_mod/tesseract.h
 +++ b/include_mod/tesseract.h
-@@ -18,6 +18,9 @@ void *tess_capi_init(char *datapath,char *language,int ocr_type,FILE *out,
- int tess_capi_get_ocr(void *api,PIX *pix,char *outstr,int maxlen,FILE *out);
+@@ -22,6 +22,9 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
+                                 FILE *out);
  void tess_capi_end(void *api);
  
 +const char* tess_capi_get_init_language(void *api);
@@ -14,17 +14,19 @@ diff --git a/include_mod/tesseract.h b/include_mod/tesseract.h
 diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
 --- a/tesseract_mod/tesscapi.cpp
 +++ b/tesseract_mod/tesscapi.cpp
-@@ -44,9 +44,6 @@
+@@ -41,10 +41,8 @@
+ #endif
  
  #include "allheaders.h"
++#include "config_auto.h"
  #include "baseapi.h"
 -#include "strngs.h"
 -#include "params.h"
 -#include "blobs.h"
+ #include "simddetect.h"
+ #include "tesseractclass.h"
  /*
- #include "notdll.h"
- */
-@@ -54,6 +51,9 @@
+@@ -54,6 +52,9 @@
  /* C Wrappers */
  #include "tesseract.h"
  
@@ -34,23 +36,23 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
  // static tesseract::TessBaseAPI api[4];
  
  /*
-@@ -145,6 +145,7 @@ void *tess_capi_init(char *datapath,char *language,int ocr_type,FILE *out,
+@@ -170,6 +171,7 @@ v4.00 loads either TESSERACT enginer, LSTM engine, or both.  No CUBE.
      /*
      ** Initialization message
      */
 +#if 0
      {
-     char istr[256];
- 
-@@ -164,6 +165,7 @@ void *tess_capi_init(char *datapath,char *language,int ocr_type,FILE *out,
+     char istr[1024];
+     int sse,avx;
+@@ -224,6 +226,7 @@ printf("    sublang[%d].oem_engine = %d\n",i+1,(int)api->tesseract()->get_sub_la
          initstr[maxlen-1]='\0';
          }
      }
 +#endif
  
  
-     /* Turn off CUBE debugging output */
-@@ -202,6 +204,45 @@ int tess_capi_get_ocr(void *vapi,PIX *pix,char *outstr,int maxlen,FILE *out)
+     /* Turn off LSTM debugging output */
+@@ -297,6 +300,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
      return(0);
      }
  
@@ -80,7 +82,9 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
 +       return -1;
 +    }
 +    printf("engine inited in %s\n", api->GetInitLanguagesAsString());
++#ifndef DISABLED_LEGACY_ENGINE
 +    api->ClearAdaptiveClassifier();
++#endif
 +    api->Clear();
 +    return(0);
 +    }

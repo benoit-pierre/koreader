@@ -1,7 +1,7 @@
 project(
   'libk2pdfopt',
   ['c', 'cpp'],
-  version: '2.42',
+  version: '2.50',
   meson_version: '>= 0.64.0',
 )
 
@@ -147,7 +147,9 @@ k2pdfopt_lib = library(
   c_args: '-DK2PDFOPT_EXPORT=__attribute__ ((visibility("default")))',
   dependencies: dependencies,
   gnu_symbol_visibility: 'inlineshidden',
+  implicit_include_directories: false,
   include_directories: include_directories(
+    '.',
     'k2pdfoptlib',
     'willuslib',
   ),

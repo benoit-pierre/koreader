@@ -1,0 +1,101 @@
+diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
+--- a/src/api/baseapi.cpp
++++ b/src/api/baseapi.cpp
+@@ -206,11 +206,9 @@ TessBaseAPI::TessBaseAPI()
+       image_height_(0) {
+   const char *locale;
+   locale = std::setlocale(LC_ALL, nullptr);
+-  ASSERT_HOST(!strcmp(locale, "C"));
+   locale = std::setlocale(LC_CTYPE, nullptr);
+-  ASSERT_HOST(!strcmp(locale, "C"));
+   locale = std::setlocale(LC_NUMERIC, nullptr);
+-  ASSERT_HOST(!strcmp(locale, "C"));
++  (void)locale;
+ }
+ 
+ TessBaseAPI::~TessBaseAPI() {
+@@ -1473,6 +1471,72 @@ char* TessBaseAPI::GetHOCRText(int page_number) {
+   return GetHOCRText(nullptr, page_number);
+ }
+ 
++int TessBaseAPI::GetOCRWords(int** x00, int** y00, int** x11, int** y11, int** ybaseline0, char** utf8words) {
++    int iword, nwords, totlen, it8;
++    int *x0, *y0, *x1, *y1, *ybaseline;
++    char *tutf8;
++
++    ResultIterator *res_it = GetIterator();
++    /* Count words */
++    iword = 0;
++    totlen = 0;
++    while (!res_it->Empty(RIL_BLOCK)) {
++        if (res_it->Empty(RIL_WORD)) {
++            res_it->Next(RIL_WORD);
++            continue;
++        }
++        iword++;
++        STRING textstr=std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
++        totlen+=strlen(textstr.string())+1;
++        res_it->Next(RIL_WORD);
++    }
++    nwords=iword;
++    /*
++    printf("\nnwords=%d, totlen=%d\n",nwords,totlen);
++    */
++    x0 = *x00 = (int *)malloc(sizeof(int) * 5 * nwords);
++    y0 = *y00 = &x0[nwords];
++    x1 = *x11 = &y0[nwords];
++    y1 = *y11 = &x1[nwords];
++    ybaseline = *ybaseline0 = &y1[nwords];
++    tutf8 = *utf8words = (char *)malloc(totlen);
++    iword = 0;
++    it8 = 0;
++    res_it->Begin();
++    while (!res_it->Empty(RIL_BLOCK)) {
++        if (res_it->Empty(RIL_WORD)) {
++            res_it->Next(RIL_WORD);
++            continue;
++        }
++        STRING textstr = std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
++        strcpy(&tutf8[it8],textstr.string());
++        it8 += strlen(&tutf8[it8]) + 1;
++        /*
++        STRING textstr("");
++        textstr += std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
++        printf("Word %d: '%s'\n", iword, textstr.string());
++        */
++        int left, top, right, bottom;
++        int u1, v1, u2, v2;
++        res_it->BoundingBox(RIL_WORD, &left, &top, &right, &bottom);
++        res_it->Baseline(RIL_WORD, &u1, &v1, &u2, &v2);
++        x0[iword] = left;
++        x1[iword] = right;
++        y0[iword] = top;
++        y1[iword] = bottom;
++        ybaseline[iword] = (v1 + v2) / 2;
++        iword++;
++        /*
++        printf("BB: (%d,%d)-(%d,%d)  BL: (%d,%d)-(%d,%d)\n",left,bottom,right,top,x1,y1,x2,y2);
++        */
++        res_it->Next(RIL_WORD);
++    }
++    /*
++    printf("iword=%d\n",iword);
++    */
++    return iword;
++}
++
+ /**
+  * Make a HTML-formatted string with hOCR markup from the internal
+  * data structures.
+diff --git a/src/api/baseapi.h b/src/api/baseapi.h
+--- a/src/api/baseapi.h
++++ b/src/api/baseapi.h
+@@ -586,6 +586,8 @@ class TESS_API TessBaseAPI {
+    */
+   char* GetHOCRText(ETEXT_DESC* monitor, int page_number);
+ 
++  int GetOCRWords(int** x00, int** y00, int** x11, int** y11, int** ybaseline0, char** utf8words);
++
+   /**
+    * Make a HTML-formatted string with hOCR markup from the internal
+    * data structures.

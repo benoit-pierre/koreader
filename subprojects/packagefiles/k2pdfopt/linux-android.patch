@@ -1,7 +1,7 @@
 diff --git a/willuslib/willus.h b/willuslib/willus.h
 --- a/willuslib/willus.h
 +++ b/willuslib/willus.h
-@@ -83,6 +83,10 @@
+@@ -89,6 +89,10 @@
  
  typedef double  real;
  
@@ -12,7 +12,7 @@ diff --git a/willuslib/willus.h b/willuslib/willus.h
  #if (!defined(CYGWIN32) && defined(__CYGWIN32__))
  #define CYGWIN32
  #endif
-@@ -164,7 +168,7 @@ typedef double  real;
+@@ -170,7 +174,7 @@ typedef double  real;
  #define WILLUS_BIGENDIAN
  #endif
  

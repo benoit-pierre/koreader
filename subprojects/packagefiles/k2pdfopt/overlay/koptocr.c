@@ -44,7 +44,7 @@ void k2pdfopt_tocr_init(char *datadir, char *lang) {
 	}
 	if (tess_api == NULL) {
 		int status;
-		tess_api = ocrtess_init(datadir, lang, NULL, NULL, 0, &status);
+		tess_api = ocrtess_init(datadir, NULL, 0, lang, NULL, NULL, 0, &status);
 		if (tess_api == NULL) {
 			printf("fail to start tesseract OCR engine\n");
 		}
@@ -52,17 +52,23 @@ void k2pdfopt_tocr_init(char *datadir, char *lang) {
 }
 
 void k2pdfopt_tocr_single_word(WILLUSBITMAP *src,
-		int x, int y, int w, int h,
+		int x, int y, int w, int h, int dpi,
 		char *word, int max_length,
 		char *datadir, char *lang, int ocr_type,
 		int allow_spaces, int std_proc) {
 	k2pdfopt_tocr_init(datadir, lang);
-	if (tess_api != NULL) {
-		ocrtess_single_word_from_bmp8(tess_api,
-				word, max_length, src,
-				x, y, x + w, y + h,
-				ocr_type, allow_spaces, std_proc, stderr);
+	if (tess_api == NULL)
+		return;
+	OCRWORDS ocrwords = { NULL, 0, 0 };
+	ocrtess_ocrwords_from_bmp8(tess_api, &ocrwords, src, x, y, x + w - 1, y + h - 1, dpi, ocr_type, stderr);
+	if (ocrwords.n) {
+		snprintf(word, max_length, "%s", ocrwords.word->text);
+		if (std_proc)
+			ocr_text_proc(word, allow_spaces);
 	}
+	else
+		word[0] = '\0';
+	ocrwords_free(&ocrwords);
 }
 
 const char* k2pdfopt_tocr_get_language() {
@@ -79,8 +85,7 @@ void k2pdfopt_tocr_end() {
 void k2pdfopt_get_word_boxes(KOPTContext *kctx, WILLUSBITMAP *src,
 		int x, int y, int w, int h, int box_type) {
 	static K2PDFOPT_SETTINGS _k2settings, *k2settings;
-	PIX *pixs, *pixt, *pixb;
-	int words;
+	PIX *pixs, *pixb;
 	BOXA **pboxa;
 	NUMA **pnai;
 
@@ -117,7 +122,7 @@ void k2pdfopt_get_word_boxes(KOPTContext *kctx, WILLUSBITMAP *src,
 		}
 
 		if (kctx->debug == 1) {
-			//pixt = pixDrawBoxaRandom(pixs, kctx->boxa, 2);
+			//PIX *pixt = pixDrawBoxaRandom(pixs, kctx->boxa, 2);
 			//pixWrite("junkpixt", pixt, IFF_PNG);
 			//pixDestroy(&pixt);
 		}

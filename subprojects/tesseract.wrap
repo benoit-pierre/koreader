@@ -6,4 +6,5 @@ source_filename = tesseract-4.0.0.tar.gz
 patch_directory = tesseract/overlay
 diff_files = 
 	tesseract/disabled-legacy-engine.patch,
+	tesseract/k2pdfopt.patch,
 	tesseract/reduce-size.patch

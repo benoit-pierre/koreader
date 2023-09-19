@@ -1,7 +1,7 @@
 diff --git a/willuslib/willus.h b/willuslib/willus.h
 --- a/willuslib/willus.h
 +++ b/willuslib/willus.h
-@@ -195,7 +195,16 @@ typedef double  real;
+@@ -229,7 +229,16 @@ typedef double  real;
  #if (defined(__linux) || defined(linux) || defined(__linux__))
  #define LINUX
  #if (defined(WILLUS_HAVE_FILE64) && !defined(_off64_t))

@@ -19,7 +19,7 @@ local util = require("util")
 
 local KoptInterface = {
     ocrengine = "ocrengine",
-    tessocr_data = DataStorage:getDataDir() .. "/data",
+    tessocr_data = DataStorage:getDataDir() .. "/data/tessdata",
     ocr_lang = "eng",
     ocr_type = 3, -- default 0, for more accuracy use 3
     last_context_size = nil,
