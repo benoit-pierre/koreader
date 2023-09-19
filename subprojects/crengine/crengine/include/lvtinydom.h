@@ -108,6 +108,8 @@ extern const int gDOMVersionCurrent;
 #define DOC_PROP_FILE_CRC32      "doc.file.crc32"
 #define DOC_PROP_CODE_BASE       "doc.file.code.base"
 #define DOC_PROP_COVER_FILE      "doc.cover.file"
+#define DOC_PROP_RAW_TEXT_SIZE   "doc.raw.text.size"
+#define DOC_PROP_RAW_TEXT_LENGTH "doc.raw.text.length"
 
 #define DEF_SPACE_WIDTH_SCALE_PERCENT 100
 #define DEF_MIN_SPACE_CONDENSING_PERCENT 50

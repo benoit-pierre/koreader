@@ -801,6 +801,11 @@ public:
         return (lUInt32)m_doc_props->getIntDef(DOC_PROP_FILE_CRC32, 0);
     }
 
+    /// returns book raw text size (size of all the XML/HTML files, unparsed)
+    int getRawTextSize() { return m_doc_props->getIntDef(DOC_PROP_RAW_TEXT_SIZE); }
+    /// returns book raw text length (accumlated length of all the text elements for all the XML/HTML files)
+    int getRawTextLength() { return m_doc_props->getIntDef(DOC_PROP_RAW_TEXT_LENGTH); }
+
     /// export to WOL format
     bool exportWolFile( const char * fname, bool flgGray, int levels );
     /// export to WOL format
@@ -920,11 +925,11 @@ public:
     /// clear view
     void Clear();
     /// load document from file
-    bool LoadDocument( const char * fname, bool metadataOnly = false );
+    bool LoadDocument( const char * fname, int metadataOnly = 0 );
     /// load document from file
-    bool LoadDocument( const lChar32 * fname, bool metadataOnly = false );
+    bool LoadDocument( const lChar32 * fname, int metadataOnly = 0 );
     /// load document from stream
-    bool LoadDocument( LVStreamRef stream, bool metadataOnly = false );
+    bool LoadDocument( LVStreamRef stream, int metadataOnly = 0 );
 
     /// save last file position
     void savePosition();
