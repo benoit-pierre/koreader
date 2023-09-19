@@ -48,8 +48,10 @@ os.remove(DataStorage:getDataDir() .. "/defaults.tests.lua.old")
 G_defaults = require("luadefaults"):open(DataStorage:getDataDir() .. "/defaults.tests.lua")
 
 -- global reader settings
-os.remove(DataStorage:getDataDir().."/settings.reader.lua")
-G_reader_settings = require("luasettings"):open(".reader")
+os.remove(DataStorage:getDataDir() .. "/settings.tests.lua")
+os.remove(DataStorage:getDataDir() .. "/settings.tests.lua.old")
+G_reader_settings = require("luasettings"):open(DataStorage:getDataDir() .. "/settings.tests.lua")
+G_reader_settings:saveSetting("document_metadata_folder", "dir")
 
 -- global einkfb for Screen (do not show SDL window)
 einkfb = require("ffi/framebuffer") --luacheck: ignore

@@ -1,15 +1,18 @@
 describe("FileManager module", function()
-    local FileManager, lfs, docsettings, UIManager, Screen, util
+    local DataStorage, FileManager, lfs, docsettings, UIManager, Screen, ffiutil, util
     setup(function()
         require("commonrequire")
+        -- G_reader_settings:saveSetting("document_metadata_folder", "doc")
         package.unloadAll()
         require("document/canvascontext"):init(require("device"))
+        DataStorage = require("datastorage")
         FileManager = require("apps/filemanager/filemanager")
         Screen = require("device").screen
         UIManager = require("ui/uimanager")
         docsettings = require("docsettings")
         lfs = require("libs/libkoreader-lfs")
-        util = require("ffi/util")
+        ffiutil = require("ffi/util")
+        util = require("util")
     end)
     it("should show file manager", function()
         UIManager:quit()
@@ -42,17 +45,17 @@ describe("FileManager module", function()
             root_path = "spec/front/unit/data",
         }
 
-        local tmp_fn = "spec/front/unit/data/2col.test.tmp.foo"
-        util.copyFile("spec/front/unit/data/2col.pdf", tmp_fn)
+        local tmp_fn = DataStorage:getDataDir() .. "/2col.test.tmp.foo"
+        ffiutil.copyFile("spec/front/unit/data/2col.pdf", tmp_fn)
 
-        local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
-        lfs.mkdir(tmp_sidecar)
-        local tmp_sidecar_file = docsettings:getSidecarFile(util.realpath(tmp_fn))
+        local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+        util.makePath(tmp_sidecar)
+        local tmp_sidecar_file = docsettings:getSidecarFile(tmp_fn)
         local tmp_sidecar_file_foo = tmp_sidecar_file .. ".foo" -- non-docsettings file
         local tmpsf = io.open(tmp_sidecar_file, "w")
         tmpsf:write("{}")
         tmpsf:close()
-        util.copyFile(tmp_sidecar_file, tmp_sidecar_file_foo)
+        ffiutil.copyFile(tmp_sidecar_file, tmp_sidecar_file_foo)
         local old_show = UIManager.show
 
         -- make sure file exists
@@ -80,12 +83,12 @@ describe("FileManager module", function()
             root_path = "spec/front/unit/data",
         }
 
-        local tmp_fn = "spec/front/unit/data/2col.test.tmp.pdf"
-        util.copyFile("spec/front/unit/data/2col.pdf", tmp_fn)
+        local tmp_fn = DataStorage:getDataDir() .. "/2col.test.tmp.pdf"
+        ffiutil.copyFile("spec/front/unit/data/2col.pdf", tmp_fn)
 
-        local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
-        lfs.mkdir(tmp_sidecar)
-        local tmp_sidecar_file = docsettings:getSidecarFile(util.realpath(tmp_fn))
+        local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+        util.makePath(tmp_sidecar)
+        local tmp_sidecar_file = docsettings:getSidecarFile(tmp_fn)
         local tmpsf = io.open(tmp_sidecar_file, "w")
         tmpsf:write("{}")
         tmpsf:close()
