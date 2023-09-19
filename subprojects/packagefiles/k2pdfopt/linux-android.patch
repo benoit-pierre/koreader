@@ -1,3 +1,15 @@
+diff --git a/willuslib/linux.c b/willuslib/linux.c
+--- a/willuslib/linux.c
++++ b/willuslib/linux.c
+@@ -33,7 +33,7 @@
+ #include <unistd.h>
+ /* 12-6-18:  Apparently sys/termios.h no longer needed to compile in some cases. */
+ // #if (defined(__MACH__) || !defined(__GNUC__) || __GNUC__ < 7)
+-#include <sys/termios.h>
++// #include <sys/termios.h>
+ // #endif
+ #include <sys/wait.h>
+ #include <sys/types.h>
 diff --git a/willuslib/willus.h b/willuslib/willus.h
 --- a/willuslib/willus.h
 +++ b/willuslib/willus.h

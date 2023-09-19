@@ -1,7 +1,7 @@
 project(
   'libk2pdfopt',
   ['c', 'cpp'],
-  version: '2.52',
+  version: '2.53',
   meson_version: '>= 0.64.0',
 )
 

@@ -26,7 +26,7 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
  #include "simddetect.h"
  #include "tesseractclass.h"
  /*
-@@ -54,8 +52,14 @@
+@@ -54,6 +52,9 @@
  /* C Wrappers */
  #include "tesseract.h"
  
@@ -35,13 +35,16 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
 +
  // static tesseract::TessBaseAPI api[4];
  
-+void tess_capi_set_logfile(const char *filename) {}
-+void tess_capi_debug_message(char *message) { tprintf("%s",message); }
-+
  /*
- ** ocr_type=0:  OEM_DEFAULT
- ** ocr_type=1:  OEM_TESSERACT_ONLY
-@@ -297,6 +301,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
+@@ -62,7 +63,6 @@
+ void tess_capi_set_logfile(const char *filename)
+ 
+     {
+-    tprintf_set_debugfile(filename);
+     }
+ 
+ 
+@@ -330,6 +330,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
      return(0);
      }
  
