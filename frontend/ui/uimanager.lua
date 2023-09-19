@@ -1449,7 +1449,7 @@ function UIManager:handleInput()
 
         -- stop when we have no window to show
         if not self._window_stack[1] then
-            logger.info("UIManager: No dialogs left to show")
+            -- logger.info("UIManager: No dialogs left to show")
             if self:_gated_quit() ~= false then
                 return
             end
