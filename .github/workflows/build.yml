@@ -78,6 +78,8 @@ jobs:
               cpp = [CCACHE, 'c++', '-g']
               [luajit:project options]
               luajit = true
+              [tesseract:project options]
+              simd = false
               # [constants]
               # static_if_amalgam = 'static'
             tests: all -- --timeout-multiplier=2
