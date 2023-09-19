@@ -1,21 +1,8 @@
 diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 --- a/src/api/baseapi.cpp
 +++ b/src/api/baseapi.cpp
-@@ -206,11 +206,9 @@ TessBaseAPI::TessBaseAPI()
-       image_height_(0) {
-   const char *locale;
-   locale = std::setlocale(LC_ALL, nullptr);
--  ASSERT_HOST(!strcmp(locale, "C"));
-   locale = std::setlocale(LC_CTYPE, nullptr);
--  ASSERT_HOST(!strcmp(locale, "C"));
-   locale = std::setlocale(LC_NUMERIC, nullptr);
--  ASSERT_HOST(!strcmp(locale, "C"));
-+  (void)locale;
- }
- 
- TessBaseAPI::~TessBaseAPI() {
-@@ -1473,6 +1471,72 @@ char* TessBaseAPI::GetHOCRText(int page_number) {
-   return GetHOCRText(nullptr, page_number);
+@@ -1553,6 +1553,72 @@ char* TessBaseAPI::GetBoxText(int page_number) {
+   return result;
  }
  
 +int TessBaseAPI::GetOCRWords(int** x00, int** y00, int** x11, int** y11, int** ybaseline0, char** utf8words) {
@@ -85,12 +72,12 @@ diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 +}
 +
  /**
-  * Make a HTML-formatted string with hOCR markup from the internal
-  * data structures.
+  * Conversion table for non-latin characters.
+  * Maps characters out of the latin set into the latin set.
 diff --git a/src/api/baseapi.h b/src/api/baseapi.h
 --- a/src/api/baseapi.h
 +++ b/src/api/baseapi.h
-@@ -586,6 +586,8 @@ class TESS_API TessBaseAPI {
+@@ -575,6 +575,8 @@ class TESS_API TessBaseAPI {
     */
    char* GetHOCRText(ETEXT_DESC* monitor, int page_number);
  

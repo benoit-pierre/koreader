@@ -1,0 +1,22 @@
+diff --git a/src/ccutil/helpers.h b/src/ccutil/helpers.h
+--- a/src/ccutil/helpers.h
++++ b/src/ccutil/helpers.h
+@@ -22,6 +22,7 @@
+ #define TESSERACT_CCUTIL_HELPERS_H_
+ 
+ #include <cassert>
++#include <cstdint>
+ #include <cstdio>
+ #include <cstring>
+ #include <functional>
+diff --git a/src/dict/matchdefs.h b/src/dict/matchdefs.h
+--- a/src/dict/matchdefs.h
++++ b/src/dict/matchdefs.h
+@@ -21,6 +21,7 @@
+ /**----------------------------------------------------------------------------
+           Include Files and Type Defines
+ ----------------------------------------------------------------------------**/
++#include <cstdint>
+ #include <cstdio>
+ #include "unichar.h"
+ 

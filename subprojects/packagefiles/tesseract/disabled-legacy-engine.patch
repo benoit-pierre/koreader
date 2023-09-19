@@ -1,17 +1,25 @@
 diff --git a/src/wordrec/wordrec.h b/src/wordrec/wordrec.h
 --- a/src/wordrec/wordrec.h
 +++ b/src/wordrec/wordrec.h
-@@ -19,9 +19,11 @@
+@@ -19,6 +19,10 @@
  #ifndef TESSERACT_WORDREC_WORDREC_H_
  #define TESSERACT_WORDREC_WORDREC_H_
  
--#ifdef DISABLED_LEGACY_ENGINE
--
 +#ifdef HAVE_CONFIG_H
- #include "config_auto.h"
++#include "config_auto.h"
 +#endif
 +
-+#ifdef DISABLED_LEGACY_ENGINE
+ #ifdef DISABLED_LEGACY_ENGINE
  
  #include <cstdint>             // for int16_t, int32_t
- #include "callcpp.h"           // for C_COL
+@@ -59,10 +63,6 @@ class Wordrec : public Classify {
+ 
+ #else  // DISABLED_LEGACY_ENGINE not defined
+ 
+-#ifdef HAVE_CONFIG_H
+-#include "config_auto.h"
+-#endif
+-
+ #include <cstdint>             // for int16_t, int32_t
+ #include <memory>
+ #include "associate.h"

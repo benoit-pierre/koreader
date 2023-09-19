@@ -2,7 +2,7 @@ project(
   'tesseract',
   'cpp',
   default_options: 'cpp_std=c++11',
-  version: '4.0.0',
+  version: '4.1.1',
 )
 
 cxx = meson.get_compiler('cpp')
@@ -58,16 +58,20 @@ tesseract_inc = [
   'src/lstm',
   'src/opencl',
   'src/textord',
-  'src/vs2010/port',
+  'src/vs2010/tesseract',
   'src/viewer',
   'src/wordrec',
 ]
 
 tesseract_src = [
+  'src/api/altorenderer.cpp',
   'src/api/baseapi.cpp',
   'src/api/capi.cpp',
+  'src/api/hocrrenderer.cpp',
+  'src/api/lstmboxrenderer.cpp',
   'src/api/pdfrenderer.cpp',
   'src/api/renderer.cpp',
+  'src/api/wordstrboxrenderer.cpp',
   'src/ccmain/applybox.cpp',
   'src/ccmain/control.cpp',
   'src/ccmain/fixxht.cpp',
@@ -125,18 +129,14 @@ tesseract_src = [
   'src/ccstruct/split.cpp',
   'src/ccstruct/statistc.cpp',
   'src/ccstruct/stepblob.cpp',
-  'src/ccstruct/vecfuncs.cpp',
   'src/ccstruct/werd.cpp',
   'src/ccutil/ambigs.cpp',
-  'src/ccutil/basedir.cpp',
   'src/ccutil/bitvector.cpp',
   'src/ccutil/ccutil.cpp',
   'src/ccutil/clst.cpp',
   'src/ccutil/elst.cpp',
   'src/ccutil/elst2.cpp',
   'src/ccutil/errcode.cpp',
-  # Not used, and does not compile for Android.
-  # 'src/ccutil/fileio.cpp',
   'src/ccutil/globaloc.cpp',
   'src/ccutil/indexmapbidi.cpp',
   'src/ccutil/mainblk.cpp',
@@ -152,14 +152,11 @@ tesseract_src = [
   'src/ccutil/unicharset.cpp',
   'src/ccutil/unicodes.cpp',
   'src/ccutil/universalambigs.cpp',
-  'src/classify/blobclass.cpp',
   'src/classify/classify.cpp',
-  'src/cutil/bitvec.cpp',
   'src/cutil/callcpp.cpp',
   'src/cutil/cutil_class.cpp',
   'src/cutil/emalloc.cpp',
   'src/cutil/oldlist.cpp',
-  'src/cutil/structures.cpp',
   'src/dict/context.cpp',
   'src/dict/dawg.cpp',
   'src/dict/dawg_cache.cpp',
@@ -202,7 +199,6 @@ tesseract_src = [
   'src/textord/colpartitiongrid.cpp',
   'src/textord/colpartitionset.cpp',
   'src/textord/devanagari_processing.cpp',
-  'src/textord/drawedg.cpp',
   'src/textord/drawtord.cpp',
   'src/textord/edgblob.cpp',
   'src/textord/edgloop.cpp',
@@ -254,10 +250,10 @@ if get_option('legacy-engine')
     'src/ccmain/tfacepp.cpp',
     'src/classify/adaptive.cpp',
     'src/classify/adaptmatch.cpp',
+    'src/classify/blobclass.cpp',
     'src/classify/cluster.cpp',
     'src/classify/clusttool.cpp',
     'src/classify/cutoffs.cpp',
-    'src/classify/errorcounter.cpp',
     'src/classify/featdefs.cpp',
     'src/classify/float2int.cpp',
     'src/classify/fpoint.cpp',
@@ -268,7 +264,6 @@ if get_option('legacy-engine')
     'src/classify/intmatcher.cpp',
     'src/classify/intproto.cpp',
     'src/classify/kdtree.cpp',
-    'src/classify/mastertrainer.cpp',
     'src/classify/mf.cpp',
     'src/classify/mfdefs.cpp',
     'src/classify/mfoutline.cpp',
@@ -306,21 +301,28 @@ if get_option('legacy-engine')
 endif
 
 # SIMD support.
+simd_flags = []
+simd_src = [
+  'src/arch/dotproduct.cpp',
+  'src/arch/intsimdmatrix.cpp',
+  'src/arch/simddetect.cpp',
+]
+foreach _flag, _src : {
+  'avx'   : 'src/arch/dotproductavx.cpp',
+  'avx2'  : 'src/arch/intsimdmatrixavx2.cpp',
+  'fma'   : 'src/arch/dotproductfma.cpp',
+  'sse4.1': ['src/arch/dotproductsse.cpp', 'src/arch/intsimdmatrixsse.cpp'],
+}
+  _f = '-m' + _flag
+  if cxx.has_argument(_f)
+    simd_flags += [_f, '-D' + _flag.underscorify().to_upper()]
+    simd_src += _src
+  endif
+endforeach
 simd_lib = static_library(
   'tesseract-simd',
-  [
-    'src/arch/dotproductavx.cpp',
-    'src/arch/dotproductsse.cpp',
-    'src/arch/intsimdmatrix.cpp',
-    'src/arch/intsimdmatrixavx2.cpp',
-    'src/arch/intsimdmatrixsse.cpp',
-    'src/arch/simddetect.cpp',
-  ],
-  cpp_args: cxx.get_supported_arguments(
-    '-mavx',
-    '-mavx2',
-    '-msse4.1',
-  ) + compile_args,
+  simd_src,
+  cpp_args: simd_flags + compile_args,
   gnu_symbol_visibility: 'inlineshidden',
   include_directories: include_directories(tesseract_inc),
 )
