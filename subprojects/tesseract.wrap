@@ -1,8 +1,8 @@
 [wrap-file]
-directory = tesseract-5.3.1
-source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.1.tar.gz
-source_hash = 3761768c02b99358e5118bfabfecc979fa84a399da5fa54c49dd477d926fef43
-source_filename = tesseract-5.3.1.tar.gz
+directory = tesseract-5.3.2
+source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.2.tar.gz
+source_hash = b99d30fed47360d7168c3e25d194a7416ceb1d9e4b232c7f121cc5f77084d3e7
+source_filename = tesseract-5.3.2.tar.gz
 patch_directory = tesseract/overlay
 diff_files = 
 	tesseract/k2pdfopt.patch,
