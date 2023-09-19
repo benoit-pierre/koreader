@@ -2250,7 +2250,7 @@ public:
             // Ignore HB measurements when there is a single glyph not found,
             // as it may be found in a fallback font
             int codepoint_notfound_nb = 0;
-            for (int i=0; i<glyph_count; i++) {
+            for (unsigned int i=0; i<glyph_count; i++) {
                 if ( glyph_info[i].codepoint == 0 )
                     codepoint_notfound_nb++;
                 // This does not look like it's really needed to ignore
@@ -2879,9 +2879,7 @@ public:
             hb_shape(_hb_font, _hb_buffer, _hb_features.ptr(), (unsigned int)_hb_features.length());
 
             // Harfbuzz has guessed and set a direction even if we did not provide one.
-            bool is_rtl = false;
             if ( hb_buffer_get_direction(_hb_buffer) == HB_DIRECTION_RTL ) {
-                is_rtl = true;
                 // "For buffers in the right-to-left (RTL) or bottom-to-top (BTT) text
                 // flow direction, the directionality of the buffer itself is reversed
                 // for final output as a matter of design. Therefore, HarfBuzz inverts
@@ -2946,7 +2944,6 @@ public:
             int cur_cluster = 0;
             int hg = 0;  // index in glyph_info/glyph_pos
             int hcl = 0; // cluster glyph at hg
-            bool is_cluster_tail = false;
             int t_notdef_start = -1;
             int t_notdef_end = -1;
             for (int t = 0; t < len; t++) {
@@ -3131,9 +3128,6 @@ public:
         } // _kerningMode == KERNING_MODE_HARFBUZZ
 
         else if (_kerningMode == KERNING_MODE_HARFBUZZ_LIGHT) {
-            unsigned int glyph_count;
-            hb_glyph_info_t* glyph_info = 0;
-            hb_glyph_position_t* glyph_pos = 0;
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
             triplet.Char = 0;
@@ -4408,11 +4402,6 @@ public:
 
         } // _kerningMode == KERNING_MODE_HARFBUZZ
         else if (_kerningMode == KERNING_MODE_HARFBUZZ_LIGHT) {
-            hb_glyph_info_t *glyph_info = 0;
-            hb_glyph_position_t *glyph_pos = 0;
-            unsigned int glyph_count;
-            int w;
-            unsigned int len_new = 0;
             struct LVCharTriplet triplet;
             struct LVCharPosInfo posInfo;
             triplet.Char = 0;
