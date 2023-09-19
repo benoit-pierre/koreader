@@ -1,4 +1,4 @@
-project('luasec', 'c', version: '1.3.1')
+project('luasec', 'c', version: '1.3.2')
 
 lua_dep = dependency('lua', version: ['>= 5.1'])
 libluasocket_dep = dependency('libluasocket')
