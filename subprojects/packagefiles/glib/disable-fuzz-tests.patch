@@ -1,14 +1,13 @@
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -2389,7 +2389,9 @@ subdir('gobject')
+@@ -2391,7 +2391,9 @@ subdir('gobject')
  subdir('gthread')
  subdir('gmodule')
  subdir('gio')
--subdir('fuzzing')
 +if build_tests
-+  subdir('fuzzing')
+ subdir('fuzzing')
 +endif
- subdir('tools')
  
  # xgettext is optional (on Windows for instance)
+ if find_program('xgettext', required : get_option('nls')).found()

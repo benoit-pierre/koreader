@@ -1,46 +1,7 @@
-diff --git a/gio/gsocket.c b/gio/gsocket.c
---- a/gio/gsocket.c
-+++ b/gio/gsocket.c
-@@ -461,7 +461,7 @@ g_socket_details_from_fd (GSocket *socket)
-     struct sockaddr sa;
-   } address;
-   gint fd;
--  guint addrlen;
-+  socklen_t addrlen;
-   int value, family;
-   int errsv;
- 
-@@ -1990,7 +1990,7 @@ g_socket_get_local_address (GSocket  *socket,
-     struct sockaddr_storage storage;
-     struct sockaddr sa;
-   } buffer;
--  guint len = sizeof (buffer);
-+  socklen_t len = sizeof (buffer);
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), NULL);
- 
-@@ -2026,7 +2026,7 @@ g_socket_get_remote_address (GSocket  *socket,
-     struct sockaddr_storage storage;
-     struct sockaddr sa;
-   } buffer;
--  guint len = sizeof (buffer);
-+  socklen_t len = sizeof (buffer);
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), NULL);
- 
-@@ -6220,7 +6220,7 @@ g_socket_get_option (GSocket  *socket,
- 		     gint     *value,
- 		     GError  **error)
- {
--  guint size;
-+  socklen_t size;
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), FALSE);
- 
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -597,7 +597,6 @@ functions = [
+@@ -612,7 +612,6 @@ functions = [
    'close_range',
    'endmntent',
    'endservent',
@@ -48,7 +9,7 @@ diff --git a/meson.build b/meson.build
    'fallocate',
    'fchmod',
    'fchown',
-@@ -710,6 +709,10 @@ foreach f : functions
+@@ -727,6 +726,10 @@ foreach f : functions
    endif
  endforeach
  
@@ -57,5 +18,5 @@ diff --git a/meson.build b/meson.build
 +endif
 +
  # Check that stpcpy() is usable; must use header.
- # cc.has_function() in some cases (clang, gcc 10+) assumes that if the
- # compiler provides a builtin of the same name that the function exists, while
+ # See:
+ # https://github.com/mesonbuild/meson/issues/5628.

@@ -1,7 +1,7 @@
 diff --git a/docs/reference/gio/meson.build b/docs/reference/gio/meson.build
 --- a/docs/reference/gio/meson.build
 +++ b/docs/reference/gio/meson.build
-@@ -153,12 +153,6 @@ if get_option('gtk_doc')
+@@ -155,12 +155,6 @@ if get_option('gtk_doc')
      command : [concat_files_helper, '@OUTPUT@', '@INPUT@'],
    )
  
@@ -14,7 +14,7 @@ diff --git a/docs/reference/gio/meson.build b/docs/reference/gio/meson.build
    content_files = [
      'overview.xml',
      'migrating-posix.xml',
-@@ -175,6 +169,8 @@ if get_option('gtk_doc')
+@@ -177,6 +171,8 @@ if get_option('gtk_doc')
      'gdbus-codegen.xml',
    ]
  
@@ -26,7 +26,7 @@ diff --git a/docs/reference/gio/meson.build b/docs/reference/gio/meson.build
 diff --git a/gio/gdbus-2.0/codegen/meson.build b/gio/gdbus-2.0/codegen/meson.build
 --- a/gio/gdbus-2.0/codegen/meson.build
 +++ b/gio/gdbus-2.0/codegen/meson.build
-@@ -29,6 +29,7 @@ meson.override_find_program('gdbus-codegen', gdbus_codegen)
+@@ -30,6 +30,7 @@ meson.override_find_program('gdbus-codegen', gdbus_codegen)
  codegen_dir = join_paths(glib_datadir, 'glib-2.0', 'codegen')
  
  gdbus_codegen_built_files = []
@@ -34,7 +34,7 @@ diff --git a/gio/gdbus-2.0/codegen/meson.build b/gio/gdbus-2.0/codegen/meson.bui
  gdbus_codegen_built_files += configure_file(input : 'config.py.in',
                                              output : 'config.py',
                                              install_dir : codegen_dir,
-@@ -38,8 +39,8 @@ gdbus_codegen_built_files += configure_file(input : 'config.py.in',
+@@ -39,8 +40,8 @@ gdbus_codegen_built_files += configure_file(input : 'config.py.in',
  foreach f : gdbus_codegen_files
    # Copy these into the builddir so that gdbus-codegen can be used uninstalled
    # and then install it too so that it can be used after installation
@@ -50,7 +50,7 @@ diff --git a/gio/gdbus-2.0/codegen/meson.build b/gio/gdbus-2.0/codegen/meson.bui
 diff --git a/gio/meson.build b/gio/meson.build
 --- a/gio/meson.build
 +++ b/gio/meson.build
-@@ -237,6 +237,7 @@ xdp_dbus_generated = custom_target('xdp-dbus',
+@@ -241,6 +241,7 @@ xdp_dbus_generated = custom_target('xdp-dbus',
               'org.freedesktop.portal.ProxyResolver.xml',
               'org.freedesktop.portal.Trash.xml'],
      output : ['xdp-dbus.h', 'xdp-dbus.c'],
@@ -58,7 +58,7 @@ diff --git a/gio/meson.build b/gio/meson.build
      depend_files : gdbus_codegen_built_files,
      command : [python, gdbus_codegen,
                 '--interface-prefix', 'org.freedesktop.portal.',
-@@ -249,6 +250,7 @@ xdp_dbus_generated = custom_target('xdp-dbus',
+@@ -253,6 +254,7 @@ xdp_dbus_generated = custom_target('xdp-dbus',
  gdbus_daemon_generated = custom_target('gdbus-daemon-generated',
      input : ['dbus-daemon.xml'],
      output : ['gdbus-daemon-generated.h', 'gdbus-daemon-generated.c'],
@@ -66,7 +66,7 @@ diff --git a/gio/meson.build b/gio/meson.build
      depend_files : gdbus_codegen_built_files,
      command : [python, gdbus_codegen,
                 '--interface-prefix', 'org.',
-@@ -862,9 +864,7 @@ libgio_dep = declare_dependency(link_with : libgio,
+@@ -880,9 +882,7 @@ libgio_dep = declare_dependency(link_with : libgio,
  
  pkg.generate(libgio,
    requires : ['glib-2.0', 'gobject-2.0'],
@@ -80,7 +80,7 @@ diff --git a/gio/meson.build b/gio/meson.build
 diff --git a/gio/tests/meson.build b/gio/tests/meson.build
 --- a/gio/tests/meson.build
 +++ b/gio/tests/meson.build
-@@ -295,6 +295,7 @@ if host_machine.system() != 'windows'
+@@ -351,6 +351,7 @@ if host_machine.system() != 'windows'
          input :   ['test-codegen.xml'],
          output :  ['gdbus-test-codegen-generated.h',
                     'gdbus-test-codegen-generated.c'],
@@ -88,7 +88,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
          depend_files : gdbus_codegen_built_files,
          command : [python, gdbus_codegen,
                     '--interface-prefix', 'org.project.',
-@@ -311,6 +312,7 @@ if host_machine.system() != 'windows'
+@@ -367,6 +368,7 @@ if host_machine.system() != 'windows'
          input :   ['test-codegen.xml'],
          output :  ['gdbus-test-codegen-generated-min-required-2-64.h',
                     'gdbus-test-codegen-generated-min-required-2-64.c'],
@@ -96,7 +96,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
          depend_files : gdbus_codegen_built_files,
          command : [python, gdbus_codegen,
                     '--glib-min-required', '2.64',
-@@ -327,6 +329,7 @@ if host_machine.system() != 'windows'
+@@ -383,6 +385,7 @@ if host_machine.system() != 'windows'
        custom_target('gdbus-test-codegen-generated-interface-info-h',
            input :   ['test-codegen.xml'],
            output :  ['gdbus-test-codegen-generated-interface-info.h'],
@@ -104,7 +104,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
            depend_files : gdbus_codegen_built_files,
            command : [python, gdbus_codegen,
                       '--interface-info-header',
-@@ -336,6 +339,7 @@ if host_machine.system() != 'windows'
+@@ -392,6 +395,7 @@ if host_machine.system() != 'windows'
        custom_target('gdbus-test-codegen-generated-interface-info-c',
            input :   ['test-codegen.xml'],
            output :  ['gdbus-test-codegen-generated-interface-info.c'],
@@ -112,7 +112,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
            depend_files : gdbus_codegen_built_files,
            command : [python, gdbus_codegen,
                       '--interface-info-body',
-@@ -415,6 +419,7 @@ if host_machine.system() != 'windows'
+@@ -501,6 +505,7 @@ if host_machine.system() != 'windows'
          input :   ['../org.freedesktop.portal.Documents.xml'],
          output :  ['fake-document-portal-generated.h',
                     'fake-document-portal-generated.c'],
@@ -120,7 +120,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
          depend_files : gdbus_codegen_built_files,
          command : [python, gdbus_codegen,
                     '--interface-prefix', 'org.freedesktop.portal.',
-@@ -690,6 +695,7 @@ if meson.can_run_host_binaries()
+@@ -785,6 +790,7 @@ if not meson.is_cross_build()
    test_gresource = custom_target('test.gresource',
      input : 'test.gresource.xml',
      output : 'test.gresource',
@@ -128,7 +128,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
      command : [glib_compile_resources,
                 compiler_type,
                 '--target=@OUTPUT@',
-@@ -766,12 +772,6 @@ if meson.can_run_host_binaries()
+@@ -861,12 +867,6 @@ if not meson.is_cross_build()
                 '--manual-register',
                 '@INPUT@'])
  
@@ -144,7 +144,7 @@ diff --git a/gio/tests/meson.build b/gio/tests/meson.build
 diff --git a/glib/meson.build b/glib/meson.build
 --- a/glib/meson.build
 +++ b/glib/meson.build
-@@ -396,8 +396,7 @@ pkg.generate(libglib,
+@@ -440,8 +440,7 @@ pkg.generate(libglib,
    libraries_private : [win32_ldflags],
    subdirs : ['glib-2.0'],
    extra_cflags : ['-I${libdir}/glib-2.0/include'] + win32_cflags,
@@ -159,18 +159,18 @@ diff --git a/meson.build b/meson.build
 +++ b/meson.build
 @@ -1,7 +1,7 @@
  project('glib', 'c',
-   version : '2.74.4',
+   version : '2.76.5',
    # NOTE: See the policy in docs/meson-version.md before changing the Meson dependency
 -  meson_version : '>= 0.60.0',
 +  meson_version : '>= 0.64.0',
    default_options : [
      'buildtype=debugoptimized',
      'warning_level=3',
-@@ -2387,6 +2387,7 @@ endif
- test_timeout = 60
- test_timeout_slow = 180
+@@ -2385,6 +2385,7 @@ if want_systemtap and enable_dtrace
+   enable_systemtap = true
+ endif
  
 +fs = import('fs')
  pkg = import('pkgconfig')
  windows = import('windows')
- subdir('glib')
+ subdir('tools')
