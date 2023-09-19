@@ -1,7 +1,7 @@
 diff --git a/k2pdfoptlib/k2pdfopt.h b/k2pdfoptlib/k2pdfopt.h
 --- a/k2pdfoptlib/k2pdfopt.h
 +++ b/k2pdfoptlib/k2pdfopt.h
-@@ -854,7 +854,9 @@ typedef struct
+@@ -860,7 +860,9 @@ typedef struct
      PAGEREGION *pageregion;
      int n,na;
      } PAGEREGIONS;
@@ -11,7 +11,7 @@ diff --git a/k2pdfoptlib/k2pdfopt.h b/k2pdfoptlib/k2pdfopt.h
  void pageregions_free(PAGEREGIONS *regions);
  void pageregions_delete_one(PAGEREGIONS *regions,int index);
  void pageregions_insert(PAGEREGIONS *dst,int index,PAGEREGIONS *src);
-@@ -981,11 +983,14 @@ int  wrapbmp_remaining(WRAPBMP *wrapbmp,K2PDFOPT_SETTINGS *k2settings);
+@@ -987,11 +989,14 @@ int  wrapbmp_remaining(WRAPBMP *wrapbmp,K2PDFOPT_SETTINGS *k2settings);
  void wrapbmp_add(WRAPBMP *wrapbmp,BMPREGION *region,K2PDFOPT_SETTINGS *k2settings,
                   MASTERINFO *masterinfo,int colgap,int justification_flags);
  void wrapbmp_flush(MASTERINFO *masterinfo,K2PDFOPT_SETTINGS *k2settings,int allow_full_justify);

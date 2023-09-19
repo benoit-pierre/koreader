@@ -1,8 +1,8 @@
 [wrap-file]
-directory = k2pdfopt_v2.50
-source_url = https://www.willus.com/k2pdfopt/src/k2pdfopt_v2.50_src.zip
-source_hash = 99d714b73216ff3c05dbbfa8e4263ec0ca148270475e2c879f50b7253e84c32e
-source_filename = k2pdfopt_v2.50_src.zip
+directory = k2pdfopt_v2.51
+source_url = https://www.willus.com/k2pdfopt/src/k2pdfopt_v2.51_src.zip
+source_hash = 3e6e4d7aac9c9bed4c7854888a6a91213be10121be76e17f83e080e829ac5fde
+source_filename = k2pdfopt_v2.51_src.zip
 patch_directory = k2pdfopt/overlay
 diff_files = 
 	k2pdfopt/willus_config.patch,

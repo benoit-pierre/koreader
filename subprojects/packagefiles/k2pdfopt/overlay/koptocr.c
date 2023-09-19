@@ -60,7 +60,7 @@ void k2pdfopt_tocr_single_word(WILLUSBITMAP *src,
 	if (tess_api == NULL)
 		return;
 	OCRWORDS ocrwords = { NULL, 0, 0 };
-	ocrtess_ocrwords_from_bmp8(tess_api, &ocrwords, src, x, y, x + w - 1, y + h - 1, dpi, ocr_type, stderr);
+	ocrtess_ocrwords_from_bmp8(tess_api, &ocrwords, src, x, y, x + w - 1, y + h - 1, dpi, ocr_type, 1., stderr);
 	if (ocrwords.n) {
 		snprintf(word, max_length, "%s", ocrwords.word->text);
 		if (std_proc)

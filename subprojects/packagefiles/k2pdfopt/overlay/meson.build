@@ -1,7 +1,7 @@
 project(
   'libk2pdfopt',
   ['c', 'cpp'],
-  version: '2.50',
+  version: '2.51',
   meson_version: '>= 0.64.0',
 )
 
@@ -16,10 +16,11 @@ add_project_arguments(
   language: 'c',
 )
 
+log_dep = host_machine.system() == 'android' ? cc.find_library('log') : declare_dependency()
 m_dep = cc.find_library('m', required: false)
 threads_dep = dependency('threads')
 
-dependencies = [m_dep, threads_dep]
+dependencies = [log_dep, m_dep, threads_dep]
 
 if host_machine.system() == 'windows'
   dependencies += cc.find_library('shlwapi')
