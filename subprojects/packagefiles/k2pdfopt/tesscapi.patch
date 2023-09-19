@@ -14,19 +14,25 @@ diff --git a/include_mod/tesseract.h b/include_mod/tesseract.h
 diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
 --- a/tesseract_mod/tesscapi.cpp
 +++ b/tesseract_mod/tesscapi.cpp
-@@ -41,10 +41,8 @@
+@@ -41,15 +41,16 @@
  #endif
  
  #include "allheaders.h"
 +#include "config_auto.h"
- #include "baseapi.h"
--#include "strngs.h"
--#include "params.h"
--#include "blobs.h"
+ #include "tesseract/baseapi.h"
+ /*
+ #include "strngs.h"
+-*/
+ #include "params.h"
+ #include "blobs.h"
  #include "simddetect.h"
  #include "tesseractclass.h"
+ #include "tprintf.h"
++*/
  /*
-@@ -54,6 +52,9 @@
+ #include "notdll.h"
+ */
+@@ -57,6 +58,9 @@
  /* C Wrappers */
  #include "tesseract.h"
  
@@ -36,15 +42,39 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
  // static tesseract::TessBaseAPI api[4];
  
  /*
-@@ -62,7 +63,6 @@
+@@ -65,14 +69,13 @@
  void tess_capi_set_logfile(const char *filename)
  
      {
--    tprintf_set_debugfile(filename);
+-    tesseract::tprintf_set_debugfile(filename);
      }
  
  
-@@ -330,6 +330,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
+ void tess_capi_debug_message(char *message)
+ 
+     {
+-    tesseract::tprintf("%s",message);
++    printf("%s",message);
+     }
+ 
+ 
+@@ -193,6 +196,7 @@ printf("Init success, lang='%s'\n",lang);
+     /*
+     ** Initialization message
+     */
++#if 0
+     {
+     char istr[1024];
+ 
+@@ -245,6 +249,7 @@ printf("    sublang[%d].oem_engine = %d\n",i+1,(int)api->tesseract()->get_sub_la
+         initstr[maxlen-1]='\0';
+         }
+     }
++#endif
+ 
+ 
+     /* Turn off LSTM debugging output */
+@@ -318,6 +323,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
      return(0);
      }
  

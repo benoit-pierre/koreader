@@ -1,7 +1,7 @@
 project(
   'libk2pdfopt',
   ['c', 'cpp'],
-  version: '2.53',
+  version: '2.54',
   meson_version: '>= 0.64.0',
 )
 
@@ -117,7 +117,9 @@ k2pdfopt_lib = library(
     'willuslib/ocr.c',
     'willuslib/ocrgocr.c',
     'willuslib/ocrtess.c',
+    'willuslib/ocrwords.c',
     'willuslib/pdfwrite.c',
+    'willuslib/pdffonts.c',
     'willuslib/point2d.c',
     'willuslib/render.c',
     'willuslib/strbuf.c',

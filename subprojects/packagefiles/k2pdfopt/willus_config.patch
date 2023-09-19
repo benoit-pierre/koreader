@@ -7,9 +7,9 @@ diff --git a/willuslib/willus.h b/willuslib/willus.h
  
 +#if 0
  /*
- ** CMAKE handles the defines, not this source
- ** (Mod from Dirk Thierbach, 31-Dec-2013)
-@@ -316,6 +317,9 @@ typedef double  real;
+ ** Determine if we can use winshell functions
+ ** If CLANG version > 7 or GNU C version > 4
+@@ -324,6 +325,9 @@ typedef double  real;
  #endif
  
  #endif /* USE_CMAKE */
