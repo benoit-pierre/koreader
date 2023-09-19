@@ -1,47 +1,216 @@
 name: build
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on: [push, pull_request]
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
-  macos_build:
 
-    # macos-11, macos-12 & macos-13 are broken at this time being.
-    # https://github.com/koreader/koreader/issues/8686,
-    # https://github.com/koreader/koreader/issues/8686#issuecomment-1172950236
+  Tests:
 
-    # Please don't update to newer macOS version unless you can test that the new
-    # action produces working binaries.
-    # 10.15 is no longer supported so we are running 13 just to make sure the build does not break.
-    runs-on: macos-13
+    timeout-minutes: 60
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - name: 'Linux x86_64 (Clang)'
+            os: ubuntu-latest
+            target: emulator-linux-x86_64
+            target_options: |
+              b_lto = false
+              strip = false
+              [binaries]
+              c = [CCACHE, 'clang', '-g']
+              c_ld = 'lld'
+              cpp = [CCACHE, 'clang++', '-g']
+              cpp_ld = 'lld'
+            cache_extra_key: clang
+            extra_packages: >
+              clang-15 lld-15
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 60
+              run sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 60
+              run sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-15 60
+              run sudo update-alternatives --install /usr/bin/lld-link lld-link /usr/bin/lld-link-15 60
+              run clang --version
+              run clang++ --version
+
+          - name: 'Linux x86_64 (GCC)'
+            os: ubuntu-20.04
+            target: emulator-linux-x86_64
+            target_options: |
+              b_lto = false
+              strip = false
+              [binaries]
+              c = [CCACHE, 'gcc', '-ggdb']
+              cpp = [CCACHE, 'g++', '-ggdb']
+              [constants]
+              static_if_amalgam = 'static'
+            cache_extra_key: gcc
+            extra_packages: >
+              gcc-10
+              g++-10
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+              run gcc --version
+              run g++ --version
+
+          - name: macOS x86_64
+            os: macos-11
+            continue-on-error: true
+            target: emulator-macos-x86_64
+            target_options: |
+              b_lto = false
+              strip = false
+              [binaries]
+              c = [CCACHE, 'cc', '-g']
+              cpp = [CCACHE, 'c++', '-g']
+              [luajit:project options]
+              luajit = true
+              # [constants]
+              # static_if_amalgam = 'static'
+            tests: all -- --timeout-multiplier=2
+
+    name: "Test: ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ !!matrix.continue-on-error }}
 
     steps:
-      - name: XCode version
-        run: xcode-select -p
 
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          clean: false
+          fetch-depth: 1
+          show-progress: false
+          submodules: true
 
-      - name: Homebrew install dependencies
-        # Compared to the README, adds ccache for faster compilation times
-        # Compared to the emulator, adds p7zip.
-        run: >
-          brew install -q nasm ragel binutils coreutils libtool autoconf automake cmake makedepend
-          sdl2 lua@5.1 luarocks gettext pkg-config wget gnu-getopt grep bison
-          ccache p7zip
-
-      - name: Building in progress…
-        run: |
-          export MACOSX_DEPLOYMENT_TARGET=10.15;
-          export PATH="$(brew --prefix)/opt/gettext/bin:$(brew --prefix)/opt/gnu-getopt/bin:$(brew --prefix)/opt/bison/bin:$(brew --prefix)/opt/grep/libexec/gnubin:${PATH}";
-          ./kodev release macos
-
-      - name: Uploading artifacts
-        uses: actions/upload-artifact@v3
+      - name: Build & Test
+        uses: ./.github/actions/build
         with:
-          name: koreader-macos
-          path: '*.7z'
+          name: ${{ matrix.name }}
+          target: ${{ matrix.target }}
+          target_options: ${{ matrix.target_options }}
+          cache_extra_key: ${{ matrix.cache_extra_key }}
+          extra_packages: ${{ matrix.extra_packages }}
+          extra_setup: ${{ matrix.extra_setup }}
+          tests: ${{ matrix.tests || 'all' }}
+
+  Release:
+
+    needs: Tests
+    timeout-minutes: 60
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - name: 'Android ARM'
+            os: ubuntu-latest
+            target: android-arm
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-arm
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Android ARM64'
+            os: ubuntu-latest
+            target: android-arm64
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-arm64
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Android x86'
+            os: ubuntu-latest
+            target: android-x86
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-x86
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Linux x86_64 AppImage'
+            os: ubuntu-20.04
+            target: emulator-linux-x86_64
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: appimage
+            update_artifacts: 'koreader-*.AppImage'
+            extra_packages: >
+              gcc-10
+              g++-10
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+              run gcc --version
+              run g++ --version
+
+          - name: 'Kindle Paperwhite 2'
+            os: ubuntu-latest
+            target: kindlepw2
+            target_options: |
+              buildtype = 'minsize'
+              debug = false
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: kindlepw2
+            update_artifacts: '*.targz'
+
+          - name: 'reMarkable'
+            os: ubuntu-latest
+            target: remarkable
+            update_target: remarkable
+            update_artifacts: '*.targz'
+
+          - name: 'macOS x86_64'
+            os: macos-11
+            target: emulator-macos-x86_64
+            update_target: macos
+            update_artifacts: '*.7z'
+
+          - name: macOS arm64
+            os: macos-12
+            target: emulator-macos-arm64
+            update_target: macos-arm64
+            update_artifacts: '*.7z'
+
+    name: "Release: ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
+          show-progress: false
+          submodules: true
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          name: ${{ matrix.name }}
+          target: ${{ matrix.target }}
+          target_options: ${{ matrix.target_options }}
+          update_target: ${{ matrix.update_target }}
+          update_artifacts: ${{ matrix.update_artifacts }}
+          extra_packages: ${{ matrix.extra_packages }}
+          extra_setup: ${{ matrix.extra_setup }}

@@ -20,7 +20,7 @@ function info() {
         color="ANSI_${1#-c}"
         shift
     fi
-    if [[ -t 2 ]]; then
+    if [[ -t 2 || "${CI}" = 'true' ]]; then
         echo "${!color}$*${ANSI_RESET}" 1>&2
     else
         echo "$*" 1>&2
@@ -53,17 +53,44 @@ function print_quoted() {
     fi
 }
 
+if [[ "${CI}" = 'true' ]]; then
+    function faketty() {
+        "$@"
+    }
+    if [[ ${OSTYPE} == darwin* ]] && which unbuffer &>/dev/null; then
+        function faketty() {
+            env TERM='xterm-256color' unbuffer "$@"
+        }
+    fi
+    if [[ ${OSTYPE} == linux* ]] && which script &>/dev/null; then
+        function faketty() {
+            env TERM='xterm-256color' script /dev/null --quiet --return --command "$(print_quoted "$@")"
+        }
+    fi
+fi
+
 function run() {
+    if [[ ${opt_dry_run} -eq 0 && "${CI}" = 'true' ]]; then
+        echo -n '::group::' 1>&2
+    fi
     info "$(print_quoted "$@")"
     if [[ ${opt_dry_run} -ne 0 ]]; then
         return
     fi
     local cmd=("$@")
+    if [[ "${CI}" == 'true' ]]; then
+        # For color output…
+        cmd=(faketty "${cmd[@]}")
+    fi
     local code=0
     if [[ ${opt_timings} -ne 0 ]]; then
         time "${cmd[@]}" || code=$?
     else
         "${cmd[@]}" || code=$?
+    fi
+    if [ "${CI}" = 'true' ]; then
+        info -cDIM "$(print_quoted "$@")"
+        echo '::endgroup::' 1>&2
     fi
     return ${code}
 }
@@ -87,11 +114,17 @@ function setenv() {
     info "$(printf 'export %q\n' "$@")"
     # shellcheck disable=SC2163
     export "$@"
+    if [[ "${CI}" == 'true' && -n "${GITHUB_ENV}" ]]; then
+        printf '%q\n' "$@" >>"${GITHUB_ENV}"
+    fi
 }
 
 function addpath() {
     info "export PATH=$(print_quoted "$1"):\"\$PATH\""
     export PATH="$1:${PATH}"
+    if [[ "${CI}" == 'true' && -n "${GITHUB_PATH}" ]]; then
+        printf '%s\n' "$1" >>"${GITHUB_PATH}"
+    fi
 }
 
 function download() {
@@ -818,6 +851,321 @@ TARGET:
     esac
 }
 
+function kodev-ci-add-job-parameters() {
+    local decls
+    decls="$(printf 'readonly %q\n' "${@/#/JOB_}")"
+    info "${decls}"
+    echo "${decls}" >>job.sh
+}
+
+function kodev-ci-func-banner() {
+    info -cGREEN "${FUNCNAME[1]}"
+}
+
+function kodev-ci-unshallow() {
+    kodev-ci-func-banner
+    while ! git describe --tags; do
+        git fetch --deepen "${1:-100}" --no-recurse-submodules
+    done
+}
+
+function kodev-ci-fetch-thirdparty() {
+    kodev-ci-func-banner
+    run_make fetch-thirdparty
+    run_make trim-thirdparty
+}
+
+function kodev-ci-install-7z() {
+    kodev-ci-func-banner
+    local dist="linux-p7zip.7z"
+    download "https://github.com/p7zip-project/p7zip/releases/download/v${JOB_7Z_VERSION}/${dist}"
+    run 7z -o7z x "${PWD}/${dist}"
+    run rm "${dist}"
+    addpath "${PWD}/7z"
+}
+
+function kodev-ci-install-x-tools() {
+    kodev-ci-func-banner
+    download "https://github.com/koreader/koxtoolchain/releases/download/2021.12/$1.zip"
+    run 7z e "$1.zip"
+    run tar xvaf "$1.tar.gz" -C ..
+    addpath "${PWD%/*}/x-tools/$2/bin"
+}
+
+function kodev-ci-install-reqs-linux() {
+    kodev-ci-func-banner
+    local need_7z=0
+    local packages=("$@")
+    local xtools=()
+    case "${JOB_TARGET}" in
+        android-arm)
+            packages+=(
+                gcc-multilib
+            )
+            need_7z=1
+            ;;
+        android-arm64)
+            need_7z=1
+            ;;
+        android-x86)
+            packages+=(
+                gcc-multilib
+                nasm
+            )
+            need_7z=1
+            ;;
+        emulator*)
+            packages+=(
+                libbsd0
+                libegl1-mesa-dev
+                libgl1-mesa-dev
+                libgles2-mesa-dev
+                libvulkan-dev
+                libwayland-dev
+                libx11-dev
+                libxcursor-dev
+                libxi-dev
+                libxkbcommon-dev
+                libxrandr-dev
+                nasm
+                wayland-protocols
+            )
+            ;;
+        kindlepw2)
+            packages+=(
+                gcc-multilib
+                pigz
+            )
+            xtools=(kindlepw2 arm-kindlepw2-linux-gnueabi)
+            ;;
+        remarkable)
+            packages+=(
+                gcc-multilib
+            )
+            xtools=(remarkable arm-remarkable-linux-gnueabihf)
+            ;;
+    esac
+    if [[ "${JOB_BUILDING}" == 'true' ]]; then
+       if [[ ${#packages} -gt 0 ]]; then
+           run sudo rm -f /var/lib/man-db/auto-update
+           run sudo apt -q update
+           run sudo apt -qy install --no-install-recommends "${packages[@]}"
+       fi
+       if [[ ${#xtools} -gt 0 ]]; then
+           kodev-ci-install-x-tools "${xtools[@]}"
+       fi
+    fi
+    if [[ ${need_7z} -eq 1 && -n "${JOB_7Z_VERSION}" ]]; then
+        kodev-ci-install-7z
+    fi
+}
+
+function kodev-ci-install-reqs-macos() {
+    kodev-ci-func-banner
+    local packages=(
+        expect
+        gnu-getopt
+    )
+    if [[ "${JOB_BUILDING}" == 'true' ]]; then
+        packages+=(
+            nasm
+            "$@"
+        )
+    fi
+    run env HOMEBREW_NO_INSTALL_CLEANUP=1 brew install -q "${packages[@]}"
+    addpath "$(brew --prefix)/opt/gnu-getopt/bin"
+    case "${JOB_TARGET}" in
+        emulator-macos-arm64)
+            deployment_target='11.0'
+            ;;
+        *)
+            deployment_target='10.15'
+            ;;
+    esac
+    setenv MACOSX_DEPLOYMENT_TARGET="${deployment_target}"
+}
+
+function kodev-ci-install-reqs() {
+    kodev-ci-func-banner
+    run python -m pip --disable-pip-version-check install "${JOB_MESON_VERSION}" "${JOB_NINJA_VERSION}"
+    case "${RUNNER_OS}" in
+        'Linux')
+            kodev-ci-install-reqs-linux "$@"
+            ;;
+        'macOS')
+            kodev-ci-install-reqs-macos "$@"
+            ;;
+    esac
+    if [[ "${JOB_BUILDING}" != 'true' ]]; then
+        return
+    fi
+    kodev-ci-install-ccache
+}
+
+function kodev-ci-install-ccache() {
+    kodev-ci-func-banner
+    local dist_flavor
+    local dist_ext
+    local tar
+    case "${RUNNER_OS}" in
+        'Linux')
+            dist_flavor='linux-x86_64'
+            dist_ext='tar.xz'
+            tar='tar'
+            ;;
+        'macOS')
+            dist_flavor='darwin'
+            dist_ext='tar.gz'
+            tar='gtar'
+            ;;
+        *)
+            die 1 "unsupported runner OS: \"${RUNNER_OS}\""
+            ;;
+    esac
+    local dist="ccache-${JOB_CCACHE_VERSION}-${dist_flavor}"
+    download "https://github.com/ccache/ccache/releases/download/v${JOB_CCACHE_VERSION}/${dist}.${dist_ext}"
+    run "${tar}" xvaf "${dist}.${dist_ext}" -C ..
+    run rm "${dist}.${dist_ext}"
+    addpath "${PWD%/*}/${dist}"
+}
+
+function kodev-ci-ccache-post-restore() {
+    kodev-ci-func-banner
+    local primary_key="$1"
+    local matched_key="$2"
+    local key_gen="${matched_key##*-}"
+    key_gen="$(((${key_gen:-1}+1)%2))"
+    setenv CCACHE_CACHE_KEY="${primary_key}-${key_gen}"
+    run ccache --show-stats --verbose
+    run ccache --zero-stats
+    run ccache --show-config
+}
+
+function kodev-ci-ccache-pre-save() {
+    kodev-ci-func-banner
+    local repo="$1"
+    run ccache --show-stats --verbose
+    run ccache --max-size=256M
+    run ccache --cleanup >/dev/null
+    run ccache --show-stats --verbose
+    run gh cache delete --repo "${repo}" "${CCACHE_CACHE_KEY}" || true
+}
+
+function kodev-ci-setup-cache-key() {
+    kodev-ci-func-banner
+    run_make CCACHE=ccache TARGET="${JOB_TARGET}" cache-key
+    run cat cache_key.txt
+    setenv CACHE_KEY_HASH="$(git hash-object cache_key.txt)"
+    setenv CACHE_KEY_PREFIX="${JOB_TARGET}${JOB_TESTS:+-tests}${JOB_CACHE_EXTRA_KEY:+-}${JOB_CACHE_EXTRA_KEY}"
+}
+
+function kodev-ci-build() {
+    kodev-ci-func-banner
+    kodev-build --verbose -n "${JOB_TARGET}"
+}
+
+function kodev-ci-coredumps-handle-linux() {
+    kodev-ci-func-banner
+    local topdir="${PWD#/}"
+    local script="${CORESDIR}/autopsy.sh"
+    local libdir="${CORESDIR}/lib/x86_64-linux-gnu"
+    local kodir
+    kodir="${topdir}/$(echo -n koreader-*/koreader)"
+    run cd "${CORESDIR}"
+    run mkdir -p "${CORESDIR}/${kodir%/*}"
+    run mv "/${kodir}" "${CORESDIR}/${kodir}"
+    run mkdir -p "${libdir}" "${CORESDIR}/usr"
+    run ln -s ../lib "${CORESDIR}/usr"
+    run cp -a /"${libdir#*/}"/{ld-*,libcrypto,libgcc_s,libssl,libstdc++}.so* "${libdir}"
+    run cp -a /"${libdir#*/}"/{libc,libdl,libm,libnss_dns,libnss_files,libpthread,libresolv,librt,libthread_db}{-*,}.so* "${libdir}"
+    # shellcheck disable=2016
+    find "${libdir}" -type l -printf 'l="%p" t="%l"; ln -vsnf "${t##*/}" "$l"\n' | bash -x
+    cat >"${script}" <<EOF
+#!/bin/sh
+kodir='${kodir}'
+export DEBUGINFOD_URLS="https://debuginfod.ubuntu.com"
+sosp="\$(find "\$kodir" -type f -name '*.so' -printf '%h\\n' | sort -u | xargs printf '%s:')"
+exec gdb \
+    -ex "set solib-absolute-prefix \$PWD" \\
+    -ex "set solib-search-path \${sosp%:}" \\
+    "\$kodir/luajit" \\
+    corefile-luajit-*
+EOF
+    run chmod +x "${script}"
+    run tar --zstd -cvf "coredumps.tar.zst" "${CORESDIR}"
+    setenv UPLOAD_COREDUMPS=1
+}
+
+function kodev-ci-coredumps-handle-macos() {
+    kodev-ci-func-banner
+    for coredump in "${CORESDIR}"/core.*; do
+        run lldb --batch --core "${coredump}" --one-line bt
+    done
+}
+
+function kodev-ci-coredumps-handle() {
+    kodev-ci-func-banner
+    [[ -d "${CORESDIR}" ]] || return
+    [[ "$(find "${CORESDIR}" -maxdepth 0 -empty)" ]] && return
+    err 'we have coredumps!'
+    ls -lh "${CORESDIR}"
+    case "${RUNNER_OS}" in
+        'Linux')
+            kodev-ci-coredumps-handle-linux
+            ;;
+        'macOS')
+            kodev-ci-coredumps-handle-macos
+            ;;
+    esac
+}
+
+function kodev-ci-test() {
+    kodev-ci-func-banner
+    case "${RUNNER_OS}" in
+        'Linux')
+            setenv CORESDIR="${PWD}/coredumps"
+            echo "${CORESDIR}/corefile-%e-%p-%t" | sudo tee /proc/sys/kernel/core_pattern
+            mkdir -p "${CORESDIR}"
+            ;;
+        'macOS')
+            setenv CORESDIR='/cores'
+            sudo chmod 1777 "${CORESDIR}"
+            ;;
+    esac
+    ulimit -c unlimited
+    trap kodev-ci-coredumps-handle EXIT
+    kodev-test --verbose -n -b "$@"
+}
+
+function kodev-ci-release() {
+    kodev-ci-func-banner
+    kodev-release --verbose -n -b "${JOB_UPDATE_TARGET}"
+}
+
+function kodev-ci-sign-apk() {
+    kodev-ci-func-banner
+    local uber_ver="$1"
+    local uber_jar="uber-apk-signer-${uber_ver}.jar"
+    shift
+    download "https://github.com/patrickfav/uber-apk-signer/releases/download/v${uber_ver}/${uber_jar}"
+    run java -jar "${uber_jar}" --apks "$@"
+}
+
+function kodev-ci-shell() {
+    if [[ -r ./job.sh ]]; then
+        # shellcheck disable=SC1091
+        . ./job.sh
+    fi
+    "$@"
+}
+
+function kodev-ci() {
+    local fn="kodev-ci-$1"
+    [[ "$(type -t "${fn}")" = function ]] || die 1 "invalid ci command: $1"
+    shift
+    "${fn}" "$@"
+}
+
 HELP_MSG="
 usage: $0 COMMAND <ARGS>
 
@@ -841,6 +1189,14 @@ Supported commands:
     echo "${HELP_MSG}"
     exit 1
 }
+
+if [[ "$1" = 'ci' && "${CI}" = 'true' ]]; then
+    exec 2>&1 # avoid jumbled output…
+    opt_timings=1
+    shift 1
+    kodev-ci "$@"
+    exit
+fi
 
 case "${1}" in
     activate)

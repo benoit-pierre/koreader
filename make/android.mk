@@ -67,6 +67,17 @@ LJL_LUAJIT_LIB = $(LJL_LIBS_DIR)/$(ANDROID_ABI)/libluajit-5.1.so
 LJL_SEVENZIP_INC = $(CURDIR)/subprojects/7z/C
 LJL_SEVENZIP_LIB = $(LJL_LIBS_DIR)/$(ANDROID_ABI)/lib7z.so
 
+ifeq (true,$(CI))
+  GRADLE_FLAGS ?= \
+		  --console=plain \
+		  --no-build-cache \
+		  --no-configuration-cache \
+		  --no-daemon \
+		  -x lintVital$(ANDROID_ARCH)RocksRelease
+else
+  GRADLE_FLAGS ?=
+endif
+
 update: all update-git-rev $(LUAJIT_INC) $(SEVENZIP_INC)
 	# Note: do not remove the module directory so there's no need
 	# for `mk7z.sh` to always recreate `assets.7z` from scratch.
@@ -130,6 +141,7 @@ update: all update-git-rev $(LUAJIT_INC) $(SEVENZIP_INC)
 		-PbuildDir='$(LJL_BUILD_DIR)' \
 		-PassetsPath='$(LJL_ASSETS_DIR)' \
 		-PlibsPath='$(LJL_LIBS_DIR)' \
+		$(GRADLE_FLAGS) \
 		'app:assemble$(ANDROID_ARCH)Rocks$(if $(KODEBUG),Debug,Release)'
 	cp $(ANDROID_LAUNCHER_DIR)/NativeActivity.apk $(ANDROID_APK)
 

@@ -216,6 +216,10 @@ else
   include make/$(TARGET).mk
 endif
 
+ifeq (true,$(CI))
+  include make/ci.mk
+endif
+
 KOBO_PACKAGE=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).zip
 KOBO_PACKAGE_OTA=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).targz
 koboupdate: all
