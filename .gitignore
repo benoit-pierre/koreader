@@ -10,8 +10,6 @@
 cscope.*
 *.orig
 *.lua~
-lua
-lua-*
 .reader.kpdfview.lua
 *.kdev4
 .kdev4/*
@@ -33,7 +31,7 @@ git-rev-base
 emu
 luacov.stats.out
 trace-out.txt
-koreader-*
+/koreader-*
 
 i18n
 

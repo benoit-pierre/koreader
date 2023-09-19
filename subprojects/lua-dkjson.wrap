@@ -1,0 +1,6 @@
+[wrap-file]
+directory = dkjson-2.6
+source_url = http://dkolf.de/src/dkjson-lua.fsl/tarball/dkjson-2.6.tar.gz
+source_filename = dkjson-2.6.tar.gz
+source_hash = bd07ee4eb398aed6cf36f92423845399a5b46c15090990cc90e56d07c46f9773
+patch_directory = lua-dkjson/overlay

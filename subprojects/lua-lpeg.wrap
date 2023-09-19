@@ -1,0 +1,8 @@
+[wrap-file]
+directory = LPeg-1.0.2
+source_url = https://github.com/roberto-ieru/LPeg/archive/refs/tags/v1.0.2.tar.gz
+source_hash = 251c3b6ebd98007fd088ffa2af9ef83da6849b04d4a4187453b0b39e63b4b93f
+source_filename = LPeg-1.0.2.tar.gz
+patch_directory = lua-lpeg/overlay
+diff_files = 
+	lua-lpeg/compat.patch

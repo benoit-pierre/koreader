@@ -387,11 +387,11 @@ function OTAManager:_buildLocalPackage()
         -- And since we want a percentage, devise the exact value we need for tar to spit out exactly 100 checkpoints ;).
         local cpoints = blocks * (1/100)
         return os.execute(string.format(
-            "./tar --no-recursion -cf %s -C .. -T %s --checkpoint=%d --checkpoint-action=exec='./fbink -q -y -6 -P $(($TAR_CHECKPOINT/%d))'",
+            "./bsdtar --no-recursion -cf %s -C .. -T %s --checkpoint=%d --checkpoint-action=exec='./fbink -q -y -6 -P $(($TAR_CHECKPOINT/%d))'",
             self.installed_package, self.package_indexfile, cpoints, cpoints))
     else
         return os.execute(string.format(
-            "./tar --no-recursion -cf %s -C .. -T %s",
+            "./bsdtar --no-recursion -cf %s -C .. -T %s",
             self.installed_package, self.package_indexfile))
     end
 end

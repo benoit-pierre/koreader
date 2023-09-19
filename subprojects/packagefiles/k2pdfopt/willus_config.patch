@@ -1,0 +1,21 @@
+diff --git a/willuslib/willus.h b/willuslib/willus.h
+--- a/willuslib/willus.h
++++ b/willuslib/willus.h
+@@ -223,6 +223,7 @@ typedef double  real;
+ **
+ */
+ 
++#if 0
+ /*
+ ** CMAKE handles the defines, not this source
+ ** (Mod from Dirk Thierbach, 31-Dec-2013)
+@@ -282,6 +283,9 @@ typedef double  real;
+ #endif
+ 
+ #endif /* USE_CMAKE */
++#else
++#include "willus_config.h"
++#endif
+ /*
+ ** Consistency check
+ */

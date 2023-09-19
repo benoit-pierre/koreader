@@ -1,0 +1,109 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -2,9 +2,12 @@ project(
+   'libpng',
+   'c',
+   version: '1.6.40', license: 'libpng',
+-  meson_version: '>=0.60.0',
++  meson_version: '>=0.61.0',
+ )
+ 
++fs = import('fs')
++pkg = import('pkgconfig')
++
+ png_versions = meson.project_version().split('.')
+ png_major_version = png_versions[0]
+ png_minor_version = png_versions[1]
+@@ -87,6 +90,26 @@ elif host_machine.cpu_family() in ['x86', 'x86_64']
+   c_args += '-DPNG_INTEL_SSE_OPT=1'
+ endif
+ 
++pngincsubdir = 'lib' + png_libname
++pngincludedir = get_option('includedir') / pngincsubdir
++
++if meson.version().version_compare('>=0.64.0')
++  png_src += fs.copyfile(
++    'scripts/pnglibconf.h.prebuilt',
++    'pnglibconf.h',
++    install_tag: 'devel',
++    install_dir: pngincludedir,
++  )
++else
++  png_src += configure_file(
++    copy: true,
++    input: 'scripts/pnglibconf.h.prebuilt',
++    output: 'pnglibconf.h',
++    install_tag: 'devel',
++    install_dir: pngincludedir,
++  )
++endif
++
+ libpng = library(
+   png_libname,
+   png_src,
+@@ -97,52 +120,26 @@ libpng = library(
+   install: true,
+ )
+ 
+-pngincsubdir = 'lib' + png_libname
+-pngincludedir = get_option('includedir') / pngincsubdir
+-
+-pkglibconf = configure_file(
+-  input: 'scripts/pnglibconf.h.prebuilt',
+-  output: 'pnglibconf.h',
+-  copy: true,
++# FIXME: `libpng.pc` should be a symlink to `libpng16.pc`.
++pkg.generate(
++  libpng,
++  description: 'Loads and saves PNG files',
++  filebase: 'libpng16',
++  name: 'libpng',
++)
++install_symlink(
++  'libpng.pc',
++  install_dir: get_option('libdir') / 'pkgconfig',
++  install_tag: 'devel',
++  pointing_to: 'libpng16.pc',
+ )
+ 
+ install_headers(
+   'png.h',
+   'pngconf.h',
+-  pkglibconf,
+   subdir: pngincsubdir,
+ )
+ 
+-cdata = configuration_data()
+-cdata.set('prefix', get_option('prefix'))
+-cdata.set('exec_prefix', get_option('prefix'))
+-cdata.set('libdir', '${prefix}/' + get_option('libdir'))
+-cdata.set('includedir', '${prefix}/' + get_option('includedir'))
+-cdata.set('PNGLIB_MAJOR', png_major_version)
+-cdata.set('PNGLIB_MINOR', png_minor_version)
+-cdata.set('PNGLIB_VERSION', meson.project_version())
+-# FIXME: should auto-generate pkg-config file to get this right
+-cdata.set('LIBS', '-lz')
+-
+-configure_file(
+-  input: 'libpng.pc.in',
+-  output: 'libpng16.pc',
+-  configuration: cdata,
+-  install_dir: get_option('libdir') / 'pkgconfig',
+-  install: true,
+-  install_tag: 'devel',
+-)
+-
+-# FIXME: this should be a symlink to libpng16.pc
+-configure_file(
+-  input: 'libpng.pc.in',
+-  output: 'libpng.pc',
+-  configuration: cdata,
+-  install_dir: get_option('libdir') / 'pkgconfig',
+-  install: true,
+-  install_tag: 'devel',
+-)
+-
+ libpng_dep = declare_dependency(
+   include_directories: include,
+   link_with: libpng,

@@ -1,0 +1,16 @@
+diff --git a/include/czmq_prelude.h b/include/czmq_prelude.h
+--- a/include/czmq_prelude.h
++++ b/include/czmq_prelude.h
+@@ -530,7 +530,11 @@ typedef int SOCKET;
+ #       define CZMQ_EXPORT __declspec(dllimport)
+ #   endif
+ #else
+-#   define CZMQ_EXPORT
++#   if defined LIBCZMQ_STATIC
++#       define CZMQ_EXPORT
++#   else
++#       define CZMQ_EXPORT  __attribute__ ((visibility("default")))
++#   endif
+ #endif
+ 
+ //  For thread-local storage

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = pv-1.6.20
+source_url = https://github.com/a-j-wood/pv/archive/refs/tags/v1.6.20.tar.gz
+source_hash = 5aa2e33f329799e59b35a187850e3393f861d0137f970f78e02b91e80f3ab3c8
+source_filename = pv-1.6.20.tar.gz
+patch_directory = pv/overlay

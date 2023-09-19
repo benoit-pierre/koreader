@@ -1,0 +1,9 @@
+[wrap-file]
+directory = FBInk-v1.25.0
+source_url = https://github.com/NiLuJe/FBInk/releases/download/v1.25.0/FBInk-v1.25.0.tar.xz
+source_hash = d598e99ed20994e08e1bb768512bc55c97cee941ffe6b1ac237aa754690e1ed5
+source_filename = FBInk-v1.25.0.tar.xz
+patch_directory = fbink/overlay
+
+[provide]
+dependency_names = fbink

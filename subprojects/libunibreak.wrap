@@ -1,0 +1,15 @@
+[wrap-file]
+directory = libunibreak-5.1
+source_url = https://github.com/adah1972/libunibreak/releases/download/libunibreak_5_1/libunibreak-5.1.tar.gz
+source_filename = libunibreak-5.1.tar.gz
+source_hash = dd1a92d4c5646aa0e457ff41d89812ec5243863be6c20bbcb5ee380f3dd78377
+patch_filename = libunibreak_5.1-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/libunibreak_5.1-1/get_patch
+patch_hash = cbc36216eb782ec588ebb74c614b4903cbc39bce01d41c3a7f6cfc9a4dc293ba
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/libunibreak_5.1-1/libunibreak-5.1.tar.gz
+wrapdb_version = 5.1-1
+diff_files = 
+	libunibreak/add-lb-get-char-class.patch
+
+[provide]
+dependency_names = libunibreak

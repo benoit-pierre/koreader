@@ -1,0 +1,28 @@
+diff --git a/src/linebreak.c b/src/linebreak.c
+--- a/src/linebreak.c
++++ b/src/linebreak.c
+@@ -715,6 +715,12 @@ int lb_process_next_char(
+ 
+     return brk;
+ }
++enum LineBreakClass lb_get_char_class(
++        struct LineBreakContext *lbpCtx,
++        utf32_t ch)
++{
++    return get_char_lb_class_lang(ch, lbpCtx->lbpLang);
++}
+ 
+ /**
+  * Sets the line breaking information for a generic input string.
+diff --git a/src/linebreakdef.h b/src/linebreakdef.h
+--- a/src/linebreakdef.h
++++ b/src/linebreakdef.h
+@@ -181,5 +181,8 @@ size_t set_linebreaks(
+         enum BreakOutputType outputType,
+         char *brks,
+         get_next_char_t get_next_char);
++enum LineBreakClass lb_get_char_class(
++        struct LineBreakContext *lbpCtx,
++        utf32_t ch);
+ 
+ #endif /* LINEBREAKDEF_H */

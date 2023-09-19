@@ -1,0 +1,6 @@
+[wrap-file]
+directory = python-certifi-2023.07.22
+source_url = https://github.com/certifi/python-certifi/archive/refs/tags/2023.07.22.tar.gz
+source_hash = 6aebff79589b167037adf6331313db291fabbfafcb22badaaeca36a8c90a124c
+source_filename = python-certifi-2023.07.22.tar.gz
+patch_directory = ca-certificates/overlay

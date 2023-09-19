@@ -1,0 +1,109 @@
+diff --git a/gio/meson.build b/gio/meson.build
+--- a/gio/meson.build
++++ b/gio/meson.build
+@@ -407,6 +407,7 @@ if host_system != 'windows'
+       launch_desktop_sources += files('../glib/gjournal-private.c')
+     endif
+ 
++    if build_tests or build_tools
+     gio_launch_desktop = executable('gio-launch-desktop', launch_desktop_sources,
+       include_directories : glibinc,
+       install : true,
+@@ -415,6 +416,7 @@ if host_system != 'windows'
+       c_args : gio_c_args,
+       # intl.lib is not compatible with SAFESEH
+       link_args : noseh_link_args)
++    endif
+   endif
+ 
+   subdir('xdgmime')
+@@ -962,6 +964,8 @@ gio_tool_sources = [
+   'gio-tool-tree.c',
+ ]
+ 
++if build_tools
++
+ executable('gio', gio_tool_sources,
+   install : true,
+   install_tag : 'bin',
+@@ -977,6 +981,10 @@ executable('gresource', 'gresource-tool.c',
+   link_args : noseh_link_args,
+   dependencies : [libelf, libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+ 
++endif
++
++if meson.can_run_host_binaries() and build_tools
++
+ gio_querymodules = executable('gio-querymodules', 'gio-querymodules.c', 'giomodule-priv.c',
+   install : true,
+   install_dir : multiarch_bindir,
+@@ -1048,6 +1056,8 @@ if host_system != 'windows' and not glib_have_cocoa
+     dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+ endif
+ 
++endif
++
+ if enable_systemtap
+   gio_stp = configure_file(input : 'gio.stp.in',
+     output : '@0@.stp'.format(libgio.full_path().split('/').get(-1)),
+diff --git a/glib/meson.build b/glib/meson.build
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -408,6 +408,8 @@ pkg.generate(libglib,
+ )
+ meson.override_dependency('glib-2.0', libglib_dep)
+ 
++if build_tools
++
+ # On Windows, glib needs a spawn helper for g_spawn* API
+ if host_system == 'windows'
+   if host_machine.cpu_family() == 'x86'
+@@ -442,6 +444,8 @@ else
+     dependencies : [libglib_dep])
+ endif
+ 
++endif
++
+ report_conf = configuration_data()
+ report_conf.set('GLIB_VERSION', glib_version)
+ report_conf.set('PYTHON', python_name)
+diff --git a/gobject/meson.build b/gobject/meson.build
+--- a/gobject/meson.build
++++ b/gobject/meson.build
+@@ -154,10 +154,12 @@ libgobject_dep = declare_dependency(link_with : libgobject,
+   dependencies : [libglib_dep, glib_enumtypes_dep])
+ meson.override_dependency('gobject-2.0', libgobject_dep)
+ 
++if build_tools
+ executable('gobject-query', 'gobject-query.c',
+   install : true,
+   install_tag : 'bin-devel',
+   dependencies : [libglib_dep, libgobject_dep])
++endif
+ 
+ install_data('gobject_gdb.py',
+   install_dir : glib_pkgdatadir / 'gdb',
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -77,6 +77,8 @@ gobjectinc = include_directories('gobject')
+ gmoduleinc = include_directories('gmodule')
+ gioinc = include_directories('gio')
+ 
++build_tools = get_option('tools')
++
+ glib_prefix = get_option('prefix')
+ glib_bindir = join_paths(glib_prefix, get_option('bindir'))
+ glib_libdir = join_paths(glib_prefix, get_option('libdir'))
+diff --git a/meson_options.txt b/meson_options.txt
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -122,3 +122,8 @@ option('multiarch',
+        type : 'boolean',
+        value : false,
+        description : 'Install some helper executables in per-architecture locations')
++
++option('tools',
++  type : 'boolean',
++  value : true,
++  description : 'Build tools')

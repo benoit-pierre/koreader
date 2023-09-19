@@ -1,0 +1,8 @@
+[wrap-file]
+directory = zsync2-e618d18f6a7cbf350cededa17ddfe8f76bdf0b5c
+source_url = https://github.com/NiLuJe/zsync2/archive/e618d18f6a7cbf350cededa17ddfe8f76bdf0b5c.tar.gz
+source_hash = ff5f51f82a7dfeacc002edc0a166456a5159ae8a06c6e92523a78b65a61e5eed
+source_filename = zsync2-e618d18f6a7cbf350cededa17ddfe8f76bdf0b5c.tar.gz
+patch_directory = zsync2/overlay
+diff_files = 
+	zsync2/fix-static-build.patch

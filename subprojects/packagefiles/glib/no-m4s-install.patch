@@ -1,0 +1,16 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -2401,12 +2401,6 @@ if find_program('xgettext', required : get_option('nls')).found()
+   subdir('po')
+ endif
+ 
+-# Install m4 macros that other projects use
+-install_data('m4macros/glib-2.0.m4', 'm4macros/glib-gettext.m4', 'm4macros/gsettings.m4',
+-  install_dir : get_option('datadir') / 'aclocal',
+-  install_tag : 'devel',
+-)
+-
+ configure_file(output : 'config.h', configuration : glib_conf)
+ 
+ if host_system == 'windows'

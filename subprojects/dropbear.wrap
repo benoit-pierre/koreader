@@ -1,0 +1,11 @@
+[wrap-file]
+directory = dropbear-DROPBEAR_2022.83
+source_url = https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_2022.83.tar.gz
+source_hash = e02c5c36eb53bfcd3f417c6e40703a50ec790a1a772269ea156a2ccef14998d2
+source_filename = dropbear-2022.83.tar.gz
+patch_directory = dropbear/overlay
+diff_files = 
+	dropbear/pubkey-hack.patch,
+	dropbear/nochdir-hack.patch,
+	dropbear/options-hack.patch,
+	dropbear/dbscp-path.patch

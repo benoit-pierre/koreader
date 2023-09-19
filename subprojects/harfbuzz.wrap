@@ -1,0 +1,16 @@
+[wrap-file]
+directory = harfbuzz-8.2.1
+source_url = https://github.com/harfbuzz/harfbuzz/releases/download/8.2.1/harfbuzz-8.2.1.tar.xz
+source_filename = harfbuzz-8.2.1.tar.xz
+source_hash = 0fec78f98c9c8faf228957a201c8846f809452c20f8445eb092a1ba6f22dbea5
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/harfbuzz_8.2.1-1/harfbuzz-8.2.1.tar.xz
+wrapdb_version = 8.2.1-1
+diff_files = 
+	harfbuzz/fix-install-tags.patch,
+	harfbuzz/no-subset-install.patch,
+	harfbuzz/no-need-for-ragel.patch,
+	harfbuzz/fix-setup-warnings.patch,
+	harfbuzz/android.patch
+
+[provide]
+dependency_names = harfbuzz, harfbuzz-cairo, harfbuzz-gobject, harfbuzz-icu, harfbuzz-subset

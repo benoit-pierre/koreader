@@ -1,0 +1,30 @@
+diff --git a/turbo/cdef.lua b/turbo/cdef.lua
+--- a/turbo/cdef.lua
++++ b/turbo/cdef.lua
+@@ -58,15 +58,18 @@ end
+ 
+ if not S then
+     ffi.cdef [[
++        /*
+         struct sockaddr{
+             unsigned short sa_family;
+             char sa_data[14];
+         };
++        */
+         struct sockaddr_storage{
+             unsigned short int ss_family;
+             unsigned long int __ss_align;
+             char __ss_padding[128 - (2 *sizeof(unsigned long int))];
+         };
++        /*
+         struct in_addr{
+             unsigned long s_addr;
+         };
+@@ -86,6 +89,7 @@ if not S then
+             struct in6_addr sin6_addr;
+             unsigned int sin6_scope_id;
+         };
++        */
+         typedef unsigned short  sa_family_t;
+         struct sockaddr_un {
+             sa_family_t sun_family;

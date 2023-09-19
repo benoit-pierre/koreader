@@ -1,0 +1,41 @@
+diff --git a/k2pdfoptlib/k2proc.c b/k2pdfoptlib/k2proc.c
+--- a/k2pdfoptlib/k2proc.c
++++ b/k2pdfoptlib/k2proc.c
+@@ -1579,6 +1579,7 @@ printf("Creating single wrmap.\n");
+ #endif
+             wrmaps0=&_wrmaps0;
+             wrectmaps_init(wrmaps0);
++            memset(&wrmap, 0, sizeof (wrmap));
+             wrmap.srcpageno=newregion->pageno;
+             wrmap.srcwidth=newregion->bmp->width;
+             wrmap.srcheight=newregion->bmp->height;
+diff --git a/k2pdfoptlib/textrows.c b/k2pdfoptlib/textrows.c
+--- a/k2pdfoptlib/textrows.c
++++ b/k2pdfoptlib/textrows.c
+@@ -529,6 +529,7 @@ printf("    row[%2d].lc/h5050/cap = %3d %3d %3d\n",i,textrows->textrow[i].lcheig
+         {
+         int lch,rh,c1new,partial,r0,nrt;
+         int *prowthresh,*rthresh;
++        prowthresh=NULL;
+ 
+         lch=0;
+         if (i>0 && textrows->textrow[i].capheight > textrows->textrow[i-1].capheight*1.8)
+diff --git a/k2pdfoptlib/wrapbmp.c b/k2pdfoptlib/wrapbmp.c
+--- a/k2pdfoptlib/wrapbmp.c
++++ b/k2pdfoptlib/wrapbmp.c
+@@ -235,6 +235,7 @@ exit(10);
+         WRECTMAP _wrmap,*wrmap;
+ 
+         wrmap=&_wrmap;
++        memset(wrmap, 0, sizeof (WRECTMAP));
+         wrmap->srcpageno = region->pageno;
+         wrmap->srcwidth = region->bmp8->width;
+         wrmap->srcheight = region->bmp8->height;
+@@ -318,6 +319,7 @@ k2printf("3.  wbh=%d x %d, tmp=%d x %d x %d, new_base=%d, wbbase=%d\n",wrapbmp->
+     WRECTMAP _wrmap,*wrmap;
+ 
+     wrmap=&_wrmap;
++    memset(wrmap, 0, sizeof (WRECTMAP));
+     wrmap->srcpageno = region->pageno;
+     wrmap->srcwidth = region->bmp8->width;
+     wrmap->srcheight = region->bmp8->height;

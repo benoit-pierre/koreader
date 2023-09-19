@@ -1,0 +1,12 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -12,6 +12,8 @@ add_project_arguments('-DUTF8PROC_EXPORTS', language: 'c')
+ 
+ utf8proc_lib = library('utf8proc',
+   'utf8proc.c',
++  install: true,
++  version: meson.project_version(),
+ )
+ 
+ utf8proc_dep = declare_dependency(

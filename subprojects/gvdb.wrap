@@ -1,0 +1,9 @@
+[wrap-file]
+directory = gvdb-89dbdb9ab45721189e195c7e70ed620143d840f7
+source_url = https://github.com/GNOME/gvdb/archive/89dbdb9ab45721189e195c7e70ed620143d840f7.tar.gz
+source_fallback_url = https://gitlab.gnome.org/GNOME/gvdb/-/archive/89dbdb9ab45721189e195c7e70ed620143d840f7/gvdb-89dbdb9ab45721189e195c7e70ed620143d840f7.tar.gz
+source_hash = 4351b65244e238b44ac663bea4b53629d4646c454990d83f405f07f9f523c76f
+source_filename = gvdb-89dbdb9ab45721189e195c7e70ed620143d840f7.tar.gz
+
+[provide]
+dependency_names = gvdb

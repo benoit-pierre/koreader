@@ -1,0 +1,6 @@
+[wrap-file]
+directory = luacheck-1.1.1
+source_url = https://github.com/lunarmodules/luacheck/archive/refs/tags/v1.1.1.tar.gz
+source_hash = 6ef4276498c4bb4ec527c3f942e35ff5c71fdd8c88ed0619a83a1c967d135c81
+source_filename = luacheck-1.1.1.tar.gz
+patch_directory = luacheck/overlay

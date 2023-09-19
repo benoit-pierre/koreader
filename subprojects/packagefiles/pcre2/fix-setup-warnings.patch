@@ -1,0 +1,34 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -2,11 +2,13 @@ project(
+   'pcre2',
+   'c',
+   license: 'BSD-3',
+-  meson_version: '>=0.49.0',
++  meson_version: '>=0.64.0',
+   version: '10.42',
+   default_options: 'c_std=c11',
+ )
+ 
++fs = import('fs')
++
+ pcre2_8_lib_version = '0.11.0'
+ pcre2_16_lib_version = '0.11.0'
+ pcre2_32_lib_version = '0.11.0'
+@@ -145,12 +147,10 @@ pcre2_h = configure_file(
+   configuration: pcredata,
+ )
+ 
+-chartables = configure_file(
+-  input: 'src/pcre2_chartables.c.dist',
+-  output: 'pcre2_chartables.c',
+-  copy: true,
++sources += fs.copyfile(
++  'src/pcre2_chartables.c.dist',
++  'pcre2_chartables.c',
+ )
+-sources += chartables
+ 
+ config_h = configure_file(
+   output: 'config.h',

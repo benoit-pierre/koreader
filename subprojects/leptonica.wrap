@@ -1,0 +1,12 @@
+[wrap-file]
+directory = leptonica-1.74.1
+source_url = https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.74.1.tar.gz
+source_hash = 6d40c7318b2b60fec5173475e8a34c1e08799d668a533d1756c9dfeb874a9d8a
+source_filename = leptonica-1.74.1.tar.gz
+patch_directory = leptonica/overlay
+diff_files = 
+	leptonica/visibility.patch,
+	leptonica/k2pdfopt.patch
+
+[provide]
+dependency_names = lept

@@ -1,0 +1,9 @@
+[wrap-file]
+directory = miniconv-170ddcb9ac8eda1e08e7426acecb6a5733cf1d36
+source_url = https://github.com/malord/miniconv/archive/170ddcb9ac8eda1e08e7426acecb6a5733cf1d36.tar.gz
+source_hash = f6b5d7bc3ca12c0a6604b382a3dad3d7f902af409973b77cb6fa7540056121b9
+source_filename = miniconv-170ddcb9ac8eda1e08e7426acecb6a5733cf1d36.tar.gz
+patch_directory = miniconv/overlay
+diff_files = 
+	miniconv/miniconv-config.patch,
+	miniconv/iconv-proto-compat.patch

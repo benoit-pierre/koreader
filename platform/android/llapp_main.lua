@@ -1,5 +1,7 @@
+require("setupkoenv")
+
 local android = require("android")
-android.dl.library_path = android.dl.library_path .. ":" .. android.dir .. "/libs"
+-- android.dl.library_path = android.dl.library_path .. ":" .. android.dir .. "/libs"
 
 local lfs = require("libs/libkoreader-lfs")
 local ffi = require("ffi")

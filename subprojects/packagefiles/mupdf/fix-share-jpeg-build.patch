@@ -1,0 +1,12 @@
+diff --git a/source/fitz/jmemcust.c b/source/fitz/jmemcust.c
+--- a/source/fitz/jmemcust.c
++++ b/source/fitz/jmemcust.c
+@@ -14,6 +14,8 @@
+  * CA 94903, U.S.A., +1(415)492-9861, for further information.
+  */
+ 
++#include "mupdf/fitz.h"
++
+ #if !defined(SHARE_JPEG) || SHARE_JPEG==0
+ 
+ #include "jinclude.h"

@@ -1,0 +1,15 @@
+[wrap-git]
+url = https://github.com/LuaJIT/LuaJIT.git
+# v2.1.1693350652
+revision = 41fb94defa8f830ce69a8122b03f6ac3216d392a
+depth = 1
+patch_directory = luajit/overlay
+diff_files = 
+	luajit/enable-table-pack.patch,
+	luajit/mcode_reserve_hack.patch,
+	luajit/default-paths.patch,
+	luajit/visibility.patch
+
+[provide]
+dependency_names = luajit, lua
+program_names = luajit

@@ -1,0 +1,10 @@
+[wrap-git]
+directory = luajit-launcher
+url = https://github.com/koreader/android-luajit-launcher.git
+revision = 858573cc8808942a32f258fcfb1691c198887c3b
+depth = 1
+patch_directory = luajit-launcher/overlay
+diff_files = 
+	luajit-launcher/android.patch,
+	luajit-launcher/speedup-gradle.patch,
+	luajit-launcher/android-x86_64.patch

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = rsync-3.2.7
+source_url = https://github.com/WayneD/rsync/archive/refs/tags/v3.2.7.tar.gz
+source_hash = 4f2a350baa93dc666078b84bc300767a77789ca12f0dec3cb4b3024971f8ef47
+source_filename = rsync-3.2.7.tar.gz
+patch_directory = rsync/overlay

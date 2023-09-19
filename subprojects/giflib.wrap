@@ -1,0 +1,9 @@
+[wrap-file]
+directory = giflib-5.1.4
+source_url = https://gitlab.com/koreader/giflib/-/archive/5.1.4/giflib-5.1.4.tar.bz2
+source_hash = 19dba12555a360bc254fe42c58f18db25a84ba0700567dfcebcb08d383bfddd4
+source_filename = giflib-5.1.4.tar.bz2
+patch_directory = giflib/overlay
+
+[provide]
+dependency_names = gif

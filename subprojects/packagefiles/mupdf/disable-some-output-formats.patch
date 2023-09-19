@@ -1,0 +1,30 @@
+diff --git a/source/fitz/writer.c b/source/fitz/writer.c
+--- a/source/fitz/writer.c
++++ b/source/fitz/writer.c
+@@ -114,8 +114,10 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *format, co
+ 		format += 1; /* skip the '.' */
+ 	}
+ 
++#if 0
+ 	if (!fz_strcasecmp(format, "cbz"))
+ 		return fz_new_cbz_writer(ctx, path, options);
++#endif
+ #if FZ_ENABLE_PDF
+ 	if (!fz_strcasecmp(format, "pdf"))
+ 		return fz_new_pdf_writer(ctx, path, options);
+@@ -140,6 +142,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *format, co
+ 	if (!fz_strcasecmp(format, "pkm"))
+ 		return fz_new_pkm_pixmap_writer(ctx, path, options);
+ 
++#if 0
+ 	if (!fz_strcasecmp(format, "pcl"))
+ 		return fz_new_pcl_writer(ctx, path, options);
+ 	if (!fz_strcasecmp(format, "pclm"))
+@@ -157,6 +160,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *format, co
+ 		return fz_new_text_writer(ctx, format, path, options);
+ 	if (!fz_strcasecmp(format, "stext"))
+ 		return fz_new_text_writer(ctx, format, path, options);
++#endif
+ 
+ 	fz_throw(ctx, FZ_ERROR_GENERIC, "unknown output document format: %s", format);
+ }

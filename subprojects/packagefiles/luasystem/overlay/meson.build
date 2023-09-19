@@ -1,0 +1,34 @@
+project('luasystem', 'c', version: '0.2.1')
+
+meson.override_dependency(meson.project_name(), declare_dependency(version: meson.project_version()))
+
+lua_dep = dependency('lua', version: ['>= 5.1'])
+
+foreach _var : ['install_cmod', 'install_lmod']
+  _val = lua_dep.get_variable(_var.to_upper(), pkgconfig_define: ['prefix', ''])
+  set_variable(_var, _val.startswith('/') ? _val.substring(1) : _val)
+endforeach
+
+shared_module(
+  'core',
+  [
+    'src/core.c',
+    'src/compat.c',
+    'src/time.c',
+  ],
+  dependencies: [lua_dep],
+  gnu_symbol_visibility: 'inlineshidden',
+  install: true,
+  install_dir: install_cmod / 'system',
+  install_tag: 'runtime',
+  name_prefix: '',
+)
+
+install_data(
+  'system/init.lua',
+  rename: [
+    'system/init.lua',
+  ],
+  install_dir: install_lmod,
+  install_tag: 'runtime',
+)

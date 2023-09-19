@@ -1,0 +1,5 @@
+option('djvulibre', type: 'feature', value: 'auto')
+option('libjpeg'  , type: 'feature', value: 'auto')
+option('libpng'   , type: 'feature', value: 'auto')
+option('mupdf'    , type: 'feature', value: 'auto')
+option('zlib'     , type: 'feature', value: 'auto')

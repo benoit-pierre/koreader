@@ -1,0 +1,1 @@
+#define RSYNC_GITVER "@VCS_TAG@"

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = lua-rapidjson-0.7.1
+source_url = https://github.com/xpol/lua-rapidjson/archive/refs/tags/v0.7.1.tar.gz
+source_hash = a0f44b5024eb88fb6e32769e3108666084b8371111f08a50feb51b719ac50eb7
+source_filename = lua-rapidjson-0.7.1.tar.gz
+patch_directory = lua-rapidjson/overlay

@@ -1,0 +1,2 @@
+option('libjpeg', type: 'feature', value: 'auto')
+option('libtiff-4', type: 'feature', value: 'auto')

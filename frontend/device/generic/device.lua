@@ -980,7 +980,7 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
 end
 
 function Device:untar(archive, extract_to, with_stripped_root)
-    local cmd = "./tar xf %q -C %q"
+    local cmd = "./bsdtar xf %q -C %q"
     if with_stripped_root then
         cmd = cmd .. " --strip-components=1"
     end

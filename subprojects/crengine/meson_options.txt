@@ -1,0 +1,12 @@
+option('install_symlinks', type: 'boolean', value: false, yield: true)
+
+option('antiword'   , type: 'feature', value: 'auto')
+option('chmlib'     , type: 'feature', value: 'auto')
+option('fribidi'    , type: 'feature', value: 'auto')
+option('libunibreak', type: 'feature', value: 'auto')
+option('lunasvg'    , type: 'feature', value: 'auto')
+option('nanosvg'    , type: 'feature', value: 'auto')
+option('srell_regex', type: 'feature', value: 'auto')
+option('utf8proc'   , type: 'feature', value: 'auto')
+option('webp'       , type: 'feature', value: 'auto')
+option('zstd'       , type: 'feature', value: 'auto')

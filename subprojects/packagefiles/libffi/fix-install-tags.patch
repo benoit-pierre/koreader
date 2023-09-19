@@ -1,0 +1,11 @@
+diff --git a/include/meson.build b/include/meson.build
+--- a/include/meson.build
++++ b/include/meson.build
+@@ -7,6 +7,7 @@ ffi_h_conf.set('TARGET', target)
+ configure_file(input : 'ffi.h.in',
+   output : 'ffi.h',
+   configuration : ffi_h_conf,
++  install_tag : 'devel',
+   install_dir : get_option('includedir'))
+ 
+ install_headers(f'../src/@targetdir@/ffitarget.h')

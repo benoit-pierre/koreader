@@ -1,233 +1,223 @@
-# koreader-base directory
-KOR_BASE?=base
-
-# the repository might not have been checked out yet, so make this
-# able to fail:
--include $(KOR_BASE)/Makefile.defs
-
-# We want VERSION to carry the version of the KOReader main repo, not that of koreader-base
-VERSION:=$(shell git describe HEAD)
-# Only append date if we're not on a whole version, like v2018.11
-ifneq (,$(findstring -,$(VERSION)))
-	VERSION:=$(VERSION)_$(shell git describe HEAD | xargs git show -s --format=format:"%cd" --date=short)
+ifeq (,$(VERBOSE))
+.SILENT:
 endif
 
-# releases do not contain tests and misc data
-IS_RELEASE := $(if $(or $(EMULATE_READER),$(WIN32)),,1)
-IS_RELEASE := $(if $(or $(IS_RELEASE),$(APPIMAGE),$(DEBIAN),$(MACOS)),1,)
+SHELL = /bin/bash
+.SHELLFLAGS = -eo pipefail -c
 
-ifeq ($(ANDROID_ARCH), arm64)
-	ANDROID_ABI?=arm64-v8a
-else ifeq ($(ANDROID_ARCH), x86)
-	ANDROID_ABI?=$(ANDROID_ARCH)
-else ifeq ($(ANDROID_ARCH), x86_64)
-	ANDROID_ABI?=$(ANDROID_ARCH)
+ifeq ($(OS),Windows_NT)
+  BUILD_ARCH = $(PROCESSOR_ARCHITECTURE)
+  BUILD_OS = windows
 else
-	ANDROID_ARCH?=arm
-	ANDROID_ABI?=armeabi-v7a
+  UNAME:=$(shell uname -s -m)
+  BUILD_ARCH = $(lastword $(UNAME))
+  ifeq ($(firstword $(UNAME)),Linux)
+    BUILD_OS = linux
+  endif
+  ifeq ($(firstword $(UNAME)),Darwin)
+    BUILD_OS = macos
+  endif
 endif
 
-# Use the git commit count as the (integer) Android version code
-ANDROID_VERSION?=$(shell git rev-list --count HEAD)
-ANDROID_NAME?=$(VERSION)
+WGET ?= wget --no-verbose --progress=dot:mega --show-progress
 
-MACHINE=$(shell $(CC) -dumpmachine 2>/dev/null)
+ifeq ($(BUILD_OS),macos)
+  RCP ?= cp -R
+else
+  RCP ?= cp -r
+endif
+
+ifdef CCACHE_DISABLE
+  CCACHE = env
+else
+  CCACHE ?= $(or \
+	    $(shell which ccache 2>/dev/null),\
+	    $(shell which sccache 2>/dev/null),\
+	    $(shell which buildcache 2>/dev/null),\
+	    env)
+endif
+
+ifeq ($(TARGET),)
+  override TARGET := emulator
+  KODEBUG ?= 1
+else
+  ifneq (,$(filter %-,$(TARGET)))
+    $(error unsupported target: $(TARGET)!)
+  endif
+endif
+
+ifeq ($(TARGET),emulator)
+  override TARGET := $(TARGET)-$(BUILD_OS)-$(BUILD_ARCH)
+else ifneq ($(filter emulator-%,$(TARGET)),)
+  ifeq ($(words $(subst -,$(empty) $(empty),$(TARGET))),2)
+    override TARGET := $(TARGET)-$(BUILD_ARCH)
+  endif
+endif
+
+VERSION = $(shell cat $(INSTALL_DIR)/koreader/git-rev)
+
+MACHINE = $(TARGET)
+
 ifdef KODEBUG
-	MACHINE:=$(MACHINE)-debug
-	KODEDUG_SUFFIX:=-debug
+  KODEDUG_SUFFIX = -debug
 endif
 
-ifdef TARGET
-	DIST:=$(TARGET)
-else
-	DIST:=emulator
-endif
-
-INSTALL_DIR=koreader-$(DIST)-$(MACHINE)
+DIST = $(TARGET)
+BUILD_DIR = build/$(DIST)$(KODEDUG_SUFFIX)
+INSTALL_DIR = koreader-$(DIST)$(KODEDUG_SUFFIX)
+INSTALL_SYMLINKS ?= $(and $(filter linux macos,$(BUILD_OS)),1)
 
 # platform directories
 PLATFORM_DIR=platform
 COMMON_DIR=$(PLATFORM_DIR)/common
-ANDROID_DIR=$(PLATFORM_DIR)/android
-ANDROID_LAUNCHER_DIR:=$(ANDROID_DIR)/luajit-launcher
-ANDROID_ASSETS:=$(ANDROID_LAUNCHER_DIR)/assets/module
-ANDROID_LIBS_ROOT:=$(ANDROID_LAUNCHER_DIR)/libs
-ANDROID_LIBS_ABI:=$(ANDROID_LIBS_ROOT)/$(ANDROID_ABI)
-APPIMAGE_DIR=$(PLATFORM_DIR)/appimage
 CERVANTES_DIR=$(PLATFORM_DIR)/cervantes
 DEBIAN_DIR=$(PLATFORM_DIR)/debian
-KINDLE_DIR=$(PLATFORM_DIR)/kindle
 KOBO_DIR=$(PLATFORM_DIR)/kobo
-MACOS_DIR=$(PLATFORM_DIR)/mac
 POCKETBOOK_DIR=$(PLATFORM_DIR)/pocketbook
-REMARKABLE_DIR=$(PLATFORM_DIR)/remarkable
 SONY_PRSTUX_DIR=$(PLATFORM_DIR)/sony-prstux
 UBUNTUTOUCH_DIR=$(PLATFORM_DIR)/ubuntu-touch
 UBUNTUTOUCH_SDL_DIR:=$(UBUNTUTOUCH_DIR)/ubuntu-touch-sdl
 WIN32_DIR=$(PLATFORM_DIR)/win32
 
-# appimage setup
-APPIMAGETOOL=appimagetool-x86_64.AppImage
-APPIMAGETOOL_URL=https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage
+.DEFAULT_GOAL := all
 
-# set to 1 if in Docker
-DOCKER:=$(shell grep -q docker /proc/1/cgroup 2>/dev/null && echo 1)
+all: build install
 
-# files to link from main directory
-INSTALL_FILES=reader.lua setupkoenv.lua frontend resources defaults.lua datastorage.lua \
-		l10n tools README.md COPYING
+BUILD_INFO = $(BUILD_DIR)/meson-info/intro-buildoptions.json
 
-all: $(if $(ANDROID),,$(KOR_BASE)/$(OUTPUT_DIR)/luajit)
-	$(MAKE) -C $(KOR_BASE)
-	install -d $(INSTALL_DIR)/koreader
-	rm -f $(INSTALL_DIR)/koreader/git-rev; echo "$(VERSION)" > $(INSTALL_DIR)/koreader/git-rev
-ifdef ANDROID
-	rm -f android-fdroid-version; echo -e "$(ANDROID_NAME)\n$(ANDROID_VERSION)" > koreader-android-fdroid-latest
+MESON ?= meson
+
+MESON_CROSS_FILES :=
+MESON_NATIVE_FILES :=
+
+# At most 3 parts to a target (type, os, arch).
+TARGET_PARTS := $(subst -,$(empty) $(empty),$(TARGET))
+TARGET_VARIANTS := $(foreach size,$(wordlist 1,$(words $(TARGET_PARTS)),1 2 3),$(subst $(empty) $(empty),-,$(wordlist 1,$(size),$(TARGET_PARTS))))
+
+TARGET_FILES := $(wildcard $(patsubst %,meson/target_%-.ini,$(TARGET_VARIANTS))) meson/target_$(TARGET).ini
+ifeq (,$(wildcard $(lastword $(TARGET_FILES))))
+  $(error unsupported target: $(TARGET)!)
 endif
-ifeq ($(IS_RELEASE),1)
-	$(RCP) -fL $(KOR_BASE)/$(OUTPUT_DIR)/. $(INSTALL_DIR)/koreader/.
+TARGET_FILES := $(wildcard $(TARGET_FILES))
+
+# Native files.
+NATIVE_FILES := meson/native.ini $(wildcard $(patsubst %,meson/native_%.ini,$(TARGET_VARIANTS)))
+
+# Default options.
+OPTIONS_FILES += meson/options.ini meson/options_$(if $(KODEBUG),debug,release).ini
+ifneq (,$(INSTALL_SYMLINKS))
+  OPTIONS_FILES += meson/options_install_symlinks.ini
+endif
+
+# Custom user options.
+USER_FILES += $(wildcard meson/user_$(TARGET)$(or $(KODEDUG_SUFFIX),-release).ini)
+
+ifeq ($(TARGET),emulator-$(BUILD_OS)-$(BUILD_ARCH))
+  # Native build.
+  MESON_NATIVE_FILES += meson/ccache.ini $(NATIVE_FILES) $(OPTIONS_FILES) $(TARGET_FILES) $(USER_FILES)
 else
-	cp -f $(KOR_BASE)/ev_replay.py $(INSTALL_DIR)/koreader/
-	@echo "[*] create symlink instead of copying files in development mode"
-	cd $(INSTALL_DIR)/koreader && \
-		bash -O extglob -c "ln -sf ../../$(KOR_BASE)/$(OUTPUT_DIR)/!(cache|history) ."
-	@echo "[*] install front spec only for the emulator"
-	cd $(INSTALL_DIR)/koreader/spec && test -e front || \
-		ln -sf ../../../../spec ./front
-	cd $(INSTALL_DIR)/koreader/spec/front/unit && test -e data || \
-		ln -sf ../../test ./data
-endif
-	for f in $(INSTALL_FILES); do \
-		ln -sf ../../$$f $(INSTALL_DIR)/koreader/; \
-	done
-ifdef ANDROID
-	cd $(INSTALL_DIR)/koreader && \
-		ln -sf ../../$(ANDROID_DIR)/*.lua .
-endif
-	@echo "[*] Install update once marker"
-	@echo "# This file indicates that update once patches have not been applied yet." > $(INSTALL_DIR)/koreader/update_once.marker
-ifdef WIN32
-	@echo "[*] Install runtime libraries for win32..."
-	cd $(INSTALL_DIR)/koreader && cp ../../$(WIN32_DIR)/*.dll .
-endif
-ifdef SHIP_SHARED_STL
-	@echo "[*] Install C++ runtime..."
-	cp -fL $(SHARED_STL_LIB) $(INSTALL_DIR)/koreader/libs/
-	chmod 755 $(INSTALL_DIR)/koreader/libs/$(notdir $(SHARED_STL_LIB))
-	$(STRIP) --strip-unneeded $(INSTALL_DIR)/koreader/libs/$(notdir $(SHARED_STL_LIB))
-endif
-	@echo "[*] Install plugins"
-	@# TODO: link istead of cp?
-	$(RCP) plugins/. $(INSTALL_DIR)/koreader/plugins/.
-	@# purge deleted plugins
-	for d in $$(ls $(INSTALL_DIR)/koreader/plugins); do \
-		test -d plugins/$$d || rm -rf $(INSTALL_DIR)/koreader/plugins/$$d ; done
-	@echo "[*] Install resources"
-	$(RCP) -pL resources/fonts/. $(INSTALL_DIR)/koreader/fonts/.
-	install -d $(INSTALL_DIR)/koreader/{screenshots,data/{dict,tessdata},fonts/host,ota}
-ifeq ($(IS_RELEASE),1)
-	@echo "[*] Clean up, remove unused files for releases"
-	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,cr3skin-format.txt,desktop,devices,manual}
+  # Cross build.
+  CROSS_FILES := $(patsubst %,meson/cross_%.ini,$(TARGET_VARIANTS))
+  ifeq (,$(wildcard $(lastword $(CROSS_FILES))))
+    $(error no cross-compilation profile for $(TARGET)!)
+  endif
+  CROSS_FILES := $(wildcard $(CROSS_FILES))
+  ifneq (,$(filter android-%,$(TARGET)))
+    CROSS_FILES := meson/android.ini $(CROSS_FILES)
+    NATIVE_FILES := meson/android.ini $(NATIVE_FILES)
+  endif
+  MESON_CROSS_FILES += meson/ccache.ini $(CROSS_FILES) $(OPTIONS_FILES) $(TARGET_FILES) $(USER_FILES)
+  MESON_NATIVE_FILES += meson/ccache.ini $(NATIVE_FILES)
 endif
 
-$(KOR_BASE)/$(OUTPUT_DIR)/luajit:
-	$(MAKE) -C $(KOR_BASE)
+define meson_setup
+$(MESON) setup $(BUILD_DIR) \
+  -Dauto_features=disabled -Dpkgconfig.relocatable=true --wrap-mode=forcefallback \
+  $(patsubst %,--cross-file=%,$(MESON_CROSS_FILES)) \
+  $(patsubst %,--native-file=%,$(MESON_NATIVE_FILES)) \
+  --prefix=/ --bindir=. --libdir=libs.staging --libexecdir=libs.staging \
+  $(MESON_SETUP_ARGS);
+endef
 
-$(INSTALL_DIR)/koreader/.busted: .busted
-	ln -sf ../../.busted $(INSTALL_DIR)/koreader
+define meson_install
+$(MESON) install -C $(BUILD_DIR) \
+  --destdir='$(CURDIR)/$(INSTALL_DIR)/$2' \
+  --no-rebuild --tags='$1' $(if $(VERBOSE),,--quiet) \
+  ;
+endef
 
-$(INSTALL_DIR)/koreader/.luacov:
-	test -e $(INSTALL_DIR)/koreader/.luacov || \
-		ln -sf ../../.luacov $(INSTALL_DIR)/koreader
+# We want to carry the version of the KOReader main repo, not
+# that of koreader-base, and only append date if we're not on
+# a whole version, like `v2018.11`.
+define update_git_rev
+  $(eval VERSION := $(shell git describe HEAD))
+  $(eval VERSION := $(VERSION)$(if $(findstring -,$(VERSION)),_$(shell git show -s --format=format:'%cd' --date=short)))
+  echo '$(VERSION)' >'$(INSTALL_DIR)/koreader/git-rev'
+  # Note: use a precision of hours to reduce gradle cache misses…
+  touch -t "$$(git show --no-patch --date='format-local:%Y%m%d%H00' --format='%cd')" '$(INSTALL_DIR)/koreader/git-rev'
+endef
 
-testfront: $(INSTALL_DIR)/koreader/.busted
-	# sdr files may have unexpected impact on unit testing
-	-rm -rf spec/unit/data/*.sdr
-	cd $(INSTALL_DIR)/koreader && ./luajit $(shell which busted) \
-		--sort-files \
-		--output=gtest \
-		--exclude-tags=notest $(BUSTED_OVERRIDES) $(BUSTED_SPEC_FILE)
+meson/ccache.ini:
+	printf '%s\n' \
+		'[constants]' \
+		"CCACHE = '$(CCACHE)'" \
+		>$@
 
-test: $(INSTALL_DIR)/koreader/.busted
-	$(MAKE) -C $(KOR_BASE) test
-	$(MAKE) testfront
+$(BUILD_INFO): $(MESON_CROSS_FILES) $(MESON_NATIVE_FILES)
+	$(meson_setup)
 
-coverage: $(INSTALL_DIR)/koreader/.luacov
-	-rm -rf $(INSTALL_DIR)/koreader/luacov.*.out
-	cd $(INSTALL_DIR)/koreader && \
-		./luajit $(shell which busted) --output=gtest \
-			--sort-files \
-			--coverage --exclude-tags=nocov
-	# coverage report summary
-	cd $(INSTALL_DIR)/koreader && tail -n \
-		+$$(($$(grep -nm1 -e "^Summary$$" luacov.report.out|cut -d: -f1)-1)) \
-		luacov.report.out
+setup: $(BUILD_INFO)
 
-fetchthirdparty:
+empty :=
+space := $(empty) $(empty)
+comma := ,
+
+build: $(BUILD_INFO)
+	$(MESON) compile -C $(BUILD_DIR)$(if $(NINJAFLAGS), --ninja-args='$(subst $(space),$(comma),$(NINJAFLAGS))')$(if $(VERBOSE), --verbose)
+
+install: $(BUILD_INFO)
+	$(call meson_install,runtime,koreader)
+	$(call update_git_rev)
+
+install-dev: $(BUILD_INFO)
+	$(call meson_install,devel,dev)
+
+update-git-rev:
+ifneq (,$(INSTALL_SYMLINKS))
+	$(call update_git_rev)
+endif
+
+fetch-thirdparty:
+ifneq (,$(shell git submodule status | grep -E '^-'))
 	git submodule init
 	git submodule sync
-	git submodule update
-	$(MAKE) -C $(KOR_BASE) fetchthirdparty
-
-VERBOSE ?= @
-Q = $(VERBOSE:1=)
-clean:
-	rm -rf $(INSTALL_DIR)
-	$(Q:@=@echo 'MAKE -C base clean'; &> /dev/null) \
-		$(MAKE) -C $(KOR_BASE) clean
-ifeq ($(TARGET), android)
-	$(MAKE) -C $(CURDIR)/platform/android/luajit-launcher clean
+	git submodule update --depth 1 --jobs 3
 endif
+	$(MESON) subprojects download --num-processes 3
+
+clean:
+	rm -rf $(BUILD_DIR) $(INSTALL_DIR)
 
 dist-clean: clean
-	rm -rf $(INSTALL_DIR)
-	$(MAKE) -C $(KOR_BASE) dist-clean
+	# $(MESON) subprojects purge --confirm
+	rm -rf subprojects/packagecache
 	$(MAKE) -C doc clean
 
-KINDLE_PACKAGE:=koreader-$(DIST)$(KODEDUG_SUFFIX)-$(VERSION).zip
-KINDLE_PACKAGE_OTA:=koreader-$(DIST)$(KODEDUG_SUFFIX)-$(VERSION).targz
-ZIP_EXCLUDE=-x "*.swp" -x "*.swo" -x "*.orig" -x "*.un~"
-# Don't bundle launchpad on touch devices..
-ifeq ($(TARGET), kindle-legacy)
-KINDLE_LEGACY_LAUNCHER:=launchpad
-endif
-kindleupdate: all
-	# ensure that the binaries were built for ARM
-	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
-	# remove old package if any
-	rm -f $(KINDLE_PACKAGE)
-	# Kindle launching scripts
-	ln -sf ../$(KINDLE_DIR)/extensions $(INSTALL_DIR)/
-	ln -sf ../$(KINDLE_DIR)/launchpad $(INSTALL_DIR)/
-	ln -sf ../../$(KINDLE_DIR)/koreader.sh $(INSTALL_DIR)/koreader
-	ln -sf ../../$(KINDLE_DIR)/libkohelper.sh $(INSTALL_DIR)/koreader
-	ln -sf ../../../../../$(KINDLE_DIR)/libkohelper.sh $(INSTALL_DIR)/extensions/koreader/bin
-	ln -sf ../../$(COMMON_DIR)/spinning_zsync $(INSTALL_DIR)/koreader
-	ln -sf ../../$(KINDLE_DIR)/wmctrl $(INSTALL_DIR)/koreader
-	# create new package
-	cd $(INSTALL_DIR) && pwd && \
-		zip -9 -r \
-			../$(KINDLE_PACKAGE) \
-			extensions koreader $(KINDLE_LEGACY_LAUNCHER) \
-			-x "koreader/resources/fonts/*" "koreader/ota/*" \
-			"koreader/resources/icons/src/*" "koreader/spec/*" \
-			$(ZIP_EXCLUDE)
-	# generate kindleupdate package index file
-	zipinfo -1 $(KINDLE_PACKAGE) > \
-		$(INSTALL_DIR)/koreader/ota/package.index
-	echo "koreader/ota/package.index" >> $(INSTALL_DIR)/koreader/ota/package.index
-	# update index file in zip package
-	cd $(INSTALL_DIR) && zip -u ../$(KINDLE_PACKAGE) \
-		koreader/ota/package.index
-	# make gzip kindleupdate for zsync OTA update
-	# note that the targz file extension is intended to keep ISP from caching
-	# the file, see koreader#1644.
-	cd $(INSTALL_DIR) && \
-		tar --hard-dereference -I"gzip --rsyncable" -cah --no-recursion -f ../$(KINDLE_PACKAGE_OTA) \
-		-T koreader/ota/package.index
+dist-reset:
+	$(MESON) subprojects update --reset
 
-KOBO_PACKAGE:=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).zip
-KOBO_PACKAGE_OTA:=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).targz
+ifneq (,$(filter android-%,$(TARGET)))
+  include make/android.mk
+else ifneq (,$(filter emulator-%,$(TARGET)))
+  include make/emulator.mk
+else ifneq (,$(filter kindle%,$(TARGET)))
+  include make/kindle.mk
+else
+  include make/$(TARGET).mk
+endif
+
+KOBO_PACKAGE=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).zip
+KOBO_PACKAGE_OTA=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).targz
 koboupdate: all
 	# ensure that the binaries were built for ARM
 	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
@@ -256,8 +246,8 @@ koboupdate: all
 		tar --hard-dereference -I"gzip --rsyncable" -cah --no-recursion -f ../$(KOBO_PACKAGE_OTA) \
 		-T koreader/ota/package.index
 
-PB_PACKAGE:=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).zip
-PB_PACKAGE_OTA:=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).targz
+PB_PACKAGE=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).zip
+PB_PACKAGE_OTA=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).targz
 pbupdate: all
 	# ensure that the binaries were built for ARM
 	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
@@ -325,106 +315,6 @@ utupdate: all
 		click build koreader && \
 		mv *.click ../../koreader-$(DIST)-$(MACHINE)-$(VERSION).click
 
-appimageupdate: all
-	# remove old package if any
-	rm -f koreader-appimage-$(MACHINE)-$(VERSION).appimage
-
-	ln -sf ../../$(APPIMAGE_DIR)/AppRun $(INSTALL_DIR)/koreader
-	ln -sf ../../$(APPIMAGE_DIR)/koreader.appdata.xml $(INSTALL_DIR)/koreader
-	ln -sf ../../$(APPIMAGE_DIR)/koreader.desktop $(INSTALL_DIR)/koreader
-	ln -sf ../../resources/koreader.png $(INSTALL_DIR)/koreader
-	# TODO at best this is DebUbuntu specific
-	ln -sf /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0 $(INSTALL_DIR)/koreader/libs/libSDL2.so
-	# required for our stock Ubuntu SDL even though we don't use sound
-	# the readlink is a half-hearted attempt at being generic; the echo libsndio.so.6.1 is specific to the nightly builds
-	ln -sf /usr/lib/x86_64-linux-gnu/$(shell readlink /usr/lib/x86_64-linux-gnu/libsndio.so || echo libsndio.so.6.1) $(INSTALL_DIR)/koreader/libs/
-	# also copy libbsd.so.0, cf. https://github.com/koreader/koreader/issues/4627
-	ln -sf /lib/x86_64-linux-gnu/libbsd.so.0 $(INSTALL_DIR)/koreader/libs/
-ifeq ("$(wildcard $(APPIMAGETOOL))","")
-	# download appimagetool
-	wget "$(APPIMAGETOOL_URL)"
-	chmod a+x "$(APPIMAGETOOL)"
-endif
-ifeq ($(DOCKER), 1)
-	# remove previously extracted appimagetool, if any
-	rm -rf squashfs-root
-	./$(APPIMAGETOOL) --appimage-extract
-endif
-	cd $(INSTALL_DIR) && pwd && \
-		rm -rf tmp && mkdir -p tmp && \
-		cp -Lr koreader tmp && \
-		rm -rf tmp/koreader/ota && \
-		rm -rf tmp/koreader/resources/icons/src && \
-		rm -rf tmp/koreader/spec
-
-	# generate AppImage
-	cd $(INSTALL_DIR)/tmp && \
-		ARCH=x86_64 ../../$(if $(DOCKER),squashfs-root/AppRun,$(APPIMAGETOOL)) koreader && \
-		mv *.AppImage ../../koreader-$(DIST)-$(MACHINE)-$(VERSION).AppImage
-
-androidupdate: all
-	# Note: do not remove the module directory so there's no need
-	# for `mk7z.sh` to always recreate `assets.7z` from scratch.
-	rm -rfv $(ANDROID_LIBS_ROOT)
-	mkdir -p $(ANDROID_ASSETS) $(ANDROID_LIBS_ABI)
-
-	# APK version
-	echo $(VERSION) > $(ANDROID_ASSETS)/version.txt
-
-	# shared libraries are stored as raw assets
-	cp -pR $(INSTALL_DIR)/koreader/libs $(ANDROID_LAUNCHER_DIR)/assets
-	# in runtime luajit-launcher's libluajit.so will be loaded
-	rm -vf $(ANDROID_LAUNCHER_DIR)/assets/libs/libluajit.so
-
-	# binaries are stored as shared libraries to prevent W^X exception on Android 10+
-	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
-	cp -pR $(INSTALL_DIR)/koreader/sdcv $(ANDROID_LIBS_ABI)/libsdcv.so
-	echo "sdcv libsdcv.so" > $(ANDROID_ASSETS)/map.txt
-
-	# assets are compressed manually and stored inside the APK.
-	cd $(INSTALL_DIR)/koreader && \
-		./tools/mk7z.sh \
-		../../$(ANDROID_ASSETS)/koreader.7z \
-		"$$(git show -s --format='%ci')" \
-		-m0=lzma2 -mx=9 \
-		-- . \
-		'-x!cache' \
-		'-x!clipboard' \
-		'-x!data/dict' \
-		'-x!data/tessdata' \
-		'-x!history' \
-		'-x!l10n/templates' \
-		'-x!libs' \
-		'-x!ota' \
-		'-x!resources/fonts*' \
-		'-x!resources/icons/src*' \
-		'-x!rocks/bin' \
-		'-x!rocks/lib/luarocks' \
-		'-x!screenshots' \
-		'-x!sdcv' \
-		'-x!spec' \
-		'-x!tools' \
-		'-xr!.*' \
-		'-xr!COPYING' \
-		'-xr!NOTES.txt' \
-		'-xr!NOTICE' \
-		'-xr!README.md' \
-		;
-
-	# make the android APK
-	# Note: filter out the `--debug=…` make flag
-	# so the old crummy version provided by the
-	# NDK does not blow a gasket.
-	MAKEFLAGS='$(filter-out --debug=%,$(MAKEFLAGS))' \
-		$(MAKE) -C $(ANDROID_LAUNCHER_DIR) $(if $(KODEBUG), debug, release) \
-		ANDROID_APPNAME=KOReader \
-		ANDROID_VERSION=$(ANDROID_VERSION) \
-		ANDROID_NAME=$(ANDROID_NAME) \
-		ANDROID_FLAVOR=$(ANDROID_FLAVOR)
-
-	cp $(ANDROID_LAUNCHER_DIR)/bin/NativeActivity.apk \
-		koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(VERSION).apk
-
 debianupdate: all
 	mkdir -pv \
 		$(INSTALL_DIR)/debian/usr/bin \
@@ -451,48 +341,8 @@ debianupdate: all
 	rm -rf \
 		$(INSTALL_DIR)/debian/usr/lib/koreader/{ota,cache,clipboard,screenshots,spec,tools,resources/fonts,resources/icons/src}
 
-macosupdate: all
-	mkdir -p \
-		$(INSTALL_DIR)/bundle/Contents/MacOS \
-		$(INSTALL_DIR)/bundle/Contents/Resources
-
-	cp -pv $(MACOS_DIR)/koreader.icns $(INSTALL_DIR)/bundle/Contents/Resources/icon.icns
-	cp -LR $(INSTALL_DIR)/koreader $(INSTALL_DIR)/bundle/Contents
-	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
-	ibtool --compile "$(INSTALL_DIR)/bundle/Contents/Resources/Base.lproj/MainMenu.nib" "$(INSTALL_DIR)/bundle/Contents/MainMenu.xib"
-	rm -rfv "$(INSTALL_DIR)/bundle/Contents/MainMenu.xib"
-
-REMARKABLE_PACKAGE:=koreader-remarkable$(KODEDUG_SUFFIX)-$(VERSION).zip
-REMARKABLE_PACKAGE_OTA:=koreader-remarkable$(KODEDUG_SUFFIX)-$(VERSION).targz
-remarkableupdate: all
-	# ensure that the binaries were built for ARM
-	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
-	# remove old package if any
-	rm -f $(REMARKABLE_PACKAGE)
-	# Remarkable scripts
-	cp $(REMARKABLE_DIR)/* $(INSTALL_DIR)/koreader
-	cp $(COMMON_DIR)/spinning_zsync $(INSTALL_DIR)/koreader
-	# create new package
-	cd $(INSTALL_DIR) && \
-	        zip -9 -r \
-	                ../$(REMARKABLE_PACKAGE) \
-	                koreader -x "koreader/resources/fonts/*" \
-	                "koreader/resources/icons/src/*" "koreader/spec/*" \
-	                $(ZIP_EXCLUDE)
-	# generate update package index file
-	zipinfo -1 $(REMARKABLE_PACKAGE) > \
-	        $(INSTALL_DIR)/koreader/ota/package.index
-	echo "koreader/ota/package.index" >> $(INSTALL_DIR)/koreader/ota/package.index
-	# update index file in zip package
-	cd $(INSTALL_DIR) && zip -u ../$(REMARKABLE_PACKAGE) \
-	        koreader/ota/package.index
-	# make gzip remarkable update for zsync OTA update
-	cd $(INSTALL_DIR) && \
-	        tar -I"gzip --rsyncable" -cah --no-recursion -f ../$(REMARKABLE_PACKAGE_OTA) \
-	        -T koreader/ota/package.index
-
-SONY_PRSTUX_PACKAGE:=koreader-sony-prstux$(KODEDUG_SUFFIX)-$(VERSION).zip
-SONY_PRSTUX_PACKAGE_OTA:=koreader-sony-prstux$(KODEDUG_SUFFIX)-$(VERSION).targz
+SONY_PRSTUX_PACKAGE=koreader-sony-prstux$(KODEDUG_SUFFIX)-$(VERSION).zip
+SONY_PRSTUX_PACKAGE_OTA=koreader-sony-prstux$(KODEDUG_SUFFIX)-$(VERSION).targz
 sony-prstuxupdate: all
 	# ensure that the binaries were built for ARM
 	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
@@ -519,8 +369,8 @@ sony-prstuxupdate: all
 	        tar --hard-dereference -I"gzip --rsyncable" -cah --no-recursion -f ../$(SONY_PRSTUX_PACKAGE_OTA) \
 	        -T koreader/ota/package.index
 
-CERVANTES_PACKAGE:=koreader-cervantes$(KODEDUG_SUFFIX)-$(VERSION).zip
-CERVANTES_PACKAGE_OTA:=koreader-cervantes$(KODEDUG_SUFFIX)-$(VERSION).targz
+CERVANTES_PACKAGE=koreader-cervantes$(KODEDUG_SUFFIX)-$(VERSION).zip
+CERVANTES_PACKAGE_OTA=koreader-cervantes$(KODEDUG_SUFFIX)-$(VERSION).targz
 cervantesupdate: all
 	# ensure that the binaries were built for ARM
 	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
@@ -549,54 +399,40 @@ cervantesupdate: all
 	tar --hard-dereference -I"gzip --rsyncable" -cah --no-recursion -f ../$(CERVANTES_PACKAGE_OTA) \
 	-T koreader/ota/package.index
 
-update:
-ifeq ($(TARGET), android)
-	make androidupdate
-else ifeq ($(TARGET), appimage)
-	make appimageupdate
-else ifeq ($(TARGET), cervantes)
-	make cervantesupdate
-else ifeq ($(TARGET), kindle)
-	make kindleupdate
-else ifeq ($(TARGET), kindle-legacy)
-	make kindleupdate
-else ifeq ($(TARGET), kindlepw2)
-	make kindleupdate
-else ifeq ($(TARGET), kobo)
-	make koboupdate
-else ifeq ($(TARGET), pocketbook)
-	make pbupdate
-else ifeq ($(TARGET), sony-prstux)
-	make sony-prstuxupdate
-else ifeq ($(TARGET), remarkable)
-	make remarkableupdate
-else ifeq ($(TARGET), ubuntu-touch)
-	make utupdate
-else ifeq ($(TARGET), debian)
-	make debianupdate
-	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR)
-else ifeq ($(TARGET), debian-armel)
-	make debianupdate
-	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) armel
-else ifeq ($(TARGET), debian-armhf)
-	make debianupdate
-	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) armhf
-else ifeq ($(TARGET), debian-arm64)
-	make debianupdate
-	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) arm64
-else ifeq ($(TARGET), macos)
-	make macosupdate
-	$(CURDIR)/platform/mac/do_mac_bundle.sh $(INSTALL_DIR)
-endif
-
-androiddev: androidupdate
-	$(MAKE) -C $(ANDROID_LAUNCHER_DIR) dev
-
-android-ndk:
-	$(MAKE) -C $(KOR_BASE)/toolchain $(ANDROID_NDK_HOME)
-
-android-sdk:
-	$(MAKE) -C $(KOR_BASE)/toolchain $(ANDROID_HOME)
+# update:
+# ifeq ($(TARGET), android)
+# 	make androidupdate
+# else ifeq ($(TARGET), appimage)
+# 	make appimageupdate
+# else ifeq ($(TARGET), cervantes)
+# 	make cervantesupdate
+# else ifeq ($(TARGET), kindle)
+# 	make kindleupdate
+# else ifeq ($(TARGET), kindle-legacy)
+# 	make kindleupdate
+# else ifeq ($(TARGET), kindlepw2)
+# 	make kindleupdate
+# else ifeq ($(TARGET), kobo)
+# 	make koboupdate
+# else ifeq ($(TARGET), pocketbook)
+# 	make pbupdate
+# else ifeq ($(TARGET), sony-prstux)
+# 	make sony-prstuxupdate
+# else ifeq ($(TARGET), ubuntu-touch)
+# 	make utupdate
+# else ifeq ($(TARGET), debian)
+# 	make debianupdate
+# 	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR)
+# else ifeq ($(TARGET), debian-armel)
+# 	make debianupdate
+# 	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) armel
+# else ifeq ($(TARGET), debian-armhf)
+# 	make debianupdate
+# 	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) armhf
+# else ifeq ($(TARGET), debian-arm64)
+# 	make debianupdate
+# 	$(CURDIR)/platform/debian/do_debian_package.sh $(INSTALL_DIR) arm64
+# endif
 
 
 # for gettext
@@ -629,4 +465,5 @@ static-check:
 doc:
 	make -C doc
 
-.PHONY: all clean doc test update
+.PHONY: all build clean dist-clean dist-reset doc fetch-thirdparty install install-dev setup update update-git-rev
+.NOTPARALLEL: all

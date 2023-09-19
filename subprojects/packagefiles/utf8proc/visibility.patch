@@ -1,0 +1,23 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -4,14 +4,19 @@ project('utf8proc', 'c',
+     default_options: ['c_std=c99']
+ )
+ 
++# We still need to be able to export
++# the symbols we need when almalgaming.
++if false
+ if get_option('default_library') == 'static'
+   add_project_arguments('-DUTF8PROC_STATIC', language: 'c')
+ endif
++endif
+ 
+ add_project_arguments('-DUTF8PROC_EXPORTS', language: 'c')
+ 
+ utf8proc_lib = library('utf8proc',
+   'utf8proc.c',
++  gnu_symbol_visibility: 'hidden',
+   install: true,
+   version: meson.project_version(),
+ )

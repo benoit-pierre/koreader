@@ -1,0 +1,32 @@
+diff --git a/meson_options.txt b/meson_options.txt
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -25,7 +25,7 @@ option('wasm', type: 'feature', value: 'disabled',
+   description: 'Enable WebAssembly shaper backend (experimental)')
+ 
+ # Common feature options
+-option('tests', type: 'feature', value: 'enabled', yield: true,
++option('tests', type: 'feature', value: 'enabled',
+   description: 'Enable or disable unit tests')
+ option('introspection', type: 'feature', value: 'auto', yield: true,
+   description: 'Generate gobject-introspection bindings (.gir/.typelib files)')
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -792,6 +792,7 @@ endif
+ have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
+ 
+ cmake_config = configuration_data()
++cmake_config.set('default_library', get_option('default_library'))
+ cmake_config.set('libdir', get_option('prefix') / get_option('libdir'))
+ cmake_config.set('includedir', get_option('prefix') / get_option('includedir'))
+ cmake_config.set('HB_LIBTOOL_VERSION_INFO', hb_libtool_version_info)
+@@ -921,7 +922,7 @@ if get_option('tests').enabled()
+ 
+   env = environment()
+   env.set('srcdir', meson.current_source_dir())
+-  env.set('base_srcdir', meson.source_root())
++  env.set('base_srcdir', meson.project_source_root())
+   env.set('builddir', meson.current_build_dir())
+   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
+   HBSOURCES = []

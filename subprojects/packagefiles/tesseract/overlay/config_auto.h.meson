@@ -1,0 +1,25 @@
+#ifndef CONFIG_AUTO_H
+#define CONFIG_AUTO_H
+
+/* Define to be the git revision */
+#define GIT_REV "60176fc"
+
+/* Disable graphics */
+#mesondefine GRAPHICS_DISABLED
+
+/* Define to 1 if you have the `lept' library (-llept). */
+#mesondefine HAVE_LIBLEPT
+
+/* Define to 1 if the system has the type `off_t'. */
+#mesondefine HAVE_OFF_T
+
+/* Define to 1 if the system has the type `wchar_t'. */
+#mesondefine HAVE_WCHAR_T
+
+/* This is a MinGW system */
+#mesondefine MINGW
+
+/* Defined when compiled with OpenMP support */
+#mesondefine OPENMP
+
+#endif

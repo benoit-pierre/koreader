@@ -1,0 +1,240 @@
+#!/usr/bin/env luajit
+
+local function load_rockspec(rockspec)
+    local f = loadfile(rockspec)
+    local spec = {}
+    setfenv(f, spec)
+    f()
+    return spec
+end
+
+-- local function map(t, fn)
+--     local nt = {}
+--     for k, v in pairs(t) do
+--         nt[k] = fn(v)
+--     end
+--     return nt
+-- end
+
+local function imap(t, fn)
+    local nt = {}
+    if type(t) == 'function' then
+        for v in t do
+            table.insert(nt, fn(v))
+        end
+    else
+        for i, v in ipairs(t) do
+            table.insert(nt, fn(v))
+        end
+    end
+    return nt
+end
+
+local function underscorify(s)
+    return string.gsub(s, "[^A-Za-z0-9_]", "_")
+end
+
+local function tomesonstring(s)
+    assert(not string.match("['\\]", s))
+    return string.format("'%s'", s)
+end
+
+local function tomesonstringlist(t, indent)
+    indent = indent or 0
+    local sep, start, term
+    if indent < 0 then
+        sep = ", "
+        start = ""
+        term = ""
+    else
+        sep = ",\n" .. string.rep("  ", indent)
+        start = string.sub(sep, 3)
+        term = ","
+    end
+    return start .. table.concat(imap(t, tomesonstring), sep) .. term
+end
+
+local function lua_package_name(package)
+    local name
+    if string.match(package, "^[Ll][Uu][Aa]") or string.match(package, "[Ll][Uu][Aa]$") then
+        name = package
+    else
+        name = "lua-" .. package
+    end
+    return string.lower(name)
+end
+
+local function rockspec2meson(spec)
+    local meson = {
+        name = lua_package_name(spec.package),
+        version = string.match(spec.version, "^(%d[.%d]*)") or spec.version,
+        dependencies = {},
+        data = {},
+        modules = {},
+        wrap = {},
+    }
+    -- WRAP
+    local wrap = meson.wrap
+    wrap.type, wrap.url = string.match(spec.source.url, "^([^:+]+)[+]([^:]+://.*)")
+    wrap.url = wrap.url or spec.source.url
+    if not wrap.type then
+        local protocol = string.match(wrap.url, "^([^:]+)")
+        if protocol == "git" then
+            wrap.type = protocol
+        end
+    end
+    wrap.type = wrap.type or 'file'
+    if wrap.type == 'file' then
+        wrap.filename = string.match(spec.source.url, "([^/]+)$")
+        wrap.dir = spec.source.dir
+        if not wrap.dir then
+            wrap.dir = string.match(wrap.filename, "(.*[^.])[.][^.]+$")
+        end
+    elseif wrap.type == 'git' then
+        wrap.revision = spec.source.tag or spec.source.branch
+    end
+    -- DEPENDENCIES
+    if spec.dependencies then
+        for i, req in ipairs(spec.dependencies) do
+            local name, constraints = string.match(req, "(%a[-%w_]+)(.*)")
+            name = lua_package_name(name)
+            constraints = imap(string.gmatch(constraints, '[^,]+'), function (c)
+                c = string.match(c, '^[%s]*(.+)[%s]*$')
+                -- strip rockspec revision
+                c = string.match(c, '^(.*[^-])-%d+$') or c
+                return c
+            end)
+            table.insert(meson.dependencies, {name = name, version = #constraints > 0 and constraints or nil})
+        end
+    end
+    if #meson.dependencies == 0 then
+        table.insert(meson.dependencies, {name = 'lua'})
+    end
+    -- DATA / MODULES
+    local add_data = function(destdir, file, rename)
+        meson.data[destdir] = meson.data[destdir] or {}
+        assert(not meson.data[destdir][file], string.format('conflicting data: %s -> %s: %s / %s', file, destdir, rename, meson.data[destdir][file]))
+        meson.data[destdir][file] = rename
+    end
+    if spec.build.type == 'builtin' or spec.build.type == 'module' then
+        for name, file in pairs(spec.build.modules or {}) do
+            -- luacheck: ignore 542
+            if type(file) == 'table' then
+                --- @fixme: shared library
+            else
+                local ext = string.match(file, '[^.]+$')
+                local install_path = string.gsub(name, '[.]', '/')
+                if ext == 'c' then
+                    --- @fixme: shared library
+                elseif ext == 'lua' then
+                    local rename
+                    if string.match(file, '/init[.]lua$') and not string.match(install_path, '/init$') then
+                        rename = string.format('%s/init.lua', install_path)
+                    else
+                        rename = string.format('%s.%s', install_path, ext)
+                    end
+                    add_data('luadir', file, rename)
+                else
+                    error(string.format('unsupported extension: %s', file))
+                end
+            end
+        end
+    elseif spec.build.type == 'make' then
+    elseif spec.build.type == 'cmake' then
+    else
+        error(string.format('unsupported build type: %s', spec.build.type))
+    end
+    if spec.build.install then
+        for rename, file in pairs(spec.build.install.bin or {}) do
+            add_data('bindir', file, rename)
+        end
+    end
+    return meson
+end
+
+local function mesonbuild(meson)
+    print(string.format("project(%s, version: %s)", tomesonstring(meson.name), tomesonstring(meson.version)))
+    print()
+    print("meson.override_dependency(meson.project_name(), declare_dependency(version: meson.project_version()))")
+    if #meson.dependencies > 0 then
+        print()
+        for i, dep in ipairs(meson.dependencies) do
+            print(string.format(
+                "%s_dep = dependency(%s" .. (dep.version and ", version: [%s])" or ")"),
+                underscorify(dep.name), tomesonstring(dep.name), dep.version and tomesonstringlist(dep.version, -1)
+            ))
+        end
+    end
+    print()
+    print("foreach _var : ['install_cmod', 'install_lmod']")
+    print("  _val = lua_dep.get_variable(_var.to_upper(), pkgconfig_define: ['prefix', ''])")
+    print("  set_variable(_var, _val.startswith('/') ? _val.substring(1) : _val)")
+    print("endforeach")
+    local dirlist = {}
+    for destdir, toinstall in pairs(meson.data) do
+        table.insert(dirlist, destdir)
+    end
+    if #dirlist then
+        table.sort(dirlist)
+        for _, destdir in ipairs(dirlist) do
+            local filelist = {}
+            for file, rename in pairs(meson.data[destdir]) do
+                table.insert(filelist, file)
+            end
+            table.sort(filelist)
+            local renamelist = {}
+            for _, file in ipairs(filelist) do
+                table.insert(renamelist, meson.data[destdir][file])
+            end
+            local install_dir
+            if destdir == "luadir" then
+                install_dir = "install_lmod"
+            else
+                install_dir = string.format("get_option(%s)", tomesonstring(destdir))
+            end
+            print()
+            print('install_data(')
+            print(tomesonstringlist(filelist, 1))
+            print("  rename: [\n" .. tomesonstringlist(renamelist, 2) .. "\n  ],")
+            print(string.format("  install_dir: %s,", install_dir))
+            print("  install_tag: 'runtime',")
+            print(')')
+        end
+    end
+end
+
+local function mesonwrap(meson)
+    local wrap = meson.wrap
+    if wrap.type == "file" then
+        print("[wrap-file]")
+        print("directory = " .. wrap.dir)
+        print("source_url = " .. wrap.url)
+        print("source_filename = " .. wrap.filename)
+        print("source_hash = ")
+    elseif wrap.type == "git" then
+        print("[wrap-git]")
+        print("url = " .. wrap.url)
+        print("revision = " .. wrap.revision)
+        print("depth = 1")
+    else
+        error(string.format('unsupported wrap type: %s', wrap.type))
+    end
+    print(string.format("patch_directory = %s/overlay", meson.name))
+    print()
+    print("[provide]")
+    print("dependency_names = " .. meson.name)
+end
+
+local args = {...}
+local rockspec = args[1]
+local mode = args[2] or "build"
+local spec = load_rockspec(rockspec)
+local formatter
+if mode == "build" then
+    formatter = mesonbuild
+elseif mode == "wrap" then
+    formatter = mesonwrap
+else
+    error(string.format('unsupported mode: %s', mode))
+end
+formatter(rockspec2meson(spec))

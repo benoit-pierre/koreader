@@ -11,6 +11,24 @@ You can skip most of the following instructions if desired, and use our premade 
 
 ## Prerequisites
 
+FIXME
+
+android-ndk (for Android)
+android-sdk (for Android)
+gcc/g++ or clang/clang++
+gcc plugin support (when building ffi-cdecl)
+git
+java (JDK, not JRE, for Android build)
+make
+meson
+nasm (SIMD support, for Android x86/x86_64 and emulator builds)
+ninja
+p7zip (for Android builds)
+patch
+pkg-config (for emulator builds)
+wget
+zip
+
 To get and compile the source you must have `patch`, `wget`, `unzip`, `git`,
 `cmake` and `luarocks` installed, as well as a version of `autoconf`
 greater than 2.64. You also need `nasm`, `ragel`, and of course a compiler like `gcc`

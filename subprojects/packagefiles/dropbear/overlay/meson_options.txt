@@ -1,0 +1,9 @@
+option('harden', type: 'boolean', value: true)
+option('scp', type: 'boolean', value: true)
+option('zlib', type: 'feature', value: 'auto')
+
+# Server options.
+option('dbscp_path', type: 'string')
+option('default_port', type: 'integer', value: 22)
+option('inetd_mode', type: 'boolean', value: true)
+option('sftpserver_path', type: 'string')

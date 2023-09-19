@@ -1,0 +1,45 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -1,5 +1,5 @@
+ project('harfbuzz', 'c', 'cpp',
+-  meson_version: '>= 0.55.0',
++  meson_version: '>= 0.60.0',
+   version: '8.2.1',
+   default_options: [
+     'cpp_eh=none',          # Just to support msvc, we are passing -fno-exceptions also anyway
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -3,6 +3,7 @@ hb_version_h = configure_file(
+                input: 'hb-version.h.in',
+                output: 'hb-version.h',
+                install: true,
++               install_tag: 'devel',
+                install_dir: get_option('includedir') / meson.project_name())
+ 
+ # Base and default-included sources and headers
+@@ -532,6 +533,7 @@ hb_features_h = configure_file(input: 'hb-features.h.in',
+                                output: 'hb-features.h',
+                                configuration: hb_enabled_features,
+                                install: true,
++                               install_tag: 'devel',
+                                install_dir: get_option('includedir') / meson.project_name())
+ 
+ # This file is generated to convince gtk-doc to generate documentation for all
+@@ -798,6 +800,7 @@ configure_file(input: 'harfbuzz-config.cmake.in',
+   output: 'harfbuzz-config.cmake',
+   configuration: cmake_config,
+   install_dir: get_option('libdir') / 'cmake' / 'harfbuzz',
++  install_tag: 'devel',
+ )
+ 
+ gobject_enums_c = []
+@@ -835,6 +838,7 @@ if have_gobject
+     output: 'hb-gobject-enums.h',
+     command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@'],
+     install: true,
++    install_tag: 'devel',
+     install_dir: get_option('prefix') / get_option('includedir') / meson.project_name(),
+   )
+ 

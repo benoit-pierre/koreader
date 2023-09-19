@@ -1,0 +1,111 @@
+diff --git a/C/7zDec.c b/C/7zDec.c
+--- a/C/7zDec.c
++++ b/C/7zDec.c
+@@ -19,6 +19,9 @@
+ #ifdef _7ZIP_PPMD_SUPPPORT
+ #include "Ppmd7.h"
+ #endif
++#ifdef _7ZIP_ZSTD_SUPPPORT
++#include "zstd.h"
++#endif
+ 
+ #define k_Copy 0
+ #define k_Delta 3
+@@ -31,6 +34,7 @@
+ #define k_ARM   0x3030501
+ #define k_ARMT  0x3030701
+ #define k_SPARC 0x3030805
++#define k_ZSTD  0x4f71101
+ 
+ 
+ #ifdef _7ZIP_PPMD_SUPPPORT
+@@ -249,6 +253,66 @@ static SRes SzDecodeLzma2(const Byte *props, unsigned propsSize, UInt64 inSize,
+ 
+ #endif
+ 
++#ifdef _7ZIP_ZSTD_SUPPPORT
++
++static SRes SzDecodeZstd(const Byte *props, unsigned propsSize, UInt64 inSize, ILookInStream *inStream,
++    Byte *outBuffer, SizeT outSize, ISzAllocPtr allocMain)
++{
++  SRes            res;
++  size_t          zerr;
++  void           *inBuf = NULL;
++  ZSTD_DCtx      *zctx = NULL;
++
++  inBuf = ISzAlloc_Alloc(allocMain, inSize);
++  if (inBuf == NULL) {
++      res = SZ_ERROR_MEM;
++      goto end;
++  }
++
++  zctx = ZSTD_createDCtx();
++  if (!zctx) {
++      res = SZ_ERROR_MEM;
++      goto end;
++  }
++
++  {
++      SizeT size = inSize;
++
++      res = ILookInStream_Read(inStream, inBuf, &size);
++      if (res != SZ_OK || size != inSize)
++          goto end;
++  }
++
++  {
++      ZSTD_inBuffer  zIn;
++      ZSTD_outBuffer zOut;
++
++      zIn.src = inBuf;
++      zIn.size = inSize;
++      zIn.pos = 0;
++
++      zOut.dst = outBuffer;
++      zOut.size = outSize;
++      zOut.pos = 0;
++
++      zerr = ZSTD_decompressStream(zctx, &zOut, &zIn);
++      if (zerr) {
++          res = SZ_ERROR_FAIL;
++          goto end;
++      }
++  }
++
++  res = SZ_OK;
++
++end:
++  if (zctx != NULL)
++      ZSTD_freeDCtx(zctx);
++  if (inBuf != NULL)
++      ISzAlloc_Free(allocMain, inBuf);
++  return res;
++}
++
++#endif
+ 
+ static SRes SzDecodeCopy(UInt64 inSize, ILookInStream *inStream, Byte *outBuffer)
+ {
+@@ -280,6 +344,9 @@ static BoolInt IS_MAIN_METHOD(UInt32 m)
+     #endif
+     #ifdef _7ZIP_PPMD_SUPPPORT
+     case k_PPMD:
++    #endif
++    #ifdef _7ZIP_ZSTD_SUPPPORT
++    case k_ZSTD:
+     #endif
+       return True;
+   }
+@@ -446,6 +513,12 @@ static SRes SzFolder_Decode2(const CSzFolder *folder,
+         RINOK(SzDecodePpmd(propsData + coder->PropsOffset, coder->PropsSize, inSize, inStream, outBufCur, outSizeCur, allocMain));
+       }
+       #endif
++      #ifdef _7ZIP_ZSTD_SUPPPORT
++      else if (coder->MethodID == k_ZSTD)
++      {
++          RINOK(SzDecodeZstd(propsData + coder->PropsOffset, coder->PropsSize, inSize, inStream, outBufCur, outSizeCur, allocMain));
++      }
++      #endif
+       else
+         return SZ_ERROR_UNSUPPORTED;
+     }
