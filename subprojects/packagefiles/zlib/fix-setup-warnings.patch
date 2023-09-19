@@ -1,5 +1,4 @@
 diff --git a/meson_options.txt b/meson_options.txt
---- a/meson_options.txt
 +++ b/meson_options.txt
 @@ -1,2 +1,2 @@
  option('solo', type: 'boolean', value: false, description: 'Build a minimal zlib without file I/O API')
