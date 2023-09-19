@@ -10302,8 +10302,6 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                   (offset==srcLen && offset == word->t.start+word->t.len) ) ) {
                         // pointer inside this word
                         LVFont *font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
-                        lUInt16 w[512];
-                        lUInt8 flg[512];
                         lString32 str = node->getText();
                         // With "|| (extended && offset < word->t.start)" added to the first if
                         // above, we may now be here with: offset = word->t.start = 0
@@ -10340,6 +10338,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             default:
                                 break;
                         }
+                        lUInt16 w[word->t.len];
+                        lUInt8 flg[word->t.len];
                         lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
                         font->measureText(
                             str.c_str()+word->t.start,
@@ -10366,7 +10366,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                 rect.right = rect.left + word->width;
                             }
                             else {
-                                int chw = w[ offset - word->t.start ] - chx;
+                                int chw = (offset - word->t.start < word->t.len ? w[ offset - word->t.start ] : 0) - chx;
                                 bool hyphen_added = false;
                                 if ( offset == word->t.start + word->t.len - 1
                                         && (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) ) {
