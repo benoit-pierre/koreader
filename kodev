@@ -599,7 +599,7 @@ ANDROID TARGET:
 function kodev-test() {
     CMD='test'
     HELP="
-usage: test <OPTIONS> [all|base|front] <TEST_NAME>
+usage: test <OPTIONS> [all|base|bench|front] <TEST_NAME>
 
     TEST_NAME is optional. If no TEST_NAME is given, all tests will be run.
 
@@ -640,7 +640,7 @@ $(build_options_help_msg 'BUILD' 'use existing build' '' 'default')
         '')
             margs+=('test-all')
             ;;
-        all | base | front)
+        all | base | bench | front)
             margs+=("test-$1")
             shift
             ;;

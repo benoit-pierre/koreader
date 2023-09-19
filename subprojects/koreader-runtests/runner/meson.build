@@ -65,10 +65,13 @@ is_xfail = {}
 
 _testroot = kodir / testdir
 foreach _testpath : run_command(
-  find,
-  '-L', _testroot,
+  find, '-L', _testroot,
   '-type', 'f',
+  '(',
+  '-name', '*_bench.lua',
+  '-o',
   '-name', '*_spec.lua',
+  ')',
   '-print0',
   check: true,
 ).stdout().strip('\0').split('\0')
@@ -78,33 +81,52 @@ foreach _testpath : run_command(
   _parts = _testpath.split('/')
   _suite = _parts[0]
   assert(_suite != '')
-  _test = _parts[-1].substring(0, -9)
-  _id = _suite / _test
-  _is_parallel = is_parallel.get(_id, true)
-  _is_xfail = is_xfail.get(_id, false)
-  # message(_suite, _test, _is_parallel, _is_xfail)
-  # if not _is_parallel
-  #   continue
-  # endif
+  _is_bench = _parts[-1].endswith('_bench.lua')
+  if _is_bench
+    _test = _parts[-1].substring(0, -10)
+    # message('benchmark:', _suite, _test)
+  else
+    _test = _parts[-1].substring(0, -9)
+    _id = _suite / _test
+    _is_parallel = is_parallel.get(_id, true)
+    _is_xfail = is_xfail.get(_id, false)
+    # message('test:', _suite, _test, _is_parallel, _is_xfail)
+    # if not _is_parallel
+    #   continue
+    # endif
+  endif
+  _args = [
+    '-e', 'require "busted.runner" {standalone = false}', '/dev/null',
+    '--output=gtest', '-Xoutput=--color', '--exclude-tags=notest',
+    '--run=' + _suite, testdir / _testpath,
+  ]
   _env = environment()
   _env.set('KO_HOME', meson.current_build_dir() / '_'.join(_suite, _test))
   # Don't fail the testsuite on ASAN detected leaks.
   _env.prepend('LSAN_OPTIONS', 'exitcode=0', separator: ' ')
-  test(
-    _test,
-    luajit,
-    args: [
-      '-e', 'require "busted.runner" {standalone = false}', '/dev/null',
-      '--run=' + _suite,
-      '--output=gtest', '-Xoutput=--color',
-      '--exclude-tags=notest', testdir / _testpath,
-    ],
-    env: _env,
-    is_parallel: _is_parallel,
-    protocol: 'exitcode',
-    should_fail: _is_xfail,
-    suite: _suite,
-    timeout: 60,
-    workdir: fs.parent(luajit.full_path()),
-  )
+  if _is_bench
+    benchmark(
+      _test,
+      luajit,
+      args: _args,
+      env: _env,
+      protocol: 'exitcode',
+      suite: _suite,
+      timeout: 120,
+      workdir: fs.parent(luajit.full_path()),
+    )
+  else
+    test(
+      _test,
+      luajit,
+      args: _args,
+      env: _env,
+      is_parallel: _is_parallel,
+      protocol: 'exitcode',
+      should_fail: _is_xfail,
+      suite: _suite,
+      timeout: 60,
+      workdir: fs.parent(luajit.full_path()),
+    )
+  endif
 endforeach

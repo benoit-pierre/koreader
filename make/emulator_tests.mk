@@ -1,4 +1,4 @@
-TESTSUITES := all base front
+TESTSUITES := all base bench front
 
 COVERAGE_ARGS = --test-args='--coverage --exclude-tags=nocov' --timeout-multiplier=3
 COVERAGE_STATS = $(INSTALL_DIR)/koreader/luacov.stats.out

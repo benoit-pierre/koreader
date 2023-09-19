@@ -16,9 +16,11 @@ if which meson >/dev/null 2>&1; then
         rm -rf .testrun
         meson setup --backend=none --prefix="${PWD}" .testrun testrunner
         local -a testcmd=(meson test -C .testrun --print-errorlogs)
-        if [[ "${suite}" != 'all' ]]; then
-            testcmd+=(--suite="${suite}")
-        fi
+        case "${suite}" in
+            all) ;;
+            bench) testcmd+=(--benchmark) ;;
+            *) testcmd+=(--suite="${suite}") ;;
+        esac
         if [[ "${CI}" = 'true' ]]; then
             testcmd+=(--num-processes=$(($(getconf _NPROCESSORS_ONLN) * 2)))
         fi
@@ -35,10 +37,18 @@ else
 
     runtests() {
         find -L spec -name '*.sdr' -print0 | xargs -0 rm -rf
-        # Don't fail the testsuite on ASAN detected leaks.
-        env LSAN_OPTIONS="${LSAN_OPTIONS:-exitcode=0}" \
-            ./luajit -e 'require "busted.runner" {standalone = false}' /dev/null \
-            --run="${suite}" '--exclude-tags=notest' '--sort-files' "$@"
+        local -a testcmd=(
+            # Don't fail the testsuite on ASAN detected leaks.
+            env LSAN_OPTIONS="${LSAN_OPTIONS:-exitcode=0}"
+            ./luajit -e 'require "busted.runner" {standalone = false}' /dev/null
+            '--exclude-tags=notest' '--sort-files'
+        )
+        if [[ "${suite}" = 'bench' ]]; then
+            testcmd+=('--pattern=_bench')
+            suite='all'
+        fi
+        testcmd+=("--run=${suite}" "$@")
+        "${testcmd[@]}"
     }
 
 fi
