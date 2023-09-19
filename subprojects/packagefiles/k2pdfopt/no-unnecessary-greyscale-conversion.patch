@@ -1,7 +1,7 @@
 diff --git a/k2pdfoptlib/k2master.c b/k2pdfoptlib/k2master.c
 --- a/k2pdfoptlib/k2master.c
 +++ b/k2pdfoptlib/k2master.c
-@@ -284,9 +284,11 @@ printf("11\n");
+@@ -294,9 +294,11 @@ printf("11\n");
  #if (WILLUSDEBUGX & 0x800000)
  printf("22\n");
  #endif

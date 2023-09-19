@@ -1,7 +1,7 @@
 diff --git a/k2pdfoptlib/k2proc.c b/k2pdfoptlib/k2proc.c
 --- a/k2pdfoptlib/k2proc.c
 +++ b/k2pdfoptlib/k2proc.c
-@@ -1579,6 +1579,7 @@ printf("Creating single wrmap.\n");
+@@ -1618,6 +1618,7 @@ printf("Creating single wrmap.\n");
  #endif
              wrmaps0=&_wrmaps0;
              wrectmaps_init(wrmaps0);
@@ -12,7 +12,7 @@ diff --git a/k2pdfoptlib/k2proc.c b/k2pdfoptlib/k2proc.c
 diff --git a/k2pdfoptlib/textrows.c b/k2pdfoptlib/textrows.c
 --- a/k2pdfoptlib/textrows.c
 +++ b/k2pdfoptlib/textrows.c
-@@ -529,6 +529,7 @@ printf("    row[%2d].lc/h5050/cap = %3d %3d %3d\n",i,textrows->textrow[i].lcheig
+@@ -569,6 +569,7 @@ printf("    row[%2d].lc/h5050/cap = %3d %3d %3d\n",i,textrows->textrow[i].lcheig
          {
          int lch,rh,c1new,partial,r0,nrt;
          int *prowthresh,*rthresh;

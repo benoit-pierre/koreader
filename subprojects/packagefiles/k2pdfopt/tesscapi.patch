@@ -1,7 +1,7 @@
 diff --git a/include_mod/tesseract.h b/include_mod/tesseract.h
 --- a/include_mod/tesseract.h
 +++ b/include_mod/tesseract.h
-@@ -22,6 +22,9 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
+@@ -24,6 +24,9 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
                                  FILE *out);
  void tess_capi_end(void *api);
  
@@ -26,7 +26,7 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
  #include "simddetect.h"
  #include "tesseractclass.h"
  /*
-@@ -54,6 +52,9 @@
+@@ -54,8 +52,14 @@
  /* C Wrappers */
  #include "tesseract.h"
  
@@ -35,24 +35,13 @@ diff --git a/tesseract_mod/tesscapi.cpp b/tesseract_mod/tesscapi.cpp
 +
  // static tesseract::TessBaseAPI api[4];
  
++void tess_capi_set_logfile(const char *filename) {}
++void tess_capi_debug_message(char *message) { tprintf("%s",message); }
++
  /*
-@@ -170,6 +171,7 @@ v4.00 loads either TESSERACT enginer, LSTM engine, or both.  No CUBE.
-     /*
-     ** Initialization message
-     */
-+#if 0
-     {
-     char istr[1024];
-     int sse,avx;
-@@ -224,6 +226,7 @@ printf("    sublang[%d].oem_engine = %d\n",i+1,(int)api->tesseract()->get_sub_la
-         initstr[maxlen-1]='\0';
-         }
-     }
-+#endif
- 
- 
-     /* Turn off LSTM debugging output */
-@@ -297,6 +300,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
+ ** ocr_type=0:  OEM_DEFAULT
+ ** ocr_type=1:  OEM_TESSERACT_ONLY
+@@ -297,6 +301,47 @@ int tess_capi_get_ocr_multiword(void *vapi,PIX *pix,int segmode,
      return(0);
      }
  

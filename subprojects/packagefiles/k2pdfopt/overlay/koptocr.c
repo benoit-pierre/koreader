@@ -85,6 +85,7 @@ void k2pdfopt_tocr_end() {
 void k2pdfopt_get_word_boxes(KOPTContext *kctx, WILLUSBITMAP *src,
 		int x, int y, int w, int h, int box_type) {
 	static K2PDFOPT_SETTINGS _k2settings, *k2settings;
+	static char initstr[256];
 	PIX *pixs, *pixb;
 	BOXA **pboxa;
 	NUMA **pnai;
@@ -94,7 +95,7 @@ void k2pdfopt_get_word_boxes(KOPTContext *kctx, WILLUSBITMAP *src,
 	k2pdfopt_settings_init_from_koptcontext(k2settings, kctx);
 	k2pdfopt_settings_quick_sanity_check(k2settings);
 	/* Init for new source doc */
-	k2pdfopt_settings_new_source_document_init(k2settings);
+	k2pdfopt_settings_new_source_document_init(k2settings, initstr);
 
 	if (box_type == 0) {
 		pboxa = &kctx->rboxa;

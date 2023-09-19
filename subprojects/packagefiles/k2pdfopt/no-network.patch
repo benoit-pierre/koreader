@@ -1,0 +1,21 @@
+diff --git a/willuslib/ocrtess.c b/willuslib/ocrtess.c
+--- a/willuslib/ocrtess.c
++++ b/willuslib/ocrtess.c
+@@ -252,6 +252,7 @@ int ocrtess_lang_exists(char *datadir,char *lang)
+ int ocrtess_lang_get_from_github(char *datadir,char *lang)
+ 
+     {
++#if 0
+     int  status,fast,lstm,tess;
+     char url[256];
+     char httpurl[512];
+@@ -280,6 +281,9 @@ int ocrtess_lang_get_from_github(char *datadir,char *lang)
+         return(-10);
+         }
+     return(0);
++#else
++    return(1);
++#endif
+     }
+ 
+ 
