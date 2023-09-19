@@ -1,8 +1,8 @@
 [wrap-file]
-directory = mupdf-1.23.0
-source_url = https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.23.0.tar.gz
-source_hash = 07f93ceed4be0feb4b521ffa8ab09f676b3f7cf2ebb3b855eeda5a35bb780ec0
-source_filename = mupdf-1.23.0.tar.gz
+directory = mupdf-1.23.2
+source_url = https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.23.2.tar.gz
+source_hash = b3d0fabcbc7d6b9cf27b6b5cf36ac535db0b29612c5bc1043e00be661716aa8f
+source_filename = mupdf-1.23.2.tar.gz
 patch_directory = mupdf/overlay
 diff_files = 
 	mupdf/fix-share-jpeg-build.patch,

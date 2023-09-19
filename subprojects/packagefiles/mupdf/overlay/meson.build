@@ -1,7 +1,7 @@
 project(
   'mupdf',
   ['c', 'cpp'],
-  version: '1.23.0',
+  version: '1.23.2',
   default_options: 'c_std=gnu11',
 )
 
