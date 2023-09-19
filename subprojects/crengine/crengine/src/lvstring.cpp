@@ -446,6 +446,20 @@ void lStr_memset(lChar8 * dst, lChar8 value, int count)
     _lStr_memset(dst, value, count);
 }
 
+int lStr_memcmp(const lChar32 * str1, const lChar32 * str2, int count) {
+    for (int n = 0; n < count; ++n)
+        if (str1[n] != str2[n])
+            return 1;
+    return 0;
+}
+
+int lStr_memcmp(const lChar32 * str1, const lChar8 * str2, int count) {
+    for (int n = 0; n < count; ++n)
+        if (str1[n] != (lChar32)str2[n])
+            return 1;
+    return 0;
+}
+
 int lStr_cmp(const lChar32 * dst, const lChar32 * src)
 {
     while ( *dst == *src)

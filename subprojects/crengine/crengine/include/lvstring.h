@@ -76,6 +76,10 @@ void   lStr_memcpy(lChar8 * dst, const lChar8 * src, int count);
 void   lStr_memset(lChar32 * dst, lChar32 value, int count);
 /// memset for lChar8
 void   lStr_memset(lChar8 * dst, lChar8 value, int count);
+/// memcmp for lChar32
+int    lStr_memcmp(const lChar32 * str1, const lChar32 * str2, int count);
+/// memcmp for lChar32/lChar8
+int    lStr_memcmp(const lChar32 * str1, const lChar8 * str2, int count);
 /// strcmp for lChar32
 int    lStr_cmp(const lChar32 * str1, const lChar32 * str2);
 /// strcmp for lChar32 <> lChar8
@@ -389,6 +393,7 @@ namespace fmt {
 */
 class lString8
 {
+    friend class lString32;
     friend class lString8Collection;
     friend const lString8 & cs8(const char * str);
 public:
@@ -739,6 +744,35 @@ public:
     lString32 & capitalize();
     /// make string use full width chars
     lString32 & fullWidthChars();
+
+    // check for equality with another string
+    bool operator == (const lString32& str) const {
+        return pchunk->len == str.pchunk->len && !lStr_memcmp(pchunk->buf32, str.pchunk->buf32, pchunk->len);
+    }
+    bool operator == (const lString8& str) const {
+        return pchunk->len == str.pchunk->len && !lStr_memcmp(pchunk->buf32, str.pchunk->buf8, pchunk->len);
+    }
+    bool operator == (const lChar32 * str) const {
+        return !lStr_cmp(pchunk->buf32, str);
+    }
+    bool operator == (const lChar8 * str) const {
+        return !lStr_cmp(pchunk->buf32, str);
+    }
+
+    // check for inequality with another string
+    bool operator != (const lString32& str) const {
+        return !(*this == str);
+    }
+    bool operator != (const lString8& str) const {
+        return !(*this == str);
+    }
+    bool operator != (const lChar32 * str) const {
+        return !(*this == str);
+    }
+    bool operator != (const lChar8 * str) const {
+        return !(*this == str);
+    }
+
     /// compare with another string
     int compare(const lString32& str) const { return lStr_cmp(pchunk->buf32, str.pchunk->buf32); }
     /// compare subrange with another string
@@ -1070,36 +1104,9 @@ public:
     int find( const lChar32 * s );
 };
 
-/// returns true if two wide strings are equal
-inline bool operator == (const lString32& s1, const lString32& s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lChar32 * s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lChar8 * s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lChar32 * s1, const lString32& s2 )
-    { return s2.compare(s1)==0; }
+inline bool operator == (const lString8& s1, const lString32& s2 ) { return s2 == s1; }
+inline bool operator != (const lString8& s1, const lString32& s2 ) { return s2 != s1; }
 
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lString8& s2 )
-    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString8& s1, const lString32& s2 )
-    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
-
-inline bool operator != (const lString32& s1, const lString32& s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lString32& s1, const lChar32 * s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lString32& s1, const lChar8 * s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lChar32 * s1, const lString32& s2 )
-    { return s2.compare(s1)!=0; }
-inline bool operator != (const lChar8 * s1, const lString32& s2 )
-    { return s2.compare(s1)!=0; }
 inline lString32 operator + (const lString32 &s1, const lString32 &s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar32 * s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar8 * s2) { lString32 s(s1); s.append(s2); return s; }
