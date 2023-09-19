@@ -3,6 +3,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local _ = require("gettext")
 local BookInfoManager = require("bookinfomanager")
+local ListMenu = require("listmenu")
 
 --[[
     This plugin provides additional display modes to file browsers (File Manager
@@ -48,6 +49,12 @@ local series_mode = nil -- defaults to not display series
 local CoverBrowser = WidgetContainer:extend{
     name = "coverbrowser",
 }
+
+local function _do_raw_text_length()
+    return (BookInfoManager:getSetting("metadata_extraction") == "raw_text_length"
+            and (not BookInfoManager:getSetting("hide_page_info")
+                 or BookInfoManager:getSetting("dotbar_show")))
+end
 
 function CoverBrowser:init()
     self.ui.menu:registerToMainMenu(self)
@@ -158,6 +165,30 @@ function CoverBrowser:addToMainMenu(menu_items)
         sub_item_table = sub_item_table,
     }
 
+    local dots_appearance_submenu = {
+        text = _("Dots appearance"),
+        sub_item_table = {},
+        separator = true,
+    }
+    for n in function(s, n) return n + 1 end, nil, 0 do
+        local mode = 'graphical_' .. n
+        local indicators = ListMenu.DOTBAR_MODES[mode]
+        if not indicators then
+            break
+        end
+        local preview = string.rep(indicators[1], 2) .. string.rep(indicators[2], 3)
+        table.insert(dots_appearance_submenu.sub_item_table, {
+            text = _("Graphical:") .. preview,
+            checked_func = function()
+                return BookInfoManager:getSetting("dotbar_mode", ListMenu.DOTBAR_DEFAULT_MODE) == mode
+            end,
+            callback = function()
+                BookInfoManager:saveSetting("dotbar_mode", mode)
+                self:refreshFileManagerInstance()
+            end,
+        })
+    end
+
     -- add Mosaic / Detailed list mode settings to File browser Settings submenu
     -- next to Classic mode settings
     if menu_items.filebrowser_settings == nil then return end
@@ -194,6 +225,18 @@ function CoverBrowser:addToMainMenu(menu_items)
                 text = _("Length / progress"),
                 sub_item_table = {
                     {
+                        text = _("Show length / progress dots"),
+                        checked_func = function()
+                            return BookInfoManager:getSetting("dotbar_show", false)
+                        end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("dotbar_show")
+                            FileChooser._do_raw_text_length = _do_raw_text_length()
+                            self:refreshFileManagerInstance()
+                        end,
+                    },
+                    dots_appearance_submenu,
+                    {
                         text = _("Show page / progress info"),
                         checked_func = function() return
                             not BookInfoManager:getSetting("hide_page_info")
@@ -212,21 +255,20 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     },
                     {
-                        text = _("Show number of pages read instead of progress %"),
-                        checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
-                        callback = function()
-                            BookInfoManager:toggleSetting("show_pages_read_as_progress")
-                            self:refreshFileManagerInstance()
-                        end,
-                    },
-                    {
                         text = _("Show number of pages left to read"),
                         checked_func = function() return BookInfoManager:getSetting("show_pages_left_in_progress") end,
                         callback = function()
                             BookInfoManager:toggleSetting("show_pages_left_in_progress")
                             self:refreshFileManagerInstance()
                         end,
-                        separator = true,
+                    },
+                    {
+                        text = _("Show number of pages read instead of progress %"),
+                        checked_func = function() return BookInfoManager:getSetting("show_pages_read_as_progress") end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("show_pages_read_as_progress")
+                            self:refreshFileManagerInstance()
+                        end,
                     },
                 },
             },
@@ -258,6 +300,59 @@ function CoverBrowser:addToMainMenu(menu_items)
                         end,
                     }
                 }
+            },
+            {
+                text = _("Page count"),
+                sub_item_table = {
+                    {
+                        text = _("From metadata only"),
+                        checked_func = function() return not BookInfoManager:getSetting("metadata_extraction") end,
+                        callback = function()
+                            BookInfoManager:saveSetting("metadata_extraction", nil)
+                            FileChooser._do_raw_text_length = _do_raw_text_length()
+                        end,
+                    },
+                    {
+                        text = _("Estimate based on raw text length"),
+                        checked_func = function() return BookInfoManager:getSetting("metadata_extraction") == "raw_text_length" end,
+                        callback = function()
+                            BookInfoManager:saveSetting("metadata_extraction", "raw_text_length")
+                            FileChooser._do_raw_text_length = _do_raw_text_length()
+                            self:refreshFileManagerInstance()
+                        end,
+                    },
+                    {
+                        text = _("Characters per synthetic page"),
+                        help_text = _([[This set the number of characters per page when estimating based on raw text length.]]),
+                        callback = function()
+                            local SpinWidget = require("ui/widget/spinwidget")
+                            local cpsp = BookInfoManager:getSetting("chars_per_synthetic_page", 1024)
+                            local spin = SpinWidget:new{
+                                value = cpsp,
+                                value_min = 4,
+                                value_max = 4096,
+                                value_step = 16,
+                                value_hold_step = 256,
+                                default_value = 1024,
+                                keep_shown_on_apply = true,
+                                title_text =  _("Characters per synthetic page"),
+                                callback = function(spin)
+                                    BookInfoManager:saveSetting("chars_per_synthetic_page", spin.value)
+                                    self:refreshFileManagerInstance()
+                                end,
+                                extra_text = _("Calculate from already analyzed\nand past opened books"),
+                                extra_callback = function(spin)
+                                    local value = BookInfoManager:calculateCharactersPerSyntheticPage()
+                                    if value then
+                                        spin:update(value)
+                                    end
+                                end,
+                            }
+                            UIManager:show(spin)
+                        end,
+                        keep_menu_open = true,
+                    },
+                },
             },
             {
                 text = _("Series"),
@@ -449,6 +544,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         FileChooser._do_filename_only = nil
         FileChooser._do_hint_opened = nil
         FileChooser._do_center_partial_rows = nil
+        FileChooser._do_raw_text_length = nil
         self:refreshFileManagerInstance(true)
         return
     end
@@ -475,17 +571,18 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
         -- FileChooser.nb_rows_portrait = 4
         -- FileChooser.nb_cols_landscape = 6
         -- FileChooser.nb_rows_landscape = 3
+        FileChooser._do_raw_text_length = nil
 
     elseif display_mode == "list_image_meta" or display_mode == "list_only_meta" or
                                      display_mode == "list_image_filename" then -- list modes
         -- Replace some other original methods with those from our ListMenu
-        local ListMenu = require("listmenu")
         FileChooser._recalculateDimen = ListMenu._recalculateDimen
         FileChooser._updateItemsBuildUI = ListMenu._updateItemsBuildUI
         -- Set ListMenu behaviour:
         FileChooser._do_cover_images = display_mode ~= "list_only_meta"
         FileChooser._do_filename_only = display_mode == "list_image_filename"
         FileChooser._do_hint_opened = true -- dogear at bottom
+        FileChooser._do_raw_text_length = _do_raw_text_length()
     end
 
 
@@ -541,12 +638,12 @@ local function _FileManagerHistory_updateItemTable(self)
         elseif display_mode == "list_image_meta" or display_mode == "list_only_meta" or
                                  display_mode == "list_image_filename" then -- list modes
             -- Replace some other original methods with those from our ListMenu
-            local ListMenu = require("listmenu")
             hist_menu._recalculateDimen = ListMenu._recalculateDimen
             hist_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
             -- Set ListMenu behaviour:
             hist_menu._do_cover_images = display_mode ~= "list_only_meta"
             hist_menu._do_filename_only = display_mode == "list_image_filename"
+            hist_menu._do_raw_text_length = _do_raw_text_length()
 
         end
         hist_menu._do_hint_opened = BookInfoManager:getSetting("history_hint_opened")
@@ -620,12 +717,12 @@ local function _FileManagerCollections_updateItemTable(self)
         elseif display_mode == "list_image_meta" or display_mode == "list_only_meta" or
             display_mode == "list_image_filename" then -- list modes
             -- Replace some other original methods with those from our ListMenu
-            local ListMenu = require("listmenu")
             coll_menu._recalculateDimen = ListMenu._recalculateDimen
             coll_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
             -- Set ListMenu behaviour:
             coll_menu._do_cover_images = display_mode ~= "list_only_meta"
             coll_menu._do_filename_only = display_mode == "list_image_filename"
+            coll_menu._do_raw_text_length = _do_raw_text_length()
 
         end
         coll_menu._do_hint_opened = BookInfoManager:getSetting("collections_hint_opened")
