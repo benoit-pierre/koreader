@@ -162,6 +162,7 @@ function setup_target() {
         # Devices.
         android-*) ;;
         kindlepw2) ;;
+        kobo) ;;
         remarkable) ;;
         *)
             valid=0

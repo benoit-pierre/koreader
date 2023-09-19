@@ -1,0 +1,39 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -105,27 +105,32 @@ executable('libevdev-events',
+ 	   sources: ['tools/libevdev-events.c'],
+ 	   include_directories: [includes_include],
+ 	   dependencies: dep_libevdev,
++       build_by_default: false,
+ 	   install: false)
+ executable('libevdev-list-codes',
+ 	   sources: ['tools/libevdev-list-codes.c'],
+ 	   include_directories: [includes_include],
+ 	   dependencies: dep_libevdev,
++       build_by_default: false,
+ 	   install: false)
+ executable('touchpad-edge-detector',
+ 	   sources: ['tools/touchpad-edge-detector.c'],
+ 	   include_directories: [includes_include],
+ 	   dependencies: [dep_libevdev, dep_lm],
+-           install: true)
++       build_by_default: false,
++       install: false)
+ executable('mouse-dpi-tool',
+ 	   sources: ['tools/mouse-dpi-tool.c'],
+ 	   include_directories: [includes_include],
+ 	   dependencies: dep_libevdev,
+-           install: true)
++       build_by_default: false,
++       install: false)
+ executable('libevdev-tweak-device',
+ 	   sources: ['tools/libevdev-tweak-device.c'],
+ 	   include_directories: [includes_include],
+ 	   dependencies: dep_libevdev,
+-	   install: true)
++       build_by_default: false,
++	   install: false)
+ install_man('tools/libevdev-tweak-device.1',
+ 	    'tools/touchpad-edge-detector.1',
+ 	    'tools/mouse-dpi-tool.1')

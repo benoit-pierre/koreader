@@ -1,0 +1,12 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -81,7 +81,7 @@ lib_libevdev = library('evdev',
+ 	install: true
+ )
+ 
+-dep_libevdev = declare_dependency(link_with: lib_libevdev)
++dep_libevdev = declare_dependency(link_with: lib_libevdev, include_directories: '.')
+ 
+ pkgconfig.generate(
+ 	filebase: 'libevdev',

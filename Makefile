@@ -72,7 +72,6 @@ PLATFORM_DIR=platform
 COMMON_DIR=$(PLATFORM_DIR)/common
 CERVANTES_DIR=$(PLATFORM_DIR)/cervantes
 DEBIAN_DIR=$(PLATFORM_DIR)/debian
-KOBO_DIR=$(PLATFORM_DIR)/kobo
 POCKETBOOK_DIR=$(PLATFORM_DIR)/pocketbook
 SONY_PRSTUX_DIR=$(PLATFORM_DIR)/sony-prstux
 UBUNTUTOUCH_DIR=$(PLATFORM_DIR)/ubuntu-touch
@@ -219,36 +218,6 @@ endif
 ifeq (true,$(CI))
   include make/ci.mk
 endif
-
-KOBO_PACKAGE=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).zip
-KOBO_PACKAGE_OTA=koreader-kobo$(KODEDUG_SUFFIX)-$(VERSION).targz
-koboupdate: all
-	# ensure that the binaries were built for ARM
-	file $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
-	# remove old package if any
-	rm -f $(KOBO_PACKAGE)
-	# Kobo launching scripts
-	cp $(KOBO_DIR)/koreader.png $(INSTALL_DIR)/koreader.png
-	cp $(KOBO_DIR)/*.sh $(INSTALL_DIR)/koreader
-	cp $(COMMON_DIR)/spinning_zsync $(INSTALL_DIR)/koreader
-	# create new package
-	cd $(INSTALL_DIR) && \
-		zip -9 -r \
-			../$(KOBO_PACKAGE) \
-			koreader -x "koreader/resources/fonts/*" \
-			"koreader/resources/icons/src/*" "koreader/spec/*" \
-			$(ZIP_EXCLUDE)
-	# generate koboupdate package index file
-	zipinfo -1 $(KOBO_PACKAGE) > \
-		$(INSTALL_DIR)/koreader/ota/package.index
-	echo "koreader/ota/package.index" >> $(INSTALL_DIR)/koreader/ota/package.index
-	# update index file in zip package
-	cd $(INSTALL_DIR) && zip -u ../$(KOBO_PACKAGE) \
-		koreader/ota/package.index koreader.png README_kobo.txt
-	# make gzip koboupdate for zsync OTA update
-	cd $(INSTALL_DIR) && \
-		tar --hard-dereference -I"gzip --rsyncable" -cah --no-recursion -f ../$(KOBO_PACKAGE_OTA) \
-		-T koreader/ota/package.index
 
 PB_PACKAGE=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).zip
 PB_PACKAGE_OTA=koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).targz

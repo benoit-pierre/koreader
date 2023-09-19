@@ -1,0 +1,12 @@
+diff --git a/usbms.h b/usbms.h
+--- a/usbms.h
++++ b/usbms.h
+@@ -65,7 +65,7 @@
+ #include <libintl.h>
+ #include <locale.h>
+ 
+-#include "FBInk/fbink.h"
++#include "fbink.h"
+ #include "libue/libue.h"
+ #include "openssh/atomicio.h"
+ #include <libevdev/libevdev.h>

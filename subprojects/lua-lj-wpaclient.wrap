@@ -1,0 +1,5 @@
+[wrap-git]
+url = https://github.com/koreader/lj-wpaclient.git
+revision = 2f93beb3071e6ebb57c783bd5b92f83aa5ebb757
+depth = 1
+patch_directory = lua-lj-wpaclient/overlay
