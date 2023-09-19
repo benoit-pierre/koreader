@@ -1,3 +1,4 @@
+local ffi = require("ffi")
 local util = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -174,6 +175,10 @@ describe("util module", function()
     end)
 
     describe("util.getNonBlockingReadSize", function()
+        --- @fixme: `C.ioctl(fd, C.FIONREAD, available)` not supported on macOS?
+        if ffi.os == "OSX" then
+            return
+        end
         it("should read pipe when data is available", function()
             local std_out = io.popen("sleep 1; echo 'done'; sleep 1", "r")
             assert.are.equal(util.getNonBlockingReadSize(std_out), 0)
