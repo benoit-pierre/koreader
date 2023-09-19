@@ -1,4 +1,4 @@
-project('leptonica', 'c', version: '1.74.1')
+project('leptonica', 'c', version: '1.74.4')
 
 cc = meson.get_compiler('c')
 

@@ -332,7 +332,7 @@ function KOPTContext_mt.__index:findPageBlocks()
             for box in boxaIterBoxes(self.nboxa) do
                 leptonica.boxAdjustSides(box, box, -1, 0, -1, 0)
             end
-            self.rboxa = leptonica.boxaCombineOverlaps(self.nboxa)
+            self.rboxa = leptonica.boxaCombineOverlaps(self.nboxa, nil)
             self.page_width = leptonica.pixGetWidth(pixr)
             self.page_height = leptonica.pixGetHeight(pixr)
             -- uncomment this to show text blocks in situ
@@ -405,7 +405,7 @@ function KOPTContext_mt.__index:getPageBlock(x_rel, y_rel)
         for box in boxaIterBoxes(boxa) do
             leptonica.boxAdjustSides(box, box, -1, 0, -1, 0)
         end
-        local boxatb = _gc_ptr(leptonica.boxaCombineOverlaps(boxa), boxaDestroy)
+        local boxatb = _gc_ptr(leptonica.boxaCombineOverlaps(boxa, nil), boxaDestroy)
         local clipped_box, unclipped_box
         for box_x, box_y, box_w, box_h in boxaIterBoxGeometries(boxatb) do
             if box_x / w <= x_rel and (box_x + box_w) / w >= x_rel then
