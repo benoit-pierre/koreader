@@ -419,6 +419,14 @@ function ListMenuItem:update()
                 end
             end
 
+            --[[
+            ┌───────┐┌───────────────────────────────────────────┐┌─────────────┐
+            │ Cover ││ Title                                     ││ Progress    │
+            │       ││ Authors                                   ││ Format/Size │
+            ├─┐     ││                                           ││             │
+            └─┴─────┘└───────────────────────────────────────────┘└─────────────◸
+            --]]
+
             -- Build the right widget
 
             local fontsize_info = _fontSize(14, 18)
@@ -643,53 +651,28 @@ function ListMenuItem:update()
                 logger.dbg(title, "recalculate title/author with", fontsize_title)
             end
 
-            local wmain = LeftContainer:new{
-                dimen = dimen,
-                VerticalGroup:new{
-                    wtitle,
-                    wauthors,
-                }
-            }
-
             -- Build the final widget
-            widget = OverlapGroup:new{
+            widget = HorizontalGroup:new{
                 dimen = dimen,
             }
-            if self.do_cover_image then
-                -- add left widget
-                if wleft then
-                    -- no need for left padding, as cover image, most often in
-                    -- portrait mode, will have some padding - the rare landscape
-                    -- mode cover image will be stuck to screen side thus
-                    table.insert(widget, wleft)
-                end
-                -- pad main widget on the left with size of left widget
-                wmain = HorizontalGroup:new{
-                        HorizontalSpan:new{ width = wleft_width },
-                        HorizontalSpan:new{ width = wmain_left_padding },
-                        wmain
-                }
-            else
-                -- pad main widget on the left
-                wmain = HorizontalGroup:new{
-                        HorizontalSpan:new{ width = wmain_left_padding },
-                        wmain
-                }
+            -- add left widget
+            if wleft then
+                -- no need for left padding, as cover image, most often in
+                -- portrait mode, will have some padding - the rare landscape
+                -- mode cover image will be stuck to screen side thus
+                table.insert(widget, wleft)
             end
             -- add padded main widget
-            table.insert(widget, LeftContainer:new{
-                    dimen = dimen,
-                    wmain
-                })
+            table.insert(widget, HorizontalSpan:new{ width = wmain_left_padding })
+            table.insert(widget, VerticalGroup:new{
+                dimen = Geom:new{ w = wmain_width, h = dimen.h },
+                wtitle,
+                wauthors,
+            })
+            table.insert(widget, HorizontalSpan:new{ width = wmain_right_padding })
             -- add right widget
             if wright then
-                table.insert(widget, RightContainer:new{
-                    dimen = dimen,
-                    HorizontalGroup:new{
-                        wright,
-                        HorizontalSpan:new{ width = wright_right_padding },
-                    },
-                })
+                table.insert(widget, wright)
             end
 
         else -- bookinfo not found
