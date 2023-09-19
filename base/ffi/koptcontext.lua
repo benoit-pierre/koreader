@@ -4,17 +4,8 @@ local C = ffi.C
 require("ffi/koptcontext_h")
 require("ffi/leptonica_h")
 local Blitbuffer = require("ffi/blitbuffer")
-local leptonica, k2pdfopt
-if ffi.os == "Windows" then
-    leptonica = ffi.load("libs/liblept-5.dll")
-    k2pdfopt = ffi.load("libs/libk2pdfopt-2.dll")
-elseif ffi.os == "OSX" then
-    leptonica = ffi.load("libs/liblept.5.dylib")
-    k2pdfopt = ffi.load("libs/libk2pdfopt.2.dylib")
-else
-    leptonica = ffi.load("libs/liblept.so.5")
-    k2pdfopt = ffi.load("libs/libk2pdfopt.so.2")
-end
+local leptonica = ffi.loadlib("lept", 5)
+local k2pdfopt = ffi.loadlib("k2pdfopt", 2)
 
 local KOPTContext = {
     k2pdfopt = k2pdfopt -- offer the libraries' functions to other users

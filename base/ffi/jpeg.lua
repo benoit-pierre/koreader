@@ -13,14 +13,12 @@ local BB = require("ffi/blitbuffer")
 require("ffi/posix_h")
 require("ffi/turbojpeg_h")
 
-local turbojpeg
-if ffi.os == "Windows" then
-    turbojpeg = ffi.load("libs/libturbojpeg.dll")
-elseif ffi.os == "OSX" then
-    turbojpeg = ffi.load("libs/libturbojpeg.0.3.0.dylib")
-else
-    turbojpeg = ffi.load("libs/libturbojpeg.so.0.3.0")
-end
+-- The turbojpeg library symbols are versionned,
+-- so it should always be backward compatible:
+-- the major & patch numbers are always 0, and
+-- when a new API version if made avaible, the
+-- minor number is incremented.
+local turbojpeg = ffi.loadlib("turbojpeg", "0.3.0", "turbojpeg")
 
 local Jpeg = {}
 
