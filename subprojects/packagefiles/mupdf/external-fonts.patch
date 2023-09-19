@@ -14,7 +14,7 @@ diff --git a/include/mupdf/fitz/font.h b/include/mupdf/fitz/font.h
 diff --git a/source/fitz/font.c b/source/fitz/font.c
 --- a/source/fitz/font.c
 +++ b/source/fitz/font.c
-@@ -476,11 +476,8 @@ fz_font *fz_load_system_fallback_font(fz_context *ctx, int script, int language,
+@@ -474,11 +474,8 @@ fz_font *fz_load_system_fallback_font(fz_context *ctx, int script, int language,
  fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int serif, int bold, int italic)
  {
  	fz_font **fontp;
@@ -26,7 +26,7 @@ diff --git a/source/fitz/font.c b/source/fitz/font.c
  
  	if (script < 0 || script >= (int)nelem(ctx->font->fallback))
  		return NULL;
-@@ -514,6 +511,10 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
+@@ -512,6 +509,10 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
  		*fontp = fz_load_system_fallback_font(ctx, script, language, serif, bold, italic);
  		if (!*fontp)
  		{
@@ -37,7 +37,7 @@ diff --git a/source/fitz/font.c b/source/fitz/font.c
  			data = fz_lookup_noto_font(ctx, script, language, &size, &subfont);
  			if (data)
  			{
-@@ -521,6 +522,11 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
+@@ -519,6 +520,11 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
  				/* Noto fonts can be embedded. */
  				fz_set_font_embedding(ctx, *fontp, 1);
  			}

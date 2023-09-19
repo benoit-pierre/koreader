@@ -1,7 +1,7 @@
 diff --git a/include/mupdf/fitz/archive.h b/include/mupdf/fitz/archive.h
 --- a/include/mupdf/fitz/archive.h
 +++ b/include/mupdf/fitz/archive.h
-@@ -228,6 +228,9 @@ fz_archive *fz_open_zip_archive(fz_context *ctx, const char *path);
+@@ -257,6 +257,9 @@ fz_archive *fz_open_zip_archive(fz_context *ctx, const char *path);
  */
  fz_archive *fz_open_zip_archive_with_stream(fz_context *ctx, fz_stream *file);
  
@@ -33,7 +33,7 @@ diff --git a/source/cbz/mucbz.c b/source/cbz/mucbz.c
 +}
 +
  static int
- cbz_lookup_metadata(fz_context *ctx, fz_document *doc_, const char *key, char *buf, int size)
+ cbz_lookup_metadata(fz_context *ctx, fz_document *doc_, const char *key, char *buf, size_t size)
  {
 @@ -272,6 +286,8 @@ cbz_open_document_with_stream(fz_context *ctx, fz_stream *file)
  	doc->super.count_pages = cbz_count_pages;
@@ -99,29 +99,12 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  } fz_zip_archive;
  
  static void drop_zip_archive(fz_context *ctx, fz_archive *arch)
-@@ -75,6 +109,7 @@ static void read_zip_dir_imp(fz_context *ctx, fz_zip_archive *zip, int64_t start
- 	uint64_t csize, usize;
- 	char *name = NULL;
- 	size_t n;
-+	int general;
- 
- 	fz_var(name);
- 
-@@ -147,7 +182,7 @@ static void read_zip_dir_imp(fz_context *ctx, fz_zip_archive *zip, int64_t start
- 
- 			(void) fz_read_uint16_le(ctx, file); /* version made by */
- 			(void) fz_read_uint16_le(ctx, file); /* version to extract */
--			(void) fz_read_uint16_le(ctx, file); /* general */
-+			general = fz_read_uint16_le(ctx, file); /* general */
- 			(void) fz_read_uint16_le(ctx, file); /* method */
- 			(void) fz_read_uint16_le(ctx, file); /* last mod file time */
- 			(void) fz_read_uint16_le(ctx, file); /* last mod file date */
-@@ -211,6 +246,15 @@ static void read_zip_dir_imp(fz_context *ctx, fz_zip_archive *zip, int64_t start
+@@ -403,6 +437,15 @@ static void read_zip_dir_imp(fz_context *ctx, fz_zip_archive *zip, int64_t start
  			zip->entries[zip->count].name = name;
  			name = NULL;
  
 +#ifdef HAVE_LIBAES
-+			if (general & ZIP_ENCRYPTED_FLAG) {
++			if (gp & ZIP_ENCRYPTED_FLAG) {
 +				zip->crypted = 1;
 +				zip->entries[zip->count].crypted = 1;
 +			} else {
@@ -132,7 +115,7 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  			zip->count++;
  		}
  	}
-@@ -225,6 +269,12 @@ static int read_zip_entry_header(fz_context *ctx, fz_zip_archive *zip, zip_entry
+@@ -417,6 +460,12 @@ static int read_zip_entry_header(fz_context *ctx, fz_zip_archive *zip, zip_entry
  	fz_stream *file = zip->super.file;
  	uint32_t sig;
  	int general, method, namelength, extralength;
@@ -145,18 +128,17 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  
  	fz_seek(ctx, file, ent->offset, 0);
  
-@@ -234,19 +284,74 @@ static int read_zip_entry_header(fz_context *ctx, fz_zip_archive *zip, zip_entry
+@@ -426,19 +475,74 @@ static int read_zip_entry_header(fz_context *ctx, fz_zip_archive *zip, zip_entry
  
  	(void) fz_read_uint16_le(ctx, file); /* version */
  	general = fz_read_uint16_le(ctx, file); /* general */
-+	method = fz_read_uint16_le(ctx, file);
 +#if !defined(HAVE_LIBAES)
  	if (general & ZIP_ENCRYPTED_FLAG)
  		fz_throw(ctx, FZ_ERROR_GENERIC, "zip content is encrypted");
 -
--	method = fz_read_uint16_le(ctx, file);
--	(void) fz_read_uint16_le(ctx, file); /* file time */
 +#endif
+ 	method = fz_read_uint16_le(ctx, file);
+-	(void) fz_read_uint16_le(ctx, file); /* file time */
 +	modtime = fz_read_uint16_le(ctx, file); /* file time */
  	(void) fz_read_uint16_le(ctx, file); /* file date */
 -	(void) fz_read_uint32_le(ctx, file); /* crc-32 */
@@ -224,8 +206,8 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  
  	return method;
  }
-@@ -305,6 +410,11 @@ static fz_stream *open_zip_entry(fz_context *ctx, fz_archive *arch, const char *
- 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot find named zip archive entry");
+@@ -497,6 +601,11 @@ static fz_stream *open_zip_entry(fz_context *ctx, fz_archive *arch, const char *
+ 		return NULL;
  
  	method = read_zip_entry_header(ctx, zip, ent);
 +#ifdef HAVE_LIBAES
@@ -236,8 +218,8 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  	if (method == 0)
  		return fz_open_null_filter(ctx, file, ent->usize, fz_tell(ctx, file));
  	if (method == 8)
-@@ -331,6 +441,12 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
- 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot find named zip archive entry");
+@@ -523,6 +632,12 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
+ 		return NULL;
  
  	method = read_zip_entry_header(ctx, zip, ent);
 +#ifdef HAVE_LIBAES
@@ -249,7 +231,7 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  	ubuf = fz_new_buffer(ctx, ent->usize + 1); /* +1 because many callers will add a terminating zero */
  
  	if (method == 0)
-@@ -340,6 +456,18 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
+@@ -532,6 +647,18 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
  			ubuf->len = fz_read(ctx, file, ubuf->data, ent->usize);
  			if (ubuf->len < (size_t)ent->usize)
  				fz_warn(ctx, "premature end of data in stored zip archive entry");
@@ -268,7 +250,7 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  		}
  		fz_catch(ctx)
  		{
-@@ -356,6 +484,19 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
+@@ -548,6 +675,19 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
  
  			fz_read(ctx, file, cbuf, ent->csize);
  
@@ -288,7 +270,7 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  			z.zalloc = fz_zlib_alloc;
  			z.zfree = fz_zlib_free;
  			z.opaque = ctx;
-@@ -402,6 +543,39 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
+@@ -594,6 +734,39 @@ static fz_buffer *read_zip_entry(fz_context *ctx, fz_archive *arch, const char *
  	fz_throw(ctx, FZ_ERROR_GENERIC, "unknown zip method: %d", method);
  }
  
@@ -328,7 +310,7 @@ diff --git a/source/fitz/unzip.c b/source/fitz/unzip.c
  static int has_zip_entry(fz_context *ctx, fz_archive *arch, const char *name)
  {
  	fz_zip_archive *zip = (fz_zip_archive *) arch;
-@@ -449,6 +623,12 @@ fz_open_zip_archive_with_stream(fz_context *ctx, fz_stream *file)
+@@ -641,6 +814,12 @@ fz_open_zip_archive_with_stream(fz_context *ctx, fz_stream *file)
  		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot recognize zip archive");
  
  	zip = fz_new_derived_archive(ctx, file, fz_zip_archive);

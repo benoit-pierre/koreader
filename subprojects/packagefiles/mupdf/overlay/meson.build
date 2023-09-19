@@ -1,7 +1,7 @@
 project(
   'mupdf',
   ['c', 'cpp'],
-  version: '1.22.1',
+  version: '1.23.0',
   default_options: 'c_std=gnu11',
 )
 
@@ -127,6 +127,7 @@ foreach _prefix, _files : {
     'load-jxr.c',
     'load-png.c',
     'load-pnm.c',
+    'load-psd.c',
     'load-tiff.c',
     'load-webp.c',
     'log.c',

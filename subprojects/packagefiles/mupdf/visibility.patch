@@ -29,7 +29,7 @@ diff --git a/include/mupdf/fitz/color.h b/include/mupdf/fitz/color.h
  #if FZ_ENABLE_ICC
  /**
  	Opaque type for an ICC Profile.
-@@ -378,6 +380,8 @@ void fz_set_default_rgb(fz_context *ctx, fz_default_colorspaces *default_cs, fz_
+@@ -390,6 +392,8 @@ void fz_set_default_rgb(fz_context *ctx, fz_default_colorspaces *default_cs, fz_
  void fz_set_default_cmyk(fz_context *ctx, fz_default_colorspaces *default_cs, fz_colorspace *cs);
  void fz_set_default_output_intent(fz_context *ctx, fz_default_colorspaces *default_cs, fz_colorspace *cs);
  
@@ -41,16 +41,16 @@ diff --git a/include/mupdf/fitz/color.h b/include/mupdf/fitz/color.h
 diff --git a/include/mupdf/fitz/context.h b/include/mupdf/fitz/context.h
 --- a/include/mupdf/fitz/context.h
 +++ b/include/mupdf/fitz/context.h
-@@ -27,6 +27,8 @@
- #include "mupdf/fitz/system.h"
- #include "mupdf/fitz/geometry.h"
+@@ -32,6 +32,8 @@
+ #define FZ_VERBOSE_EXCEPTIONS 0
+ #endif
  
 +FZ_EXPORTS_START
 +
  typedef struct fz_font_context fz_font_context;
  typedef struct fz_colorspace_context fz_colorspace_context;
  typedef struct fz_style_context fz_style_context;
-@@ -582,6 +584,8 @@ int fz_do_try(fz_context *ctx);
+@@ -701,6 +703,8 @@ int fz_do_try(fz_context *ctx);
  int fz_do_always(fz_context *ctx);
  int fz_do_catch(fz_context *ctx);
  
@@ -59,7 +59,7 @@ diff --git a/include/mupdf/fitz/context.h b/include/mupdf/fitz/context.h
  #ifndef FZ_JMPBUF_ALIGN
  #define FZ_JMPBUF_ALIGN 32
  #endif
-@@ -652,6 +656,7 @@ struct fz_context
+@@ -771,6 +775,7 @@ struct fz_context
  	fz_glyph_cache *glyph_cache;
  };
  
@@ -98,7 +98,7 @@ diff --git a/include/mupdf/fitz/document.h b/include/mupdf/fitz/document.h
  typedef struct fz_document_handler fz_document_handler;
  typedef struct fz_page fz_page;
  typedef intptr_t fz_bookmark;
-@@ -865,6 +867,8 @@ void fz_delete_link(fz_context *ctx, fz_page *page, fz_link *link);
+@@ -914,6 +916,8 @@ void fz_delete_link(fz_context *ctx, fz_page *page, fz_link *link);
  */
  void *fz_process_opened_pages(fz_context *ctx, fz_document *doc, fz_process_opened_page_fn *process_openend_page, void *state);
  
@@ -165,7 +165,7 @@ diff --git a/include/mupdf/fitz/geometry.h b/include/mupdf/fitz/geometry.h
  /**
  	Multiply scaled two integers in the 0..255 range
  */
-@@ -810,4 +812,6 @@ int fz_is_quad_inside_quad(fz_quad needle, fz_quad haystack);
+@@ -815,4 +817,6 @@ int fz_is_quad_inside_quad(fz_quad needle, fz_quad haystack);
  */
  int fz_is_quad_intersecting_quad(fz_quad a, fz_quad b);
  
@@ -265,7 +265,7 @@ diff --git a/include/mupdf/fitz/stream.h b/include/mupdf/fitz/stream.h
  /**
  	Return true if the named file exists and is readable.
  */
-@@ -577,6 +579,8 @@ static inline int fz_is_eof_bits(fz_context *ctx, fz_stream *stm)
+@@ -594,6 +596,8 @@ static inline int fz_is_eof_bits(fz_context *ctx, fz_stream *stm)
  	return fz_is_eof(ctx, stm) && (stm->avail == 0 || stm->bits == EOF);
  }
  
@@ -286,7 +286,7 @@ diff --git a/include/mupdf/fitz/string-util.h b/include/mupdf/fitz/string-util.h
  /* The Unicode character used to incoming character whose value is
   * unknown or unrepresentable. */
  #define FZ_REPLACEMENT_CHARACTER 0xFFFD
-@@ -234,4 +236,6 @@ const char *fz_parse_page_range(fz_context *ctx, const char *s, int *a, int *b,
+@@ -264,4 +266,6 @@ const char *fz_parse_page_range(fz_context *ctx, const char *s, int *a, int *b,
  int fz_tolower(int c);
  int fz_toupper(int c);
  
@@ -324,7 +324,7 @@ diff --git a/include/mupdf/fitz/util.h b/include/mupdf/fitz/util.h
  /**
  	Create a display list.
  
-@@ -146,4 +148,6 @@ fz_document *fz_new_xhtml_document_from_document(fz_context *ctx, fz_document *o
+@@ -148,4 +150,6 @@ fz_document *fz_new_xhtml_document_from_document(fz_context *ctx, fz_document *o
  */
  fz_buffer *fz_new_buffer_from_page_with_format(fz_context *ctx, fz_page *page, const char *format, const char *options, fz_matrix transform, fz_cookie *cookie);
  
@@ -343,9 +343,9 @@ diff --git a/include/mupdf/pdf/annot.h b/include/mupdf/pdf/annot.h
  typedef struct pdf_annot pdf_annot;
  
  enum pdf_annot_type
-@@ -886,4 +888,6 @@ void pdf_set_annot_filespec(fz_context *ctx, pdf_annot *annot, pdf_obj *obj);
- int pdf_annot_hidden_for_editing(fz_context *ctx, pdf_annot *annot);
- void pdf_set_annot_hidden_for_editing(fz_context *ctx, pdf_annot *annot, int hidden);
+@@ -918,4 +920,6 @@ void pdf_set_annot_hidden_for_editing(fz_context *ctx, pdf_annot *annot, int hid
+  */
+ int pdf_apply_redaction(fz_context *ctx, pdf_annot *annot, pdf_redact_options *opts);
  
 +FZ_EXPORTS_STOP
 +
@@ -362,9 +362,9 @@ diff --git a/include/mupdf/pdf/document.h b/include/mupdf/pdf/document.h
  typedef struct pdf_xref pdf_xref;
  typedef struct pdf_ocg_descriptor pdf_ocg_descriptor;
  
-@@ -793,4 +795,6 @@ void pdf_load_journal(fz_context *ctx, pdf_document *doc, const char *filename);
- */
- void pdf_read_journal(fz_context *ctx, pdf_document *doc, fz_stream *stm);
+@@ -805,4 +807,6 @@ void pdf_read_journal(fz_context *ctx, pdf_document *doc, fz_stream *stm);
+ void pdf_minimize_document(fz_context *ctx, pdf_document *doc);
+ 
  
 +FZ_EXPORTS_STOP
 +
