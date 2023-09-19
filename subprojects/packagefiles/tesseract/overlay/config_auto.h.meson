@@ -4,12 +4,9 @@
 /* Disable graphics */
 #mesondefine GRAPHICS_DISABLED
 
-/* Disable Cube OCR engine */
-#mesondefine NO_CUBE_BUILD
+/* Disable the legacy OCR engine */
+#mesondefine DISABLED_LEGACY_ENGINE
 
-/* This is a MinGW system */
-#if defined(__MINGW32__) || defined(__MINGW64__)
-#define MINGW
-#endif
+#define PACKAGE_VERSION "@PACKAGE_VERSION@"
 
 #endif

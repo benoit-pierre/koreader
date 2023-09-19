@@ -1,8 +1,9 @@
 [wrap-file]
-directory = tesseract-3.05.00
-source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/3.05.00.tar.gz
-source_hash = 3fe83e06d0f73b39f6e92ed9fc7ccba3ef734877b76aa5ddaaa778fac095d996
-source_filename = tesseract-3.05.00.tar.gz
+directory = tesseract-4.0.0
+source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.0.0.tar.gz
+source_hash = a1f5422ca49a32e5f35c54dee5112b11b99928fc9f4ee6695cdc6768d69f61dd
+source_filename = tesseract-4.0.0.tar.gz
 patch_directory = tesseract/overlay
 diff_files = 
+	tesseract/disabled-legacy-engine.patch,
 	tesseract/reduce-size.patch

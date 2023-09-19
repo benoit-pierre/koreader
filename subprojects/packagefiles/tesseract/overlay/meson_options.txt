@@ -1,1 +1,1 @@
-option('cube-engine', type: 'boolean', value: false)
+option('legacy-engine', type: 'boolean', value: true)
