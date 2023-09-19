@@ -1,8 +1,8 @@
 [wrap-file]
-directory = tesseract-60176fc5ae5e7f6bdef60c926a4b5ea03de2bfa7
-source_url = https://github.com/tesseract-ocr/tesseract/archive/3.05.00dev-296-g60176fc5.tar.gz
-source_hash = 3b0cba9100fad3d4cdf6b09e42c9d86354d6aa137970c87fe5935158416bf5f2
-source_filename = tesseract-3.05.00dev-296-g60176fc5.tar.gz
+directory = tesseract-3.05.00
+source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/3.05.00.tar.gz
+source_hash = 3fe83e06d0f73b39f6e92ed9fc7ccba3ef734877b76aa5ddaaa778fac095d996
+source_filename = tesseract-3.05.00.tar.gz
 patch_directory = tesseract/overlay
 diff_files = 
 	tesseract/reduce-size.patch
