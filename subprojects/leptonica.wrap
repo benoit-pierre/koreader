@@ -1,12 +1,12 @@
 [wrap-file]
-directory = leptonica-1.74.4
-source_url = https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.74.4.tar.gz
-source_hash = 2092e126652ff07bc2569971a1d6c6411e1d481539d39c98031534c6f83dfc82
-source_filename = leptonica-1.74.4.tar.gz
+directory = leptonica-1.79.0
+source_url = https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.79.0.tar.gz
+source_hash = bf9716f91a4844c2682a07ef21eaf68b6f1077af1f63f27c438394fd66218e17
+source_filename = leptonica-1.79.0.tar.gz
 patch_directory = leptonica/overlay
 diff_files = 
-	leptonica/visibility.patch,
 	leptonica/k2pdfopt.patch,
+	leptonica/visibility.patch,
 	leptonica/fix-uninitialized-memory-access.patch
 
 [provide]

@@ -222,10 +222,10 @@ l_int32 k2pdfopt_pixGetWordBoxesInTextlines(PIX *pixs,
 	}
 
     /* Get the bounding boxes of the words from the word mask. */
-    pixWordBoxesByDilation(pix1, maxsize, minwidth, minheight,
-			maxwidth, maxheight, &boxa1, NULL);
+    pixWordBoxesByDilation(pix1, minwidth, minheight,
+			maxwidth, maxheight, &boxa1, NULL, NULL);
 	/* Generate a pixa of the word images */
-	pixa1 = pixaCreateFromBoxa(pix1, boxa1, NULL);  /* mask over each word */
+	pixa1 = pixaCreateFromBoxa(pix1, boxa1, 0, 0, NULL);  /* mask over each word */
 	/* Sort the bounding boxes of these words by line.  We use the
 	* index mapping to allow identical sorting of the pixa. */
 	baa = boxaSort2d(boxa1, &naa, -1, -1, 4);

@@ -1,41 +1,41 @@
 diff --git a/src/allheaders.h b/src/allheaders.h
 --- a/src/allheaders.h
 +++ b/src/allheaders.h
-@@ -663,12 +663,15 @@ LEPT_DLL extern l_int32 dewarpaWrite ( const char *filename, L_DEWARPA *dewa );
- LEPT_DLL extern l_int32 dewarpaWriteStream ( FILE *fp, L_DEWARPA *dewa );
- LEPT_DLL extern l_int32 dewarpaWriteMem ( l_uint8 **pdata, size_t *psize, L_DEWARPA *dewa );
- LEPT_DLL extern l_int32 dewarpBuildPageModel ( L_DEWARP *dew, const char *debugfile );
-+LEPT_DLL extern l_int32 dewarpBuildPageModel_ex ( L_DEWARP *dew, const char *debugfile, l_int32 fit_order );
- LEPT_DLL extern l_int32 dewarpFindVertDisparity ( L_DEWARP *dew, PTAA *ptaa, l_int32 rotflag );
-+LEPT_DLL extern l_int32 dewarpFindVertDisparity_ex ( L_DEWARP *dew, PTAA *ptaa, l_int32 rotflag, l_int32 fit_order );
- LEPT_DLL extern l_int32 dewarpFindHorizDisparity ( L_DEWARP *dew, PTAA *ptaa );
+@@ -678,12 +678,15 @@ LEPT_DLL extern l_ok dewarpaWrite ( const char *filename, L_DEWARPA *dewa );
+ LEPT_DLL extern l_ok dewarpaWriteStream ( FILE *fp, L_DEWARPA *dewa );
+ LEPT_DLL extern l_ok dewarpaWriteMem ( l_uint8 **pdata, size_t *psize, L_DEWARPA *dewa );
+ LEPT_DLL extern l_ok dewarpBuildPageModel ( L_DEWARP *dew, const char *debugfile );
++LEPT_DLL extern l_ok dewarpBuildPageModel_ex ( L_DEWARP *dew, const char *debugfile, l_int32 fit_order );
+ LEPT_DLL extern l_ok dewarpFindVertDisparity ( L_DEWARP *dew, PTAA *ptaa, l_int32 rotflag );
++LEPT_DLL extern l_ok dewarpFindVertDisparity_ex ( L_DEWARP *dew, PTAA *ptaa, l_int32 rotflag, l_int32 fit_order );
+ LEPT_DLL extern l_ok dewarpFindHorizDisparity ( L_DEWARP *dew, PTAA *ptaa );
  LEPT_DLL extern PTAA * dewarpGetTextlineCenters ( PIX *pixs, l_int32 debugflag );
  LEPT_DLL extern PTAA * dewarpRemoveShortLines ( PIX *pixs, PTAA *ptaas, l_float32 fract, l_int32 debugflag );
- LEPT_DLL extern l_int32 dewarpFindHorizSlopeDisparity ( L_DEWARP *dew, PIX *pixb, l_float32 fractthresh, l_int32 parity );
- LEPT_DLL extern l_int32 dewarpBuildLineModel ( L_DEWARP *dew, l_int32 opensize, const char *debugfile );
-+LEPT_DLL extern l_int32 dewarpBuildLineModel_ex ( L_DEWARP *dew, l_int32 opensize, const char *debugfile, l_int32 fit_order );
- LEPT_DLL extern l_int32 dewarpaModelStatus ( L_DEWARPA *dewa, l_int32 pageno, l_int32 *pvsuccess, l_int32 *phsuccess );
- LEPT_DLL extern l_int32 dewarpaApplyDisparity ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, l_int32 grayin, l_int32 x, l_int32 y, PIX **ppixd, const char *debugfile );
- LEPT_DLL extern l_int32 dewarpaApplyDisparityBoxa ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, BOXA *boxas, l_int32 mapdir, l_int32 x, l_int32 y, BOXA **pboxad, const char *debugfile );
+ LEPT_DLL extern l_ok dewarpFindHorizSlopeDisparity ( L_DEWARP *dew, PIX *pixb, l_float32 fractthresh, l_int32 parity );
+ LEPT_DLL extern l_ok dewarpBuildLineModel ( L_DEWARP *dew, l_int32 opensize, const char *debugfile );
++LEPT_DLL extern l_ok dewarpBuildLineModel_ex ( L_DEWARP *dew, l_int32 opensize, const char *debugfile, l_int32 fit_order );
+ LEPT_DLL extern l_ok dewarpaModelStatus ( L_DEWARPA *dewa, l_int32 pageno, l_int32 *pvsuccess, l_int32 *phsuccess );
+ LEPT_DLL extern l_ok dewarpaApplyDisparity ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, l_int32 grayin, l_int32 x, l_int32 y, PIX **ppixd, const char *debugfile );
+ LEPT_DLL extern l_ok dewarpaApplyDisparityBoxa ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, BOXA *boxas, l_int32 mapdir, l_int32 x, l_int32 y, BOXA **pboxad, const char *debugfile );
 diff --git a/src/dewarp2.c b/src/dewarp2.c
 --- a/src/dewarp2.c
 +++ b/src/dewarp2.c
-@@ -147,6 +147,14 @@ static const l_float32   L_ALLOWED_W_FRACT = 0.05;  /* no bigger */
- l_int32
+@@ -152,6 +152,14 @@ static const l_float32   AllowedWidthFract = 0.05;  /* no bigger */
+ l_ok
  dewarpBuildPageModel(L_DEWARP    *dew,
                       const char  *debugfile)
 +{
 +    return dewarpBuildPageModel_ex(dew, debugfile, 2);
 +}
 +
-+l_int32
++l_ok
 +dewarpBuildPageModel_ex(L_DEWARP    *dew,
 +                        const char  *debugfile,
 +                        l_int32      fit_order)
  {
- l_int32  linecount, topline, botline, ret;
+ l_int32  linecount, ntop, nbot, ytop, ybot, ret;
  PIX     *pixs, *pix1, *pix2, *pix3;
-@@ -225,7 +233,7 @@ PTAA    *ptaa1, *ptaa2;
+@@ -231,7 +239,7 @@ PTAA    *ptaa1, *ptaa2;
          /* Get the sampled vertical disparity from the textline centers.
           * The disparity array will push pixels vertically so that each
           * textline is flat and centered at the y-position of the mid-point. */
@@ -44,7 +44,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
          L_WARNING("vertical disparity not built\n", procName);
          ptaaDestroy(&ptaa2);
          return 1;
-@@ -294,8 +302,19 @@ l_int32
+@@ -300,8 +308,19 @@ l_ok
  dewarpFindVertDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa,
                          l_int32    rotflag)
@@ -52,7 +52,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
 +    return dewarpFindVertDisparity_ex(dew, ptaa, rotflag, 2);
 +}
 +
-+l_int32
++l_ok
 +dewarpFindVertDisparity_ex(L_DEWARP  *dew,
 +                           PTAA      *ptaa,
 +                           l_int32    rotflag,
@@ -61,10 +61,10 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
  l_int32     i, j, nlines, npts, nx, ny, sampling;
 +l_int32     fit_order1, fit_order2;
 +l_float32   c3, c4;
- l_float32   c0, c1, c2, x, y, midy, val, medval, medvar, minval, maxval;
+ l_float32   c0, c1, c2, x, y, midy, val, medval, meddev, minval, maxval;
  l_float32  *famidys;
  NUMA       *nax, *nafit, *nacurve0, *nacurve1, *nacurves;
-@@ -309,6 +328,13 @@ FPIX       *fpix;
+@@ -315,6 +334,13 @@ FPIX       *fpix;
  
      if (!dew)
          return ERROR_INT("dew not defined", procName, 1);
@@ -78,7 +78,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
      dew->vsuccess = 0;
      if (!ptaa)
          return ERROR_INT("ptaa not defined", procName, 1);
-@@ -331,12 +357,25 @@ FPIX       *fpix;
+@@ -337,12 +363,25 @@ FPIX       *fpix;
      pixdb = (rotflag) ? pixRotateOrth(dew->pixs, 1) : pixClone(dew->pixs);
      for (i = 0; i < nlines; i++) {  /* for each line */
          pta = ptaaGetPta(ptaa, i, L_CLONE);
@@ -107,7 +107,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
               ptaAddPt(ptad, x, y);
          }
          ptaaAddPta(ptaa0, ptad, L_INSERT);
-@@ -350,7 +389,12 @@ FPIX       *fpix;
+@@ -356,7 +395,12 @@ FPIX       *fpix;
          for (i = 0; i < nlines; i++) {
              pta = ptaaGetPta(ptaa, i, L_CLONE);
              ptaGetArrays(pta, &nax, NULL);
@@ -121,7 +121,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
              ptad = ptaCreateFromNuma(nax, nafit);
              ptaaAddPta(ptaat, ptad, L_INSERT);
              ptaDestroy(&pta);
-@@ -494,11 +538,22 @@ FPIX       *fpix;
+@@ -500,11 +544,22 @@ FPIX       *fpix;
      ptaa5 = ptaaCreate(nx);  /* uniformly sampled across full height of image */
      for (j = 0; j < nx; j++) {  /* for each column */
          pta = ptaaGetPta(ptaa4, j, L_CLONE);
@@ -146,7 +146,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
               ptaAddPt(ptad, y, val);
          }
          ptaaAddPta(ptaa5, ptad, L_INSERT);
-@@ -1606,6 +1661,15 @@ l_int32
+@@ -1636,6 +1691,15 @@ l_ok
  dewarpBuildLineModel(L_DEWARP    *dew,
                       l_int32      opensize,
                       const char  *debugfile)
@@ -154,7 +154,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
 +    return dewarpBuildLineModel_ex(dew, opensize, debugfile, 2);
 +}
 +
-+l_int32
++l_ok
 +dewarpBuildLineModel_ex(L_DEWARP    *dew,
 +                        l_int32      opensize,
 +                        const char  *debugfile,
@@ -162,7 +162,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
  {
  char     buf[64];
  l_int32  i, j, bx, by, ret, nlines;
-@@ -1695,6 +1759,7 @@ PTAA    *ptaa1, *ptaa2;
+@@ -1725,6 +1789,7 @@ PTAA    *ptaa1, *ptaa2;
  
              /* Remove all lines that are not at least 0.75 times the length
               * of the longest line. */
@@ -170,7 +170,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
          ptaa2 = dewarpRemoveShortLines(pix, ptaa1, 0.75, DEBUG_SHORT_LINES);
          if (debugfile) {
              pix1 = pixConvertTo32(pix);
-@@ -1704,6 +1769,9 @@ PTAA    *ptaa1, *ptaa2;
+@@ -1734,6 +1799,9 @@ PTAA    *ptaa1, *ptaa2;
              pixDestroy(&pix1);
              pixDestroy(&pix2);
          }
@@ -180,7 +180,7 @@ diff --git a/src/dewarp2.c b/src/dewarp2.c
          ptaaDestroy(&ptaa1);
          nlines = ptaaGetCount(ptaa2);
          if (nlines < dew->minlines) {
-@@ -1717,7 +1785,7 @@ PTAA    *ptaa1, *ptaa2;
+@@ -1747,7 +1815,7 @@ PTAA    *ptaa1, *ptaa2;
               * centers.  The disparity array will push pixels vertically
               * so that each line is flat and centered at the y-position
               * of the mid-point. */
