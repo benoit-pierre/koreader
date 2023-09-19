@@ -11,6 +11,8 @@ declare -r ANSI_RED=$'\e[31;1m'
 declare -r ANSI_RESET=$'\e[0m'
 declare -r E_OPTERR=85
 
+declare -r SHFMT_OPTIONS=(-i 4 -ci)
+
 opt_dry_run=0
 opt_timings=0
 
@@ -657,65 +659,209 @@ $(build_options_help_msg 'BUILD' 'use existing build' '' 'default')
     run_make ${NO_BUILD:+--assume-old=all} "${margs[@]}"
 }
 
-function kodev-check() {
-    exit_code=0
-    kodev-fetch-thirdparty
+function check-shell() {
+    local output
+    local -a issues=()
+    local warn="${ANSI_RED}Warning${ANSI_RESET}"
+    local shellcheck=(shellcheck --color=always)
+    local shfmt=(env FORCE_COLOR=1 shfmt "${SHFMT_OPTIONS[@]}")
+    printf '%s: ' "$1"
+    # Checking code quality.
+    if ! output="$("${shellcheck[@]}" "$1")"; then
+        issues+=("${output}")
+    fi
+    # Checking formatting.
+    if ! output="$("${shfmt[@]}" -kp -d "$1")"; then
+        issues+=($'\n'"${warn}: $1 does not abide by coding style, diff for expected style:")
+        issues+=("${output}")
+    fi
+    if [[ ${#issues[@]} -eq 0 ]]; then
+        echo "${ANSI_GREEN}OK${ANSI_RESET}"
+        return 0
+    else
+        echo "${ANSI_RED}KO${ANSI_RESET}"
+        printf '%s\n' "${issues[@]}"
+        return 1
+    fi
+}
 
-    # shellcheck disable=2016
-    mapfile -t shellscript_locations < <({ git -c submodule.recurse=0 grep -lE '^#!(/usr)?/bin/(env )?(bash|sh)' | sed "/^plugins\/terminal.koplugin\/shfm$/d" && git submodule --quiet foreach '[ "$path" = "base" -o "$path" = "platform/android/luajit-launcher" ] || git grep -lE "^#!(/usr)?/bin/(env )?(bash|sh)" | sed "s|^|$path/|"' && git ls-files ./*.sh; } | sort | uniq)
+function check-lua() {
+    local output
+    local -a issues=()
+    local warn="${ANSI_RED}Warning${ANSI_RESET}"
+    printf '%s: ' "$1"
+    # Checking for unscaled sizes.
+    output=''
+    case "$1" in
+        base/*) ;;
+        frontend/ui/data/keyboardlayouts/*) ;;
+        frontend/ui/data/koptoptions.lua) ;;
+        *)
+            output="$(grep --color=always -n '\(padding\|margin\|bordersize\|width\|height\|radius\|linesize\) = [0-9]\{1,2\}' "$1" |
+                      grep -v '= 0' | grep -v '= [0-9]/[0-9]' | grep -Ev '(default_option_height|default_option_padding)' |
+                      grep -v scaleBySize | grep -v 'unscaled_size_check: ignore' || true)"
+            ;;
+    esac
+    # Also check for Geom objects.
+    case "$1" in
+        base/*) ;;
+        spec/unit/gesturerange_spec.lua) ;;
+        *)
+            [[ -z "${output}" ]] || output+=$'\n\n'
+            output+="$(grep --color=always -En 'Geom:new{.+ [wh] = [0-9]{1,4}' "$1" |
+                      grep -Ev '[wh] = 0' | grep -v '= [0-9]/[0-9]' |
+                      grep -v scaleBySize || true)"
+            ;;
+    esac
+    if [[ -n "${output}" ]]; then
+        issues+=(
+            ''
+            "${warn}: it looks like you might be using unscaled sizes. It is almost"
+            "always preferable to defer to one of the predefined sizes in ui.size:"
+            ''
+            "${output}"
+            ''
+        )
+    fi
+    # Checking for tabs.
+    output=''
+    case "$1" in
+        plugins/newsdownloader.koplugin/lib/dateparser.lua) ;;
+        plugins/newsdownloader.koplugin/lib/xml.lua) ;;
+        *)
+            output="$(env GREP_COLORS='ms=41' grep --color=always -nP '\t+' "$1" || true)"
+            ;;
+    esac
+    if [[ -n "${output}" ]]; then
+        issues+=(
+            ''
+            "${warn}: tab character detected. Please use spaces:"
+            ''
+            "${output}"
+            ''
+        )
+    fi
+    # Check for untagged FIXMEs / TODOs / warnings.
+    output=''
+    case "$1" in
+        plugins/newsdownloader.koplugin/lib/dateparser.lua) ;;
+        plugins/newsdownloader.koplugin/lib/xml.lua) ;;
+        *)
+            output="$(grep --color=always -Pin '[^\-]--(\s+)?@?(todo|fixme|warning)' "$1" || true)"
+            ;;
+    esac
+    if [[ -n "${output}" ]]; then
+        issues+=(
+            ''
+            "${warn}: possible improperly tagged todo, fixme or warning"
+            'detected, use --- followed by @todo, @fixme or @warning:'
+            ''
+            "${output}"
+            ''
+        )
+    fi
+    case "$1" in
+        base/libkoreader.meson.lua) ;;
+        *)
+            if ! output="$(luacheck --codes --quiet "$1")"; then
+                issues+=($'\n'"${output}"$'\n')
+            fi
+            ;;
+    esac
+    if [[ ${#issues[@]} -eq 0 ]]; then
+        echo "${ANSI_GREEN}OK${ANSI_RESET}"
+        return 0
+    else
+        echo "${ANSI_RED}KO${ANSI_RESET}"
+        printf '%s\n' "${issues[@]}"
+        return 1
+    fi
+}
 
-    SHFMT_OPTIONS="-i 4 -ci"
-
-    for shellscript in "${shellscript_locations[@]}"; do
-        echo -e "${ANSI_GREEN}Running shellcheck on ${shellscript}"
-        shellcheck "${shellscript}" || exit_code=1
-        echo -e "${ANSI_GREEN}Running shfmt on ${shellscript}"
-        # shellcheck disable=2086
-        if ! shfmt ${SHFMT_OPTIONS} -kp "${shellscript}" >/dev/null 2>&1; then
-            echo -e "${ANSI_RED}Warning: ${shellscript} contains the following problem:"
-            # shellcheck disable=2086
-            shfmt ${SHFMT_OPTIONS} -kp "${shellscript}" || exit_code=1
-            continue
+function list-files() {
+    local -a files
+    local glob="$1"
+    local shebang="$2"
+    shift 2
+    for repo in "$@"; do
+        mapfile -t files < <(
+            git -C "${repo}" -c submodule.recurse=0 grep -lE "${shebang}" || true
+            git -C "${repo}" ls-files "${glob}"
+        )
+        if [[ "${repo}" != '.' ]]; then
+            files=("${files[@]/#/${repo}/}")
         fi
-        # shellcheck disable=2086
-        if [ "$(cat "${shellscript}")" != "$(shfmt ${SHFMT_OPTIONS} "${shellscript}")" ]; then
-            echo -e "${ANSI_RED}Warning: ${shellscript} does not abide by coding style, diff for expected style:"
-            # shellcheck disable=2086
-            shfmt ${SHFMT_OPTIONS} -d "${shellscript}" || exit_code=1
-        fi
+        printf '%s\n' "${files[@]}"
     done
+}
 
-    echo -e "\\n${ANSI_GREEN}Checking for unscaled sizes"
-    # stick `|| true` at the end to prevent exit on failed command
-    unscaled_size_check=$(grep -nr --include=*.lua --exclude=koptoptions.lua --exclude-dir=base --exclude-dir=luajit-rocks --exclude-dir=install --exclude-dir=keyboardlayouts --exclude-dir=*arm* "\\(padding\\|margin\\|bordersize\\|width\\|height\\|radius\\|linesize\\) = [0-9]\\{1,2\\}" | grep -v '= 0' | grep -v '= [0-9]/[0-9]' | grep -Ev '(default_option_height|default_option_padding)' | grep -v scaleBySize | grep -v 'unscaled_size_check: ignore' || true)
-    # Also check Geom objects; for legibility two regular expressions rather than
-    # one enormous indecipharable blob.
-    unscaled_size_check_geom=$(grep -E -nr --include=*.lua --exclude=gesturerange_spec.lua --exclude-dir=base --exclude-dir=luajit-rocks --exclude-dir=*arm* 'Geom:new{.+ [wh] = [0-9]{1,4}' | grep -Ev '[wh] = 0' | grep -v '= [0-9]/[0-9]' | grep -v scaleBySize || true)
+function kodev-check() {
+    local SHELL_GLOB='*.sh'
+    local SHELL_SHEBANG='^#!(/usr)?/bin/(env )?(bash|sh)'
+    local LUA_GLOB='*.lua'
+    local LUA_SHEBANG='^#!(/usr)?/bin/(env )?lua(jit)?'
+    local -a shellscripts
+    local -a luafiles
+    local parallel=0
+    local exit_code=0
 
-    if [ "${unscaled_size_check}" ] || [ "${unscaled_size_check_geom}" ]; then
-        echo -e "\\n${ANSI_RED}Warning: it looks like you might be using unscaled sizes.\\nIt is almost always preferable to defer to one of the predefined sizes in ui.size in the following files:"
-        echo "${unscaled_size_check}"
-        echo "${unscaled_size_check_geom}"
-        exit_code=1
+    if [[ -z "${PARALLEL_SEQ}" ]] && which parallel >/dev/null 2>&1; then
+        parallel=1
     fi
 
-    tab_detected=$(grep -P "\\t" --include \*.lua --exclude={dateparser.lua,xml.lua} --recursive {reader,setupkoenv,datastorage}.lua frontend plugins spec || true)
-    if [ "${tab_detected}" ]; then
-        echo -e "\\n${ANSI_RED}Warning: tab character detected. Please use spaces."
-        echo "${tab_detected}"
-        exit_code=1
+    if [[ $# -eq 0 ]]; then
+        # kodev-fetch-thirdparty
+        local -a repos=(
+            .
+            subprojects/koreader-runtests
+            subprojects/luajit-launcher
+        )
+        mapfile -t shellscripts < <(
+            list-files "${SHELL_GLOB}" "${SHELL_SHEBANG}" "${repos[@]}" |
+                grep -vE '^(plugins/terminal\.koplugin/shfm|subprojects/crengine/.*|subprojects/luajit-launcher/gradlew)$' | sort -u
+        )
+        mapfile -t luafiles < <(
+            list-files "${LUA_GLOB}" "${LUA_SHEBANG}" "${repos[@]}" |
+                grep -vE '^base/ffi/.*_h\.lua$' | sort -u
+        )
+    else
+        for arg in "$@"; do
+            # shellcheck disable=2254
+            case "${arg}" in
+                ${LUA_GLOB})
+                    luafiles+=("${arg}")
+                    ;;
+                ${SHELL_GLOB})
+                    shellscripts+=("${arg}")
+                    ;;
+                *)
+                    if grep -qE "${LUA_SHEBANG}" "${arg}"; then
+                        luafiles+=("${arg}")
+                    elif grep -qE "${SHELL_SHEBANG}" "${arg}"; then
+                        shellscripts+=("${arg}")
+                    else
+                        die 1 "unsupported file type: \"${arg}\""
+                    fi
+                    ;;
+            esac
+        done
     fi
 
-    untagged_todo=$(grep -Pin "[^\-]\-\-(\s+)?@?(todo|fixme|warning)" --include \*.lua --exclude={dateparser.lua,xml.lua} --recursive {reader,setupkoenv,datastorage}.lua frontend plugins spec || true)
-    if [ "${untagged_todo}" ]; then
-        echo -e "\\n${ANSI_RED}Warning: possible improperly tagged todo, fixme or warning detected."
-        echo -e "\\n${ANSI_RED}         use --- followed by @todo, @fixme or @warning."
-        echo "${untagged_todo}"
-        exit_code=1
+    if [[ ${#shellscripts[@]} -gt 0 && ${parallel} -eq 1 ]]; then
+        parallel --keep-order --line-buffer ./kodev check ::: "${shellscripts[@]}" || exit_code=1
+    else
+        for f in "${shellscripts[@]}"; do
+            check-shell "${f}" || exit_code=1
+        done
     fi
 
-    echo -e "\n${ANSI_GREEN}Luacheck results"
-    $(command -v luacheck) -q {reader,setupkoenv,datastorage}.lua frontend plugins spec
+    if [[ ${#luafiles[@]} -gt 0 && ${parallel} -eq 1 ]]; then
+        parallel --keep-order --line-buffer ./kodev check ::: "${luafiles[@]}" || exit_code=1
+    else
+        for f in "${luafiles[@]}"; do
+            check-lua "${f}" || exit_code=1
+        done
+    fi
 
     exit "${exit_code}"
 }
