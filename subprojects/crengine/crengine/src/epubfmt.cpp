@@ -111,7 +111,7 @@ void ReadEpubNcxToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
     lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(U"content");
     lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(U"text");
     int nb_items = mapRoot->isElement() ? mapRoot->getChildCount() : 0;
-    for (size_t i=0; i<nb_items; i++) {
+    for (int i=0; i<nb_items; i++) {
         ldomNode * navPoint = mapRoot->getChildNode(i);
         if ( navPoint->getNodeId() != navPoint_id )
             continue;
@@ -176,7 +176,7 @@ void ReadEpubNcxPageList( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pa
     lUInt16 content_id = mapRoot->getDocument()->getElementNameIndex(U"content");
     lUInt16 text_id = mapRoot->getDocument()->getElementNameIndex(U"text");
     int nb_items = mapRoot->isElement() ? mapRoot->getChildCount() : 0;
-    for (size_t i=0; i<nb_items; i++) {
+    for (int i=0; i<nb_items; i++) {
         ldomNode * pageTarget = mapRoot->getChildNode(i);
         if ( pageTarget->getNodeId() != pageTarget_id )
             continue;
@@ -216,7 +216,7 @@ void ReadEpubNavToc( ldomDocument * doc, ldomNode * mapRoot, LVTocItem * baseToc
     lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(U"a");
     lUInt16 span_id = mapRoot->getDocument()->getElementNameIndex(U"span");
     int nb_items = mapRoot->isElement() ? mapRoot->getChildCount() : 0;
-    for (size_t i=0; i<nb_items; i++) {
+    for (int i=0; i<nb_items; i++) {
         ldomNode * li = mapRoot->getChildNode(i);
         if ( li->getNodeId() != li_id )
             continue;
@@ -281,7 +281,7 @@ void ReadEpubNavPageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * pag
     lUInt16 li_id = mapRoot->getDocument()->getElementNameIndex(U"li");
     lUInt16 a_id = mapRoot->getDocument()->getElementNameIndex(U"a");
     int nb_items = mapRoot->isElement() ? mapRoot->getChildCount() : 0;
-    for (size_t i=0; i<nb_items; i++) {
+    for (int i=0; i<nb_items; i++) {
         ldomNode * li = mapRoot->getChildNode(i);
         if ( li->getNodeId() != li_id )
             continue;
@@ -314,7 +314,7 @@ void ReadEpubAdobePageMap( ldomDocument * doc, ldomNode * mapRoot, LVPageMap * p
         return;
     lUInt16 page_id = mapRoot->getDocument()->getElementNameIndex(U"page");
     int nb_items = mapRoot->isElement() ? mapRoot->getChildCount() : 0;
-    for (size_t i=0; i<nb_items; i++) {
+    for (int i=0; i<nb_items; i++) {
         ldomNode * page = mapRoot->getChildNode(i);
         if ( page->getNodeId() != page_id )
             continue;
@@ -799,7 +799,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
         ldomNode * metadata = doc->nodeFromXPath(lString32("package/metadata"));
         int nb_metadata_items = (metadata && metadata->isElement()) ? metadata->getChildCount() : 0;
         lUInt16 meta_id = doc->getElementNameIndex(U"meta");
-        for (size_t i=0; i<nb_metadata_items; i++) {
+        for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != meta_id )
                 continue;
@@ -816,7 +816,7 @@ LVStreamRef GetEpubCoverpage(LVContainerRef arc)
         ldomNode * manifest = doc->nodeFromXPath(lString32("package/manifest"));
         int nb_manifest_items = (manifest && manifest->isElement()) ? manifest->getChildCount() : 0;
         lUInt16 item_id = doc->getElementNameIndex(U"item");
-        for (size_t i=0; i<nb_manifest_items; i++) {
+        for (int i=0; i<nb_manifest_items; i++) {
             ldomNode * item = manifest->getChildNode(i);
             if ( item->getNodeId() != item_id )
                 continue;
@@ -1163,7 +1163,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             // if we're going to load the book (and all its other metadata) from cache.
             // Iterate all package/metadata/identifier
             lUInt16 identifier_id = doc->getElementNameIndex(U"identifier");
-            for (size_t i=0; i<nb_metadata_items; i++) {
+            for (int i=0; i<nb_metadata_items; i++) {
                 ldomNode * item = metadata->getChildNode(i);
                 if ( item->getNodeId() != identifier_id )
                     continue;
@@ -1176,7 +1176,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
         if ( decryptor->hasIdpfObfuscatedItems() && !idpfUniqueIdentifier.empty() ) {
             lUInt16 identifier_id = doc->getElementNameIndex(U"identifier");
-            for (size_t i=0; i<nb_metadata_items; i++) {
+            for (int i=0; i<nb_metadata_items; i++) {
                 ldomNode * item = metadata->getChildNode(i);
                 if ( item->getNodeId() != identifier_id )
                     continue;
@@ -1226,7 +1226,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString32 authors;
         // Iterate all package/metadata/creator
         lUInt16 creator_id = doc->getElementNameIndex(U"creator");
-        for (size_t i=0; i<nb_metadata_items; i++) {
+        for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != creator_id )
                 continue;
@@ -1246,7 +1246,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         lString32 subjects;
         // Iterate all package/metadata/subject
         lUInt16 subject_id = doc->getElementNameIndex(U"subject");
-        for (size_t i=0; i<nb_metadata_items; i++) {
+        for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != subject_id )
                 continue;
@@ -1266,7 +1266,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         bool hasSeriesIdMeta = false;
         // Iterate all package/metadata/meta
         lUInt16 meta_id = doc->getElementNameIndex(U"meta");
-        for (size_t i=0; i<nb_metadata_items; i++) {
+        for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != meta_id )
                 continue;
@@ -1306,7 +1306,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         if (isEpub3 && coverId.empty()) {
             // Iterate all package/manifest/item
             lUInt16 item_id = doc->getElementNameIndex(U"item");
-            for (size_t i=0; i<nb_manifest_items; i++) {
+            for (int i=0; i<nb_manifest_items; i++) {
                 ldomNode * item = manifest->getChildNode(i);
                 if ( item->getNodeId() != item_id )
                     continue;
@@ -1334,7 +1334,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             lString32 seriesId;
             // Iterate all package/metadata/meta
             lUInt16 meta_id = doc->getElementNameIndex(U"meta");
-            for (size_t i=0; i<nb_metadata_items; i++) {
+            for (int i=0; i<nb_metadata_items; i++) {
                 ldomNode * item = metadata->getChildNode(i);
                 if ( item->getNodeId() != meta_id )
                     continue;
@@ -1409,7 +1409,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         CRLog::debug("opf: reading items");
         // Iterate all package/manifest/item
         lUInt16 item_id = doc->getElementNameIndex(U"item");
-        for (size_t i=0; i<nb_manifest_items; i++) {
+        for (int i=0; i<nb_manifest_items; i++) {
             if ( metadataDone ) {
                 break;
             }
@@ -1499,7 +1499,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                 // Iterate all package/spine/itemref (each will make a book fragment)
                 lUInt16 itemref_id = doc->getElementNameIndex(U"itemref");
                 int nb_itemrefs = spine->getChildCount();
-                for (size_t i=0; i<nb_itemrefs; i++) {
+                for (int i=0; i<nb_itemrefs; i++) {
                     ldomNode * item = spine->getChildNode(i);
                     if ( item->getNodeId() != itemref_id )
                         continue;
