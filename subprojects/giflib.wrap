@@ -1,9 +1,13 @@
 [wrap-file]
-directory = giflib-5.1.4
-source_url = https://gitlab.com/koreader/giflib/-/archive/5.1.4/giflib-5.1.4.tar.bz2
-source_hash = 19dba12555a360bc254fe42c58f18db25a84ba0700567dfcebcb08d383bfddd4
-source_filename = giflib-5.1.4.tar.bz2
-patch_directory = giflib/overlay
+directory = giflib-5.2.1
+source_url = https://downloads.sourceforge.net/project/giflib/giflib-5.2.1.tar.gz
+source_filename = giflib-5.2.1.tar.gz
+source_hash = 31da5562f44c5f15d63340a09a4fd62b48c45620cd302f77a6d9acf0077879bd
+patch_filename = giflib_5.2.1-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/giflib_5.2.1-1/get_patch
+patch_hash = 0d25372d019ca0e07a3c7362a31fc8dc1cc87796b5922d871c4837bae451fc6e
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/giflib_5.2.1-1/giflib-5.2.1.tar.gz
+wrapdb_version = 5.2.1-1
 
 [provide]
-dependency_names = gif
+dependency_names = giflib
