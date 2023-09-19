@@ -6,7 +6,8 @@ source_filename = leptonica-1.74.1.tar.gz
 patch_directory = leptonica/overlay
 diff_files = 
 	leptonica/visibility.patch,
-	leptonica/k2pdfopt.patch
+	leptonica/k2pdfopt.patch,
+	leptonica/fix-uninitialized-memory-access.patch
 
 [provide]
 dependency_names = lept
