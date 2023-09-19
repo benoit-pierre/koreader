@@ -1,1 +1,2 @@
-option('legacy-engine', type: 'boolean', value: true)
+option('legacy-engine', type: 'boolean')
+option('simd', type: 'boolean')

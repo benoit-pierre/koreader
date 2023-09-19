@@ -1,7 +1,19 @@
+diff --git a/include/tesseract/baseapi.h b/include/tesseract/baseapi.h
+--- a/include/tesseract/baseapi.h
++++ b/include/tesseract/baseapi.h
+@@ -539,6 +539,8 @@ public:
+    */
+   char *GetHOCRText(ETEXT_DESC *monitor, int page_number);
+ 
++  int GetOCRWords(int** x00, int** y00, int** x11, int** y11, int** ybaseline0, char** utf8words);
++
+   /**
+    * Make a HTML-formatted string with hOCR markup from the internal
+    * data structures.
 diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 --- a/src/api/baseapi.cpp
 +++ b/src/api/baseapi.cpp
-@@ -1553,6 +1553,72 @@ char* TessBaseAPI::GetBoxText(int page_number) {
+@@ -1584,6 +1584,61 @@ char *TessBaseAPI::GetBoxText(int page_number) {
    return result;
  }
  
@@ -20,14 +32,11 @@ diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 +            continue;
 +        }
 +        iword++;
-+        STRING textstr=std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
-+        totlen+=strlen(textstr.string())+1;
++        std::string textstr = std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
++        totlen += textstr.length() + 1;
 +        res_it->Next(RIL_WORD);
 +    }
 +    nwords=iword;
-+    /*
-+    printf("\nnwords=%d, totlen=%d\n",nwords,totlen);
-+    */
 +    x0 = *x00 = (int *)malloc(sizeof(int) * 5 * nwords);
 +    y0 = *y00 = &x0[nwords];
 +    x1 = *x11 = &y0[nwords];
@@ -42,14 +51,12 @@ diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 +            res_it->Next(RIL_WORD);
 +            continue;
 +        }
-+        STRING textstr = std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
-+        strcpy(&tutf8[it8],textstr.string());
-+        it8 += strlen(&tutf8[it8]) + 1;
-+        /*
-+        STRING textstr("");
-+        textstr += std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
-+        printf("Word %d: '%s'\n", iword, textstr.string());
-+        */
++        std::string textstr = std::unique_ptr<const char[]>(res_it->GetUTF8Text(RIL_WORD)).get();
++        int len = textstr.length();
++        for (int i = 0; i < len; i++)
++            tutf8[it8 + i] = textstr.at(i);
++        tutf8[it8 + len] = '\0';
++        it8 += len + 1;
 +        int left, top, right, bottom;
 +        int u1, v1, u2, v2;
 +        res_it->BoundingBox(RIL_WORD, &left, &top, &right, &bottom);
@@ -60,29 +67,11 @@ diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
 +        y1[iword] = bottom;
 +        ybaseline[iword] = (v1 + v2) / 2;
 +        iword++;
-+        /*
-+        printf("BB: (%d,%d)-(%d,%d)  BL: (%d,%d)-(%d,%d)\n",left,bottom,right,top,x1,y1,x2,y2);
-+        */
 +        res_it->Next(RIL_WORD);
 +    }
-+    /*
-+    printf("iword=%d\n",iword);
-+    */
 +    return iword;
 +}
 +
  /**
   * Conversion table for non-latin characters.
   * Maps characters out of the latin set into the latin set.
-diff --git a/src/api/baseapi.h b/src/api/baseapi.h
---- a/src/api/baseapi.h
-+++ b/src/api/baseapi.h
-@@ -575,6 +575,8 @@ class TESS_API TessBaseAPI {
-    */
-   char* GetHOCRText(ETEXT_DESC* monitor, int page_number);
- 
-+  int GetOCRWords(int** x00, int** y00, int** x11, int** y11, int** ybaseline0, char** utf8words);
-+
-   /**
-    * Make a HTML-formatted string with hOCR markup from the internal
-    * data structures.

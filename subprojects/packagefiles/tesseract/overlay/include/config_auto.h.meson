@@ -1,0 +1,18 @@
+#ifndef CONFIG_AUTO_H
+#define CONFIG_AUTO_H
+
+/* Disable graphics */
+#mesondefine GRAPHICS_DISABLED
+
+/* Disable the legacy OCR engine */
+#mesondefine DISABLED_LEGACY_ENGINE
+
+/* Optional functions */
+#mesondefine HAVE_FEENABLEEXCEPT
+
+/* For detecting NEON support */
+#mesondefine HAVE_ANDROID_GETCPUFAMILY
+#mesondefine HAVE_GETAUXVAL
+#mesondefine HAVE_ELF_AUX_INFO
+
+#endif

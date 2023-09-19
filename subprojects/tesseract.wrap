@@ -1,10 +1,9 @@
 [wrap-file]
-directory = tesseract-4.1.1
-source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz
-source_hash = 2a66ff0d8595bff8f04032165e6c936389b1e5727c3ce5a27b3e059d218db1cb
-source_filename = tesseract-4.1.1.tar.gz
+directory = tesseract-5.3.1
+source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.1.tar.gz
+source_hash = 3761768c02b99358e5118bfabfecc979fa84a399da5fa54c49dd477d926fef43
+source_filename = tesseract-5.3.1.tar.gz
 patch_directory = tesseract/overlay
 diff_files = 
-	tesseract/disabled-legacy-engine.patch,
 	tesseract/k2pdfopt.patch,
-	tesseract/gcc13.patch
+	tesseract/kindle.patch
