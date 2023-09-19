@@ -1,8 +1,8 @@
 [wrap-file]
-directory = sdcv-6e36e7730caf07b6cd0bfa265cdf9b5e31e7acad
-source_url = https://github.com/Dushistov/sdcv/archive/v0.5.3-36-g6e36e77.tar.gz
-source_hash = 6f30a9cdab2c20363f83b34eef53e858d6b22c0c846b3d61698f6f30593886a5
-source_filename = sdcv-v0.5.3-36-g6e36e77.tar.gz
+directory = sdcv-0.5.5
+source_url = https://github.com/Dushistov/sdcv/archive/refs/tags/v0.5.5.tar.gz
+source_hash = 4d2519e8f8479b9301dc91e9cda3e1eefef19970ece0e8c05f0c7b7ade5dc94b
+source_filename = sdcv-0.5.5.tar.gz
 patch_directory = sdcv/overlay
 diff_files = 
 	sdcv/locale-hack.patch,

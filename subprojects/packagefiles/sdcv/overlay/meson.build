@@ -1,7 +1,7 @@
 project(
   'sdcv',
   'cpp',
-  version: '0.5.4',
+  version: '0.5.5',
   default_options: 'cpp_std=c++11',
 )
 
