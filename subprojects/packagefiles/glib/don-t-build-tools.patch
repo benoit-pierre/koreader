@@ -1,7 +1,7 @@
 diff --git a/gio/meson.build b/gio/meson.build
 --- a/gio/meson.build
 +++ b/gio/meson.build
-@@ -413,6 +413,7 @@ if host_system != 'windows'
+@@ -409,6 +409,7 @@ if host_system != 'windows'
        launch_desktop_sources += files('../glib/gjournal-private.c')
      endif
  
@@ -9,7 +9,7 @@ diff --git a/gio/meson.build b/gio/meson.build
      gio_launch_desktop = executable('gio-launch-desktop', launch_desktop_sources,
        include_directories : glibinc,
        install : true,
-@@ -421,6 +422,7 @@ if host_system != 'windows'
+@@ -417,6 +418,7 @@ if host_system != 'windows'
        c_args : gio_c_args,
        # intl.lib is not compatible with SAFESEH
        link_args : noseh_link_args)
@@ -17,7 +17,7 @@ diff --git a/gio/meson.build b/gio/meson.build
    endif
  
    subdir('xdgmime')
-@@ -980,6 +982,8 @@ gio_tool_sources = [
+@@ -983,6 +985,8 @@ gio_tool_sources = [
    'gio-tool-tree.c',
  ]
  
@@ -26,7 +26,7 @@ diff --git a/gio/meson.build b/gio/meson.build
  executable('gio', gio_tool_sources,
    install : true,
    install_tag : 'bin',
-@@ -995,6 +999,10 @@ executable('gresource', 'gresource-tool.c',
+@@ -998,6 +1002,10 @@ executable('gresource', 'gresource-tool.c',
    link_args : noseh_link_args,
    dependencies : [libelf, libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
  
@@ -37,7 +37,7 @@ diff --git a/gio/meson.build b/gio/meson.build
  gio_querymodules = executable('gio-querymodules', 'gio-querymodules.c', 'giomodule-priv.c',
    install : true,
    install_dir : multiarch_bindir,
-@@ -1066,6 +1074,8 @@ if host_system != 'windows' and not glib_have_cocoa
+@@ -1073,6 +1081,8 @@ if host_system != 'windows' and not glib_have_cocoa
      dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
  endif
  
@@ -49,7 +49,7 @@ diff --git a/gio/meson.build b/gio/meson.build
 diff --git a/glib/meson.build b/glib/meson.build
 --- a/glib/meson.build
 +++ b/glib/meson.build
-@@ -452,6 +452,8 @@ pkg.generate(libglib,
+@@ -462,6 +462,8 @@ pkg.generate(libglib,
  )
  meson.override_dependency('glib-2.0', libglib_dep)
  
@@ -58,8 +58,8 @@ diff --git a/glib/meson.build b/glib/meson.build
  # On Windows, glib needs a spawn helper for g_spawn* API
  if host_system == 'windows'
    if host_machine.cpu_family() == 'x86'
-@@ -486,6 +488,8 @@ else
-     dependencies : [libglib_dep])
+@@ -499,6 +501,8 @@ else
+   meson.override_find_program('gtester', gtester)
  endif
  
 +endif
@@ -86,7 +86,7 @@ diff --git a/gobject/meson.build b/gobject/meson.build
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -86,6 +86,8 @@ gobjectinc = include_directories('gobject')
+@@ -88,6 +88,8 @@ gobjectinc = include_directories('gobject')
  gmoduleinc = include_directories('gmodule')
  gioinc = include_directories('gio')
  

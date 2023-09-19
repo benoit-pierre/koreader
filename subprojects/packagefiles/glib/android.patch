@@ -1,15 +1,15 @@
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -612,7 +612,6 @@ functions = [
-   'close_range',
+@@ -623,7 +623,6 @@ functions = [
+   'copy_file_range',
    'endmntent',
    'endservent',
 -  'epoll_create',
    'fallocate',
    'fchmod',
    'fchown',
-@@ -727,6 +726,10 @@ foreach f : functions
+@@ -743,6 +742,10 @@ foreach f : functions
    endif
  endforeach
  
@@ -17,6 +17,6 @@ diff --git a/meson.build b/meson.build
 +  glib_conf.set('HAVE_EPOLL_CREATE', 1)
 +endif
 +
- # Check that stpcpy() is usable; must use header.
- # See:
- # https://github.com/mesonbuild/meson/issues/5628.
+ # Export the information about free_sized() so we can correctly define a macro
+ # wrapper around g_free()/g_free_sized() depending on whether it’s available
+ glibconfig_conf.set('G_HAVE_FREE_SIZED', have_func_free_sized)

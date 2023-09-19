@@ -1,7 +1,7 @@
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -2391,7 +2391,9 @@ subdir('gobject')
+@@ -2460,7 +2460,9 @@ subdir('gobject')
  subdir('gthread')
  subdir('gmodule')
  subdir('gio')

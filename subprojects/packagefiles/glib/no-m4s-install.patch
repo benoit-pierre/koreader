@@ -1,7 +1,7 @@
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -2402,12 +2402,6 @@ if find_program('xgettext', required : get_option('nls')).found()
+@@ -2471,12 +2471,6 @@ if find_program('xgettext', required : get_option('nls')).found()
    subdir('po')
  endif
  
