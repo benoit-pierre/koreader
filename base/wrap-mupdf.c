@@ -39,8 +39,10 @@ static size_t msize = 0U;
 static size_t msize_prev;
 static size_t msize_max;
 static size_t msize_min;
-static size_t msize_iniz;
 static bool is_realloc = false;
+
+#if 0
+static size_t msize_iniz;
 
 static void resetMsize() {
     msize_iniz = msize;
@@ -54,6 +56,7 @@ static void showMsize() {
     //printf("§§§ now: %s was: %s - min: %s - max: %s\n", readable_fs(msize, buf), readable_fs(msize_iniz, buf2), readable_fs(msize_min, buf3), readable_fs(msize_max, buf4));
     resetMsize();
 }
+#endif
 
 static void log_size(char *funcName) {
     if (msize_max < msize) {
@@ -63,7 +66,7 @@ static void log_size(char *funcName) {
         msize_min = msize;
     }
     if (1==0 && abs(msize - msize_prev) > msize_prev * LOG_TRESHOLD_PERC) {
-        char buf[15], buf2[15];
+        //char buf[15], buf2[15];
         //printf("§§§ %s - total: %s (was %s)\n",funcName, readable_fs(msize,buf),readable_fs(msize_prev,buf2));
         msize_prev = msize;
     }

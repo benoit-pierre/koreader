@@ -61,7 +61,7 @@ DLL_PUBLIC fz_rect *mupdf_fz_bound_page(fz_context *ctx, fz_page *page, fz_rect 
 // it will overflow.
 #define MUPDF_WRAP(wrapper_name, ret_type, failure_value, call, ...) \
     extern ret_type wrapper_name(fz_context *ctx, ##__VA_ARGS__) { \
-        ret_type ret; \
+        ret_type ret = failure_value; \
         fz_try(ctx) { call; } \
         fz_catch(ctx) { ret = failure_value; } \
         return ret; \
