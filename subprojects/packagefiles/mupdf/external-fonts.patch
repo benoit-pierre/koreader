@@ -1,8 +1,8 @@
 diff --git a/include/mupdf/fitz/font.h b/include/mupdf/fitz/font.h
 --- a/include/mupdf/fitz/font.h
 +++ b/include/mupdf/fitz/font.h
-@@ -726,4 +726,9 @@ struct fz_font
- 	unsigned char digest[16];
+@@ -742,4 +742,9 @@ struct fz_font
+ 	int subfont;
  };
  
 +char *get_font_file(char *name);
@@ -14,7 +14,7 @@ diff --git a/include/mupdf/fitz/font.h b/include/mupdf/fitz/font.h
 diff --git a/source/fitz/font.c b/source/fitz/font.c
 --- a/source/fitz/font.c
 +++ b/source/fitz/font.c
-@@ -472,11 +472,8 @@ fz_font *fz_load_system_fallback_font(fz_context *ctx, int script, int language,
+@@ -476,11 +476,8 @@ fz_font *fz_load_system_fallback_font(fz_context *ctx, int script, int language,
  fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int serif, int bold, int italic)
  {
  	fz_font **fontp;
@@ -26,7 +26,7 @@ diff --git a/source/fitz/font.c b/source/fitz/font.c
  
  	if (script < 0 || script >= (int)nelem(ctx->font->fallback))
  		return NULL;
-@@ -510,9 +507,18 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
+@@ -514,6 +511,10 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
  		*fontp = fz_load_system_fallback_font(ctx, script, language, serif, bold, italic);
  		if (!*fontp)
  		{
@@ -36,7 +36,11 @@ diff --git a/source/fitz/font.c b/source/fitz/font.c
 +			int size;
  			data = fz_lookup_noto_font(ctx, script, language, &size, &subfont);
  			if (data)
- 				*fontp = fz_new_font_from_memory(ctx, NULL, data, size, subfont, 0);
+ 			{
+@@ -521,6 +522,11 @@ fz_font *fz_load_fallback_font(fz_context *ctx, int script, int language, int se
+ 				/* Noto fonts can be embedded. */
+ 				fz_set_font_embedding(ctx, *fontp, 1);
+ 			}
 +#else
 +			char *filename = get_font_file("freefont/FreeSerif.ttf");
 +			*fontp = fz_new_font_from_file(ctx, NULL, filename, 0, 1);
@@ -61,7 +65,7 @@ diff --git a/source/fitz/noto.c b/source/fitz/noto.c
  /*
  	Base 14 PDF fonts from URW.
  	Noto fonts from Google.
-@@ -312,9 +316,9 @@ fz_lookup_cjk_font_by_language(fz_context *ctx, const char *lang, int *size, int
+@@ -314,9 +318,9 @@ fz_lookup_cjk_font_by_language(fz_context *ctx, const char *lang, int *size, int
  }
  
  const unsigned char *
@@ -73,7 +77,7 @@ diff --git a/source/fitz/noto.c b/source/fitz/noto.c
  }
  
  const unsigned char *
-@@ -346,3 +350,173 @@ fz_lookup_noto_emoji_font(fz_context *ctx, int *size)
+@@ -348,3 +352,173 @@ fz_lookup_noto_emoji_font(fz_context *ctx, int *size)
  {
  	return search_by_script_lang(size, NULL, MUPDF_SCRIPT_EMOJI, FZ_LANG_UNSET);
  }

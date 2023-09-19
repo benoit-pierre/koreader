@@ -1,7 +1,7 @@
 project(
   'mupdf',
   ['c', 'cpp'],
-  version: '1.21.1',
+  version: '1.22.1',
   default_options: 'c_std=gnu11',
 )
 
@@ -138,6 +138,7 @@ foreach _prefix, _files : {
     'output.c',
     'output-cbz.c',
     # 'output-docx.c',
+    'output-jpeg.c',
     # 'output-pcl.c',
     # 'output-pclm.c',
     # 'output-pdfocr.c',
@@ -292,6 +293,7 @@ mupdf_lib = library(
     webp_dep,
     zlib_dep,
   ],
+  gnu_symbol_visibility: 'inlineshidden',
   include_directories: include_directories('include', 'include/mupdf'),
   install: true,
 )

@@ -1,15 +1,15 @@
 diff --git a/source/fitz/writer.c b/source/fitz/writer.c
 --- a/source/fitz/writer.c
 +++ b/source/fitz/writer.c
-@@ -199,6 +199,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
- 		if (is_extension(format, "pkm"))
- 			return fz_new_pkm_pixmap_writer(ctx, path, options);
+@@ -211,6 +211,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
+ 		if (is_extension(format, "jpeg") || is_extension(format, "jpg"))
+ 			return fz_new_jpeg_pixmap_writer(ctx, path, options);
  
 +#if 0
  		if (is_extension(format, "pcl"))
  			return fz_new_pcl_writer(ctx, path, options);
  		if (is_extension(format, "pclm"))
-@@ -218,6 +219,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
+@@ -230,6 +231,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
  			return fz_new_text_writer(ctx, "stext.xml", path, options);
  		if (is_extension(format, "stext.json"))
  			return fz_new_text_writer(ctx, "stext.json", path, options);
@@ -17,7 +17,7 @@ diff --git a/source/fitz/writer.c b/source/fitz/writer.c
  
  #if FZ_ENABLE_ODT_OUTPUT
  		if (is_extension(format, "odt"))
-@@ -238,15 +240,18 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
+@@ -250,15 +252,18 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
  fz_document_writer *
  fz_new_document_writer_with_output(fz_context *ctx, fz_output *out, const char *format, const char *options)
  {
@@ -36,7 +36,7 @@ diff --git a/source/fitz/writer.c b/source/fitz/writer.c
  	if (is_extension(format, "pcl"))
  		return fz_new_pcl_writer_with_output(ctx, out, options);
  	if (is_extension(format, "pclm"))
-@@ -266,6 +271,7 @@ fz_new_document_writer_with_output(fz_context *ctx, fz_output *out, const char *
+@@ -278,6 +283,7 @@ fz_new_document_writer_with_output(fz_context *ctx, fz_output *out, const char *
  		return fz_new_text_writer_with_output(ctx, "stext.xml", out, options);
  	if (is_extension(format, "stext.json"))
  		return fz_new_text_writer_with_output(ctx, "stext.json", out, options);

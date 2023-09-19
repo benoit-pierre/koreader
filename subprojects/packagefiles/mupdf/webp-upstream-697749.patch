@@ -12,9 +12,9 @@ diff --git a/include/mupdf/fitz/compressed-buffer.h b/include/mupdf/fitz/compres
 -int fz_recognize_image_format(fz_context *ctx, unsigned char p[8]);
 +int fz_recognize_image_format(fz_context *ctx, unsigned char p[12]);
  
- enum
- {
-@@ -146,6 +146,7 @@ enum
+ /**
+ 	Map from FZ_IMAGE_* value to string.
+@@ -159,6 +159,7 @@ enum
  	FZ_IMAGE_PNG,
  	FZ_IMAGE_PNM,
  	FZ_IMAGE_TIFF,
@@ -88,7 +88,7 @@ diff --git a/source/fitz/image.c b/source/fitz/image.c
  	case FZ_IMAGE_TIFF:
  		tile = fz_load_tiff(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
  		break;
-@@ -1206,7 +1209,7 @@ void fz_set_pixmap_image_tile(fz_context *ctx, fz_pixmap_image *image, fz_pixmap
+@@ -1241,7 +1244,7 @@ fz_lookup_image_type(const char *type)
  }
  
  int
@@ -97,17 +97,7 @@ diff --git a/source/fitz/image.c b/source/fitz/image.c
  {
  	if (p[0] == 'P' && p[1] >= '1' && p[1] <= '7')
  		return FZ_IMAGE_PNM;
-@@ -1237,6 +1240,9 @@ fz_recognize_image_format(fz_context *ctx, unsigned char p[8])
- 	if (p[0] == 0x97 && p[1] == 'J' && p[2] == 'B' && p[3] == '2' &&
- 		p[4] == '\r' && p[5] == '\n'  && p[6] == 0x1a && p[7] == '\n')
- 		return FZ_IMAGE_JBIG2;
-+	if (p[0] == 'R' && p[1] == 'I' && p[2] == 'F' && p[3] == 'F' &&
-+		p[8] == 'W' && p[9] == 'E' && p[10] == 'B' && p[11] == 'P')
-+		return FZ_IMAGE_WEBP;
- 	return FZ_IMAGE_UNKNOWN;
- }
- 
-@@ -1253,7 +1259,7 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
+@@ -1288,7 +1291,7 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
  	int bpc;
  	uint8_t orientation = 0;
  
@@ -116,16 +106,6 @@ diff --git a/source/fitz/image.c b/source/fitz/image.c
  		fz_throw(ctx, FZ_ERROR_GENERIC, "unknown image file format");
  
  	type = fz_recognize_image_format(ctx, buf);
-@@ -1288,6 +1294,9 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
- 		fz_load_jbig2_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
- 		bpc = 1;
- 		break;
-+	case FZ_IMAGE_WEBP:
-+		fz_load_webp_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
-+		break;
- 	default:
- 		fz_throw(ctx, FZ_ERROR_GENERIC, "unknown image file format");
- 	}
 diff --git a/source/fitz/load-webp.c b/source/fitz/load-webp.c
 new file mode 100644
 --- /dev/null
@@ -414,12 +394,12 @@ new file mode 100644
 diff --git a/source/html/mobi.c b/source/html/mobi.c
 --- a/source/html/mobi.c
 +++ b/source/html/mobi.c
-@@ -256,7 +256,7 @@ fz_extract_html_from_mobi(fz_context *ctx, fz_buffer *mobi)
+@@ -324,7 +324,7 @@ fz_extract_html_from_mobi(fz_context *ctx, fz_buffer *mobi)
  		for (i = extra; i < n; ++i)
  		{
- 			uint32_t size = offset[i+1] - offset[i];
+ 			uint32_t size = offsets[i+1] - offsets[i];
 -			if (size > 8)
 +			if (size > 12)
  			{
- 				unsigned char *data = mobi->data + offset[i];
+ 				unsigned char *data = mobi->data + offsets[i];
  				if (fz_recognize_image_format(ctx, data))
