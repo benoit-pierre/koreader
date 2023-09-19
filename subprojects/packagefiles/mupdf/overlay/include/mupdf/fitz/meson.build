@@ -1,4 +1,4 @@
-generated_headers += configure_file(
+fitz_config_h = configure_file(
   configuration: cdata,
   input: 'config.meson.h',
   output: 'config.h',

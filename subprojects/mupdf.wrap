@@ -1,20 +1,14 @@
 [wrap-file]
-directory = mupdf-1.13.0
-source_url = https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.13.0.tar.gz
-source_hash = 10370d077d08b57460aa9901cb66a0646095870caa6e6f224902a8cd5473a458
-source_filename = mupdf-1.13.0.tar.gz
+directory = mupdf-1.21.1
+source_url = https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.21.1.tar.gz
+source_hash = f144830b55898324649986ad939201d805179e9a4840d3ee20409133ef329e9a
+source_filename = mupdf-1.21.1.tar.gz
 patch_directory = mupdf/overlay
 diff_files = 
 	mupdf/fix-share-jpeg-build.patch,
 	mupdf/external-fonts.patch,
 	mupdf/encrypted-zip.patch,
-	mupdf/hexdump.patch,
-	mupdf/upstream-698877.patch,
-	mupdf/tar-fixes.patch,
-	mupdf/mupdf-1.13.0-backports.patch,
 	mupdf/webp-upstream-697749.patch,
-	mupdf/read-large-zips.patch,
-	mupdf/jbig2dec.patch,
 	mupdf/disable-some-output-formats.patch
 
 [provide]

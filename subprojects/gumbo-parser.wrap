@@ -1,0 +1,13 @@
+[wrap-file]
+directory = gumbo-parser-a0f9059087c690e700cf42df4cfa58a63c1dae95
+source_url = https://github.com/google/gumbo-parser/archive/v0.10.1-10-ga0f9059.tar.gz
+source_filename = gumbo-parser-0.10.1-10-ga0f9059.tar.gz
+source_hash = 3f6a9e6d73014b3b94fce6a661e7a29a601ea3787610fa9a59d21d11700bb99d
+patch_filename = gumbo-parser_0.10.1-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/gumbo-parser_0.10.1-1/get_patch
+patch_hash = a95711d5b6bc6f8d14439ee54b68e454ecf857822a3e566379d46fbbbd0807fe
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/gumbo-parser_0.10.1-1/gumbo-parser-0.10.1-10-ga0f9059.tar.gz
+wrapdb_version = 0.10.1-1
+
+[provide]
+dependency_names = gumbo

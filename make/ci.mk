@@ -63,6 +63,7 @@ trim-thirdparty:
 	rm -vrf subprojects/giflib-*/{doc,pic,tests,util}
 	rm -vrf subprojects/glib-*/*/tests
 	rm -vrf subprojects/glib-*/po
+	rm -vrf subprojects/gumbo-parser-*/benchmark
 	rm -vrf subprojects/harfbuzz-*/{docs,perf,test}
 	rm -vrf subprojects/k2pdfopt-*/kindlepdfviewer
 	rm -vrf subprojects/leptonica-*/prog/{*/,*.ba,*.c,*.jpg,*.pa*,*.png,*.tif}
