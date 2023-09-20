@@ -1197,7 +1197,7 @@ function kodev-ci-ccache-pre-save() {
     run ccache --max-size=256M
     run ccache --cleanup >/dev/null
     run ccache --show-stats --verbose
-    setenv CCACHE_CACHE_KEY="${primary_key}-$(date '+%s')"
+    setenv CCACHE_CACHE_KEY="${primary_key}＿$(date '+%s')"
 }
 
 function kodev-ci-ccache-post-save() {

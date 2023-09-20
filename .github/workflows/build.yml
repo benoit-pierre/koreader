@@ -46,25 +46,25 @@ jobs:
               run clang --version
               run clang++ --version
 
-          - name: 'Linux x86_64 (GCC)'
-            os: ubuntu-20.04
-            target: emulator-linux-x86_64
-            target_options: |
-              b_lto = false
-              strip = false
-              [binaries]
-              c = [CCACHE, 'gcc', '-ggdb']
-              cpp = [CCACHE, 'g++', '-ggdb']
-              [constants]
-              static_if_amalgam = 'static'
-            cache_extra_key: gcc
-            extra_packages: >
-              gcc-10
-              g++-10
-            extra_setup: |
-              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
-              run gcc --version
-              run g++ --version
+          # - name: 'Linux x86_64 (GCC)'
+          #   os: ubuntu-20.04
+          #   target: emulator-linux-x86_64
+          #   target_options: |
+          #     b_lto = false
+          #     strip = false
+          #     [binaries]
+          #     c = [CCACHE, 'gcc', '-ggdb']
+          #     cpp = [CCACHE, 'g++', '-ggdb']
+          #     [constants]
+          #     static_if_amalgam = 'static'
+          #   cache_extra_key: gcc
+          #   extra_packages: >
+          #     gcc-10
+          #     g++-10
+          #   extra_setup: |
+          #     run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+          #     run gcc --version
+          #     run g++ --version
 
           # - name: macOS x86_64
           #   os: macos-11
