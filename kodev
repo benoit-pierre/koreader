@@ -1185,11 +1185,6 @@ function kodev-ci-install-ccache() {
 
 function kodev-ci-ccache-post-restore() {
     kodev-ci-func-banner
-    local primary_key="$1"
-    local matched_key="$2"
-    local key_gen="${matched_key##*-}"
-    key_gen="$(((${key_gen:-1}+1)%2))"
-    setenv CCACHE_CACHE_KEY="${primary_key}-${key_gen}"
     run ccache --show-stats --verbose
     run ccache --zero-stats
     run ccache --show-config
@@ -1197,12 +1192,19 @@ function kodev-ci-ccache-post-restore() {
 
 function kodev-ci-ccache-pre-save() {
     kodev-ci-func-banner
-    local repo="$1"
+    local primary_key="$1"
     run ccache --show-stats --verbose
     run ccache --max-size=256M
     run ccache --cleanup >/dev/null
     run ccache --show-stats --verbose
-    run gh cache delete --repo "${repo}" "${CCACHE_CACHE_KEY}" || true
+    setenv CCACHE_CACHE_KEY="${primary_key}-$(date -Iseconds)"
+}
+
+function kodev-ci-ccache-post-save() {
+    kodev-ci-func-banner
+    local repo="$1"
+    local cache_key="$2"
+    run gh cache delete --repo "${repo}" "${cache_key}" || true
 }
 
 function kodev-ci-setup-cache-key() {

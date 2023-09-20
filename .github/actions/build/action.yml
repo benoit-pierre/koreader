@@ -175,10 +175,12 @@ runs:
         path: ${{ inputs.subprojects_cache_paths }}
         key: ${{ steps.subprojects-cache.outputs.cache-primary-key }}
 
+    # Restore compilation cache. {{{
+
     # Restore compilation cache.
     - uses: actions/cache/restore@v3
       if: steps.build-cache.outputs.cache-hit != 'true'
-      id: ccache-cache
+      id: ccache-restore
       with:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ inputs.cache_epoch }}-ccache-${{ inputs.ccache_version }}-${{ env.CACHE_KEY_PREFIX }}
@@ -187,7 +189,9 @@ runs:
       if: steps.build-cache.outputs.cache-hit != 'true'
       run: |
         # Compilation cache post-restore.
-        kodev-ci-ccache-post-restore '${{ steps.ccache-cache.outputs.cache-primary-key }}' '${{ steps.ccache-cache.outputs.cache-matched-key }}'
+        kodev-ci-ccache-post-restore
+
+    # }}}
 
     - shell: ${{ inputs.shell }}
       if: steps.build-cache.outputs.cache-hit != 'true'
@@ -195,13 +199,20 @@ runs:
         # Build.
         kodev-ci-build
 
+    # Save build cache.
+    - uses: actions/cache/save@v3
+      if: steps.build-cache.outputs.cache-hit != 'true'
+      with:
+        path: ${{ inputs.build_cache_paths }}
+        key: ${{ steps.build-cache.outputs.cache-primary-key }}
+
+    # Save compilation cache. {{{
+
     - shell: ${{ inputs.shell }}
       if: always() && env.CCACHE_CACHE_KEY != ''
-      env:
-        GH_TOKEN: ${{ github.token }}
       run: |
         # Compilation cache pre-save.
-        kodev-ci-ccache-pre-save '${{ github.repository }}'
+        kodev-ci-ccache-pre-save '${{ steps.ccache-restore.outputs.cache-primary-key }}'
 
     # Save compilation cache.
     - uses: actions/cache/save@v3
@@ -210,12 +221,26 @@ runs:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ env.CCACHE_CACHE_KEY }}
 
-    # Save build cache.
-    - uses: actions/cache/save@v3
-      if: steps.build-cache.outputs.cache-hit != 'true'
+    # Check compilation cache was saved successfully.
+    - uses: actions/cache/restore@v3
+      if: always() && env.CCACHE_CACHE_KEY != ''
+      id: ccache-save-check
       with:
-        path: ${{ inputs.build_cache_paths }}
-        key: ${{ steps.build-cache.outputs.cache-primary-key }}
+        fail-on-cache-miss: true
+        lookup-only: true
+        key: ${{ env.CCACHE_CACHE_KEY }}
+
+    - shell: ${{ inputs.shell }}
+      if: always() && steps.ccache-restore.outputs.cache-hit == 'true' && steps.ccache-save-check.outputs.cache-hit == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        # Compilation cache post-save.
+        kodev-ci-ccache-post-save '${{ github.repository }}' '${{ steps.ccache-restore.outputs.cache-matched-key }}'
+
+    # }}}
+
+    # Test. {{{
 
     - shell: ${{ inputs.shell }}
       if: inputs.tests != ''
@@ -236,6 +261,10 @@ runs:
         name: Tests coredumps (${{ inputs.name }})
         path: coredumps.tar.zst
 
+    # }}}
+
+    # Release. {{{
+
     - shell: ${{ inputs.shell }}
       if: inputs.update_target != ''
       run: |
@@ -254,5 +283,7 @@ runs:
       with:
         name: KOReader ${{ inputs.name }}
         path: ${{ inputs.update_artifacts }}
+
+    # }}}
 
 # vim: foldmethod=marker ft=bash
