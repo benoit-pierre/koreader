@@ -183,7 +183,7 @@ runs:
       id: ccache-restore
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: ${{ inputs.cache_epoch }}＿ccache-${{ inputs.ccache_version }}＿${{ env.CACHE_KEY_PREFIX }}
+        key: ${{ inputs.cache_epoch }}＿ccache＿${{ env.CACHE_KEY_PREFIX }}
 
     - shell: ${{ inputs.shell }}
       if: steps.build-cache.outputs.cache-hit != 'true'
