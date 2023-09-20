@@ -209,29 +209,29 @@ runs:
     # Save compilation cache. {{{
 
     - shell: ${{ inputs.shell }}
-      if: always() && env.CCACHE_CACHE_KEY != ''
+      if: always() && steps.ccache-restore.outcome == 'success'
       run: |
         # Compilation cache pre-save.
         kodev-ci-ccache-pre-save '${{ steps.ccache-restore.outputs.cache-primary-key }}'
 
     # Save compilation cache.
     - uses: actions/cache/save@v3
-      if: always() && env.CCACHE_CACHE_KEY != ''
+      if: always() && steps.ccache-restore.outcome == 'success'
+        id: ccache-save
       with:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ env.CCACHE_CACHE_KEY }}
 
-    # Check compilation cache was saved successfully.
+    # Check if we can drop previous cache.
     - uses: actions/cache/restore@v3
-      if: always() && env.CCACHE_CACHE_KEY != ''
-      id: ccache-save-check
+      if: always() && steps.ccache-save.outcome == 'success' && steps.ccache-restore.outputs.cache-matched-key != ''
+      id: ccache-check
       with:
-        fail-on-cache-miss: true
         lookup-only: true
         key: ${{ env.CCACHE_CACHE_KEY }}
 
     - shell: ${{ inputs.shell }}
-      if: always() && steps.ccache-restore.outputs.cache-hit == 'true' && steps.ccache-save-check.outputs.cache-hit == 'true'
+      if: always() && steps.ccache-check.outputs.cache-hit == 'true'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
