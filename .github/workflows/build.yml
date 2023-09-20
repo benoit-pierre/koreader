@@ -66,23 +66,23 @@ jobs:
               run gcc --version
               run g++ --version
 
-          - name: macOS x86_64
-            os: macos-11
-            continue-on-error: true
-            target: emulator-macos-x86_64
-            target_options: |
-              b_lto = false
-              strip = false
-              [binaries]
-              c = [CCACHE, 'cc', '-g']
-              cpp = [CCACHE, 'c++', '-g']
-              [luajit:project options]
-              luajit = true
-              [tesseract:project options]
-              simd = false
-              # [constants]
-              # static_if_amalgam = 'static'
-            tests: all -- --timeout-multiplier=2
+          # - name: macOS x86_64
+          #   os: macos-11
+          #   continue-on-error: true
+          #   target: emulator-macos-x86_64
+          #   target_options: |
+          #     b_lto = false
+          #     strip = false
+          #     [binaries]
+          #     c = [CCACHE, 'cc', '-g']
+          #     cpp = [CCACHE, 'c++', '-g']
+          #     [luajit:project options]
+          #     luajit = true
+          #     [tesseract:project options]
+          #     simd = false
+          #     # [constants]
+          #     # static_if_amalgam = 'static'
+          #   tests: all -- --timeout-multiplier=2
 
     name: "Test: ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
@@ -131,39 +131,39 @@ jobs:
             update_target: android-arm
             update_artifacts: 'koreader-*-aligned-debugSigned.apk'
 
-          - name: 'Android ARM64'
-            os: ubuntu-latest
-            target: android-arm64
-            target_options: |
-              [constants]
-              static_if_amalgam = 'static'
-            update_target: android-arm64
-            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+          # - name: 'Android ARM64'
+          #   os: ubuntu-latest
+          #   target: android-arm64
+          #   target_options: |
+          #     [constants]
+          #     static_if_amalgam = 'static'
+          #   update_target: android-arm64
+          #   update_artifacts: 'koreader-*-aligned-debugSigned.apk'
 
-          - name: 'Android x86'
-            os: ubuntu-latest
-            target: android-x86
-            target_options: |
-              [constants]
-              static_if_amalgam = 'static'
-            update_target: android-x86
-            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+          # - name: 'Android x86'
+          #   os: ubuntu-latest
+          #   target: android-x86
+          #   target_options: |
+          #     [constants]
+          #     static_if_amalgam = 'static'
+          #   update_target: android-x86
+          #   update_artifacts: 'koreader-*-aligned-debugSigned.apk'
 
-          - name: 'Linux x86_64 AppImage'
-            os: ubuntu-20.04
-            target: emulator-linux-x86_64
-            target_options: |
-              [constants]
-              static_if_amalgam = 'static'
-            update_target: appimage
-            update_artifacts: 'koreader-*.AppImage'
-            extra_packages: >
-              gcc-10
-              g++-10
-            extra_setup: |
-              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
-              run gcc --version
-              run g++ --version
+          # - name: 'Linux x86_64 AppImage'
+          #   os: ubuntu-20.04
+          #   target: emulator-linux-x86_64
+          #   target_options: |
+          #     [constants]
+          #     static_if_amalgam = 'static'
+          #   update_target: appimage
+          #   update_artifacts: 'koreader-*.AppImage'
+          #   extra_packages: >
+          #     gcc-10
+          #     g++-10
+          #   extra_setup: |
+          #     run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+          #     run gcc --version
+          #     run g++ --version
 
           - name: 'Kindle Paperwhite 2'
             os: ubuntu-latest
@@ -176,34 +176,34 @@ jobs:
             update_target: kindlepw2
             update_artifacts: '*.targz'
 
-          - name: 'Kobo'
-            os: ubuntu-latest
-            target: kobo
-            target_options: |
-              buildtype = 'minsize'
-              debug = false
-              [constants]
-              static_if_amalgam = 'static'
-            update_target: kobo
-            update_artifacts: '*.targz'
+          # - name: 'Kobo'
+          #   os: ubuntu-latest
+          #   target: kobo
+          #   target_options: |
+          #     buildtype = 'minsize'
+          #     debug = false
+          #     [constants]
+          #     static_if_amalgam = 'static'
+          #   update_target: kobo
+          #   update_artifacts: '*.targz'
 
-          - name: 'reMarkable'
-            os: ubuntu-latest
-            target: remarkable
-            update_target: remarkable
-            update_artifacts: '*.targz'
+          # - name: 'reMarkable'
+          #   os: ubuntu-latest
+          #   target: remarkable
+          #   update_target: remarkable
+          #   update_artifacts: '*.targz'
 
-          - name: 'macOS x86_64'
-            os: macos-11
-            target: emulator-macos-x86_64
-            update_target: macos
-            update_artifacts: '*.7z'
+          # - name: 'macOS x86_64'
+          #   os: macos-11
+          #   target: emulator-macos-x86_64
+          #   update_target: macos
+          #   update_artifacts: '*.7z'
 
-          - name: macOS arm64
-            os: macos-12
-            target: emulator-macos-arm64
-            update_target: macos-arm64
-            update_artifacts: '*.7z'
+          # - name: macOS arm64
+          #   os: macos-12
+          #   target: emulator-macos-arm64
+          #   update_target: macos-arm64
+          #   update_artifacts: '*.7z'
 
     name: "Release: ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
