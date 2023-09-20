@@ -1206,7 +1206,7 @@ function kodev-ci-ccache-post-save() {
     local ref="$2"
     local old_cache_key="$3" old_cache_id cache
     cache="$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/${repo}/actions/caches")"
-    run jq <<<"${cache}"
+    run jq . <<<"${cache}"
     # Don't do anything else if the new cache entry does not exist.
     if ! run jq --arg key "${CCACHE_CACHE_KEY}" --arg ref "${ref}" --exit-status '.actions_caches[] | select(.ref == $ref and .key == $key)' <<<"${cache}"; then
         echo '::warning::new compilation cache was not saved successfully'
