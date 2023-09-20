@@ -1100,14 +1100,14 @@ function kodev-ci-install-reqs-linux() {
             ;;
     esac
     if [[ "${JOB_BUILDING}" == 'true' ]]; then
-       if [[ ${#packages} -gt 0 ]]; then
-           run sudo rm -f /var/lib/man-db/auto-update
-           run sudo apt -q update
-           run sudo apt -qy install --no-install-recommends "${packages[@]}"
-       fi
-       if [[ ${#xtools} -gt 0 ]]; then
-           kodev-ci-install-x-tools "${xtools[@]}"
-       fi
+        if [[ ${#packages} -gt 0 ]]; then
+            run sudo rm -f /var/lib/man-db/auto-update
+            run sudo apt -q update
+            run sudo apt -qy install --no-install-recommends "${packages[@]}"
+        fi
+        if [[ ${#xtools} -gt 0 ]]; then
+            kodev-ci-install-x-tools "${xtools[@]}"
+        fi
     fi
     if [[ ${need_7z} -eq 1 && -n "${JOB_7Z_VERSION}" ]]; then
         kodev-ci-install-7z
@@ -1203,8 +1203,20 @@ function kodev-ci-ccache-pre-save() {
 function kodev-ci-ccache-post-save() {
     kodev-ci-func-banner
     local repo="$1"
-    local cache_key="$2"
-    run gh cache delete --repo "${repo}" "$(jq -Rr @uri <<<"${cache_key}")" || true
+    local ref="$2"
+    local old_cache_key="$3" old_cache_id cache
+    cache="$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/${repo}/actions/caches")"
+    # Don't do anything else if the new cache entry does not exist.
+    if ! run jq --arg key "${CCACHE_CACHE_KEY}" --arg ref "${ref}" --exit-status '.actions_caches.[] | select(.ref == $ref and .key == $key)' <<<"${cache}"; then
+        echo '::warning::new compilation cache was not saved successfully'
+        return
+    fi
+    # Get the old cache entry ID for the current ref.
+    old_cache_id="$(run jq --arg key "${old_cache_key}" --arg ref "${ref}" '.actions_caches.[] | select(.ref == $ref and .key == $key) .id' <<<"${cache}")"
+    if [[ -n "${old_cache_id}" ]] && ! run gh cache delete --repo "${repo}" "${old_cache_id}"; then
+        echo '::warning::old compilation cache was not deleted successfully'
+        return
+    fi
 }
 
 function kodev-ci-setup-cache-key() {
