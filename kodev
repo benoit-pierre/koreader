@@ -1212,7 +1212,7 @@ function kodev-ci-ccache-post-save() {
         return
     fi
     # Get the old cache entry ID for the current ref.
-    old_cache_id="$(run jq --arg key "${old_cache_key}" --arg ref "${ref}" '.actions_caches[] | select(.ref == $ref and .key == $key) .id' <<<"${cache}")"
+    old_cache_id="$(run jq --arg key "${old_cache_key}" --arg ref "${ref}" '.actions_caches[] | select(.ref == $ref and .key == $key) | .id' <<<"${cache}")"
     if [[ -n "${old_cache_id}" ]] && ! run gh cache delete --repo "${repo}" "${old_cache_id}"; then
         echo '::warning::old compilation cache was not deleted successfully'
         return
