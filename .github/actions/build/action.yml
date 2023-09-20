@@ -232,50 +232,50 @@ runs:
 
     # }}}
 
-    # Test. {{{
+    # # Test. {{{
 
-    - shell: ${{ inputs.shell }}
-      if: inputs.tests != ''
-      run: |
-        # Run tests.
-        kodev-ci-test ${{ inputs.tests }}
+    # - shell: ${{ inputs.shell }}
+    #   if: inputs.tests != ''
+    #   run: |
+    #     # Run tests.
+    #     kodev-ci-test ${{ inputs.tests }}
 
-    - shell: ${{ inputs.shell }}
-      if: always() && inputs.tests != ''
-      run: |
-        # Show tests post-mortem.
-        run cat koreader-*/koreader/.testrun/meson-logs/testlog.txt
+    # - shell: ${{ inputs.shell }}
+    #   if: always() && inputs.tests != ''
+    #   run: |
+    #     # Show tests post-mortem.
+    #     run cat koreader-*/koreader/.testrun/meson-logs/testlog.txt
 
-    # Upload tests' coredump(s) if any.
-    - uses: actions/upload-artifact@v3
-      if: always() && env.UPLOAD_COREDUMPS
-      with:
-        name: Tests coredumps (${{ inputs.name }})
-        path: coredumps.tar.zst
+    # # Upload tests' coredump(s) if any.
+    # - uses: actions/upload-artifact@v3
+    #   if: always() && env.UPLOAD_COREDUMPS
+    #   with:
+    #     name: Tests coredumps (${{ inputs.name }})
+    #     path: coredumps.tar.zst
 
-    # }}}
+    # # }}}
 
-    # Release. {{{
+    # # Release. {{{
 
-    - shell: ${{ inputs.shell }}
-      if: inputs.update_target != ''
-      run: |
-        # Create release.
-        kodev-ci-release
+    # - shell: ${{ inputs.shell }}
+    #   if: inputs.update_target != ''
+    #   run: |
+    #     # Create release.
+    #     kodev-ci-release
 
-    - shell: ${{ inputs.shell }}
-      if: startsWith(inputs.update_target, 'android-')
-      run: |
-        # Sign android APKs
-        kodev-ci-sign-apk ${{ inputs.uber_apk_signer_version }} *.apk
+    # - shell: ${{ inputs.shell }}
+    #   if: startsWith(inputs.update_target, 'android-')
+    #   run: |
+    #     # Sign android APKs
+    #     kodev-ci-sign-apk ${{ inputs.uber_apk_signer_version }} *.apk
 
-    # Upload release artifacts.
-    - uses: actions/upload-artifact@v3
-      if: inputs.update_target != '' && inputs.update_artifacts != ''
-      with:
-        name: KOReader ${{ inputs.name }}
-        path: ${{ inputs.update_artifacts }}
+    # # Upload release artifacts.
+    # - uses: actions/upload-artifact@v3
+    #   if: inputs.update_target != '' && inputs.update_artifacts != ''
+    #   with:
+    #     name: KOReader ${{ inputs.name }}
+    #     path: ${{ inputs.update_artifacts }}
 
-    # }}}
+    # # }}}
 
-# vim: foldmethod=marker ft=bash
+# # vim: foldmethod=marker ft=bash

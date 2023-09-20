@@ -1207,12 +1207,12 @@ function kodev-ci-ccache-post-save() {
     local old_cache_key="$3" old_cache_id cache
     cache="$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/${repo}/actions/caches")"
     # Don't do anything else if the new cache entry does not exist.
-    if ! run jq --arg key "${CCACHE_CACHE_KEY}" --arg ref "${ref}" --exit-status '.actions_caches.[] | select(.ref == $ref and .key == $key)' <<<"${cache}"; then
+    if ! run jq --arg key "${CCACHE_CACHE_KEY}" --arg ref "${ref}" --exit-status '.actions_caches[] | select(.ref == $ref and .key == $key)' <<<"${cache}"; then
         echo '::warning::new compilation cache was not saved successfully'
         return
     fi
     # Get the old cache entry ID for the current ref.
-    old_cache_id="$(run jq --arg key "${old_cache_key}" --arg ref "${ref}" '.actions_caches.[] | select(.ref == $ref and .key == $key) .id' <<<"${cache}")"
+    old_cache_id="$(run jq --arg key "${old_cache_key}" --arg ref "${ref}" '.actions_caches[] | select(.ref == $ref and .key == $key) .id' <<<"${cache}")"
     if [[ -n "${old_cache_id}" ]] && ! run gh cache delete --repo "${repo}" "${old_cache_id}"; then
         echo '::warning::old compilation cache was not deleted successfully'
         return
