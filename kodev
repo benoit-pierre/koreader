@@ -1204,7 +1204,7 @@ function kodev-ci-ccache-post-save() {
     kodev-ci-func-banner
     local repo="$1"
     local cache_key="$2"
-    run gh cache delete --repo "${repo}" "${cache_key}" || true
+    run gh cache delete --repo "${repo}" "$(jq -Rr @uri <<<"${cache_key}")" || true
 }
 
 function kodev-ci-setup-cache-key() {
