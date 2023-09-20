@@ -133,7 +133,7 @@ runs:
       id: build-cache
       with:
         path: ${{ inputs.build_cache_paths }}
-        key: ${{ inputs.cache_epoch }}-build-${{ env.CACHE_KEY_PREFIX }}-${{ env.CACHE_KEY_HASH }}
+        key: ${{ inputs.cache_epoch }}＿build＿${{ env.CACHE_KEY_PREFIX }}＿${{ env.CACHE_KEY_HASH }}
 
     - shell: ${{ inputs.shell }}
       run: |
@@ -160,7 +160,7 @@ runs:
       id: subprojects-cache
       with:
         path: ${{ inputs.subprojects_cache_paths }}
-        key: ${{ inputs.cache_epoch }}-subprojects-${{ hashFiles('make/emulator.mk', 'make/ci.mk', 'subprojects/*.wrap', 'subprojects/packagefiles/**') }}
+        key: ${{ inputs.cache_epoch }}＿subprojects＿${{ hashFiles('make/emulator.mk', 'make/ci.mk', 'subprojects/*.wrap', 'subprojects/packagefiles/**') }}
 
     - shell: ${{ inputs.shell }}
       if: steps.subprojects-cache.outputs.cache-hit != 'true'
@@ -183,7 +183,7 @@ runs:
       id: ccache-restore
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: ${{ inputs.cache_epoch }}-ccache-${{ inputs.ccache_version }}-${{ env.CACHE_KEY_PREFIX }}
+        key: ${{ inputs.cache_epoch }}＿ccache-${{ inputs.ccache_version }}＿${{ env.CACHE_KEY_PREFIX }}
 
     - shell: ${{ inputs.shell }}
       if: steps.build-cache.outputs.cache-hit != 'true'

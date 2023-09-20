@@ -1212,7 +1212,7 @@ function kodev-ci-setup-cache-key() {
     run_make CCACHE=ccache TARGET="${JOB_TARGET}" cache-key
     run cat cache_key.txt
     setenv CACHE_KEY_HASH="$(git hash-object cache_key.txt)"
-    setenv CACHE_KEY_PREFIX="${JOB_TARGET}${JOB_TESTS:+-tests}${JOB_CACHE_EXTRA_KEY:+-}${JOB_CACHE_EXTRA_KEY}"
+    setenv CACHE_KEY_PREFIX="${JOB_TARGET}${JOB_TESTS:+＿tests}${JOB_CACHE_EXTRA_KEY:+＿}${JOB_CACHE_EXTRA_KEY}"
 }
 
 function kodev-ci-build() {
