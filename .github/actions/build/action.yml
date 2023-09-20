@@ -217,7 +217,7 @@ runs:
     # Save compilation cache.
     - uses: actions/cache/save@v3
       if: always() && steps.ccache-restore.outcome == 'success'
-        id: ccache-save
+      id: ccache-save
       with:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ env.CCACHE_CACHE_KEY }}
