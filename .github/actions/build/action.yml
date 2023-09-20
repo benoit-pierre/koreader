@@ -228,6 +228,7 @@ runs:
       id: ccache-check
       with:
         lookup-only: true
+        path: ${{ env.CCACHE_DIR }}
         key: ${{ env.CCACHE_CACHE_KEY }}
 
     - shell: ${{ inputs.shell }}
