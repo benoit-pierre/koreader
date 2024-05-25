@@ -62,6 +62,6 @@ update: all
 		LUAJIT_INC='$(abspath $(KOR_BASE)/$(STAGING_DIR)/include/luajit-2.1)' \
 		LUAJIT_LIB='$(abspath $(ANDROID_LAUNCHER_DIR)/assets/libs/libluajit.so)'
 	cp $(ANDROID_LAUNCHER_DIR)/bin/NativeActivity.apk \
-		koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(VERSION).apk
+		koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(ANDROID_NAME).apk
 
 PHONY += androiddev update
