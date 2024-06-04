@@ -17,7 +17,7 @@ executors:
 
   base:
     docker:
-      - image: koreader/kobase:0.3.2-20.04
+      - image: benoitpierre/kobase:dev-20.04
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD
