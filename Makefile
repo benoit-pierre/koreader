@@ -146,7 +146,14 @@ coverage: $(INSTALL_DIR)/koreader/.luacov
 		+$$(($$(grep -nm1 -e "^Summary$$" luacov.report.out|cut -d: -f1)-1)) \
 		luacov.report.out
 
-$(KOR_BASE)/Makefile.defs fetchthirdparty:
+# NOTE: automatically fetch thirdparty if `$(KOR_BASE)/Makefile.defs` is
+# missing so the top include work, but avoid duplicate fetch when using
+# `make fetchthirdparty` from scratch by testing `$(MAKE_RESTARTS)`.
+ifneq (,$(and $(wildcard $(KOR_BASE)/Makefile.defs),$(if $(MAKE_RESTARTS),,1)))
+fetchthirdparty:
+else
+$(KOR_BASE)/Makefile.defs:
+endif
 	git submodule init
 	git submodule sync
 ifneq (,$(CI))
