@@ -16,8 +16,6 @@ update: all
 	echo $(VERSION) > $(ANDROID_ASSETS)/version.txt
 	# shared libraries are stored as raw assets
 	cp -pR $(INSTALL_DIR)/koreader/libs $(ANDROID_LAUNCHER_DIR)/assets
-	# in runtime luajit-launcher's libluajit.so will be loaded
-	rm -vf $(ANDROID_LAUNCHER_DIR)/assets/libs/libluajit.so
 	# binaries are stored as shared libraries to prevent W^X exception on Android 10+
 	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
 	cp -pR $(INSTALL_DIR)/koreader/sdcv $(ANDROID_LIBS_ABI)/libsdcv.so
@@ -60,7 +58,9 @@ update: all
 		ANDROID_APPNAME=KOReader \
 		ANDROID_VERSION=$(ANDROID_VERSION) \
 		ANDROID_NAME=$(ANDROID_NAME) \
-		ANDROID_FLAVOR=$(ANDROID_FLAVOR)
+		ANDROID_FLAVOR=$(ANDROID_FLAVOR) \
+		LUAJIT_INC='$(abspath $(KOR_BASE)/$(STAGING_DIR)/include/luajit-2.1)' \
+		LUAJIT_LIB='$(abspath $(ANDROID_LAUNCHER_DIR)/assets/libs/libluajit.so)'
 	cp $(ANDROID_LAUNCHER_DIR)/bin/NativeActivity.apk \
 		koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(VERSION).apk
 
