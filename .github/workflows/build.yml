@@ -132,6 +132,10 @@ jobs:
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: make base
 
+      - name: Dump build timings
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: make buildstats
+
       - name: Dump binaries runtime path & dependencies
         run: make bindeps
 
