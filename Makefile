@@ -118,7 +118,15 @@ ifeq ($(IS_RELEASE),1)
 endif
 
 define make_base
-  +$(strip $(MAKE) -C $(KOR_BASE) $1)
+  +$(strip $(MAKE) -C $(KOR_BASE)
+endef
+ifeq ($(TARGET), android)
+  define make_base +=
+    ANDROID_LAUNCHER_DIR='$(abspath $(ANDROID_LAUNCHER_DIR))'
+  endef
+endif
+define make_base +=
+$1)
 endef
 
 base: base-all
@@ -178,9 +186,6 @@ endif
 
 clean: base-clean
 	rm -rf $(INSTALL_DIR)
-ifeq ($(TARGET), android)
-	$(MAKE) -C $(CURDIR)/platform/android/luajit-launcher clean
-endif
 
 distclean: clean base-distclean
 	$(MAKE) -C doc clean
