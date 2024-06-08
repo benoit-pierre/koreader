@@ -1,4 +1,4 @@
-PHONY = all android-ndk android-sdk base clean coverage doc fetchthirdparty po pot static-check test testfront
+PHONY = all android-ndk android-sdk base base-% clean coverage distclean doc fetchthirdparty po pot static-check test testfront
 
 # koreader-base directory
 KOR_BASE?=base
@@ -117,8 +117,14 @@ ifeq ($(IS_RELEASE),1)
 	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,cr3skin-format.txt,desktop,devices,manual}
 endif
 
-base:
-	$(MAKE) -C $(KOR_BASE)
+define make_base
+  +$(strip $(MAKE) -C $(KOR_BASE) $1)
+endef
+
+base: base-all
+
+base-%:
+	$(call make_base, $(@:base-%=%))
 
 $(INSTALL_DIR)/koreader/.busted: .busted
 	$(SYMLINK) $(abspath .busted) $@
@@ -132,7 +138,7 @@ testfront: $(INSTALL_DIR)/koreader/.busted
 	cd $(INSTALL_DIR)/koreader && $(BUSTED_LUAJIT) $(BUSTED_OVERRIDES) $(BUSTED_SPEC_FILE)
 
 test: $(INSTALL_DIR)/koreader/.busted
-	$(MAKE) -C $(KOR_BASE) test
+	$(call make_base, test)
 	$(MAKE) testfront
 
 coverage: $(INSTALL_DIR)/koreader/.luacov
@@ -168,21 +174,15 @@ else
 	# Update the rest.
 	git submodule update --jobs 3
 endif
-	$(MAKE) -C $(KOR_BASE) fetchthirdparty
+	$(call make_base, fetchthirdparty)
 
-VERBOSE ?= @
-Q = $(VERBOSE:1=)
-clean:
+clean: base-clean
 	rm -rf $(INSTALL_DIR)
-	$(Q:@=@echo 'MAKE -C base clean'; &> /dev/null) \
-		$(MAKE) -C $(KOR_BASE) clean
 ifeq ($(TARGET), android)
 	$(MAKE) -C $(CURDIR)/platform/android/luajit-launcher clean
 endif
 
-dist-clean: clean
-	rm -rf $(INSTALL_DIR)
-	$(MAKE) -C $(KOR_BASE) dist-clean
+distclean: clean base-distclean
 	$(MAKE) -C doc clean
 
 # Include target specific rules.
@@ -232,4 +232,4 @@ doc:
 LEFTOVERS = $(filter-out $(PHONY) $(INSTALL_DIR)/%,$(MAKECMDGOALS))
 .PHONY: $(LEFTOVERS)
 $(LEFTOVERS):
-	$(MAKE) -C $(KOR_BASE) $@
+	$(call make_base, $@)
