@@ -32,15 +32,11 @@ jobs:
           # Android.
           - job: android_arm
             image: benoitpierre/koandroid:dev-20.04
-            gradle_version: '7.5'
-            uber_apk_signer_version: '1.3.0'
             target: 'android'
             makeflags: 'ANDROID_ARCH=arm'
             artifact: 'koreader-android-*.apk'
           - job: android_arm64
             image: benoitpierre/koandroid:dev-20.04
-            gradle_version: '7.5'
-            uber_apk_signer_version: '1.3.0'
             target: 'android'
             makeflags: 'ANDROID_ARCH=arm64'
             artifact: 'koreader-android-*.apk'
@@ -178,23 +174,21 @@ jobs:
       # Generate / upload artifact. {{{
 
       - name: Setup gradle
-        if: matrix.gradle_version
+        if: matrix.target == 'android'
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: false
           generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
           gradle-home-cache-cleanup: true
-          gradle-version: ${{ matrix.gradle_version }}
+          gradle-version: '7.5'
 
       - name: Generate artifact
         if: matrix.artifact
         run: make --assume-old=all update
 
       - name: Sign artifact
-        if: matrix.uber_apk_signer_version
-        run: |
-          curl --no-progress-meter -L -o uber-apk-signer.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v${{ matrix.uber_apk_signer_version }}/uber-apk-signer-${{ matrix.uber_apk_signer_version }}.jar
-          java -jar uber-apk-signer.jar --overwrite --apks ${{ matrix.artifact }}
+        if: matrix.target == 'android'
+        run: uber-apk-signer --overwrite --apks ${{ matrix.artifact }}
 
       - name: Upload artifact
         if: matrix.artifact
