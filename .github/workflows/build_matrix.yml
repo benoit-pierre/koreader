@@ -13,6 +13,9 @@ on:
       ccache_version:
         default: '4.10'
         type: string
+      ninjatracing_version:
+        default: 'a669e3644cf22b29cbece31dbed2cfbf34e5f48e'
+        type: string
 
 defaults:
   run:
@@ -46,11 +49,43 @@ jobs:
 
     steps:
 
-      - name: Install make
+      - name: Setup macOS build environment
         if: startsWith(matrix.runs-on, 'macos-')
         run: |
-          brew install --formula --quiet make
-          printf '%s\n' "$(brew --prefix)/opt/make/libexec/gnubin" >>"${GITHUB_PATH}"
+          wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
+          unzip -j ninjatracing.zip '*/ninjatracing'
+          install -m755 ninjatracing /usr/local/bin/
+          packages=(
+            autoconf
+            automake
+            cmake
+            coreutils
+            gettext
+            gnu-getopt
+            grep
+            jq
+            libtool
+            make
+            nasm
+            ninja
+            p7zip
+            pkg-config
+            sdl2
+          )
+          brew install --formula --quiet "${packages[@]}"
+          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          paths=(
+            "$(brew --prefix)/opt/gettext/bin"
+            "$(brew --prefix)/opt/gnu-getopt/bin"
+            "$(brew --prefix)/opt/make/libexec/gnubin"
+            "$PWD/ccache-${{ inputs.ccache_version }}-darwin
+          )
+          printf '%s\n' "${paths[@]}" | tee -a "${GITHUB_PATH}"
+          env=(
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
+          )
+          printf '%s\n' "${env[@]}" | tee -a "${GITHUB_ENV}"
 
       # Checkout / fetch. {{{
 
@@ -97,13 +132,6 @@ jobs:
           key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
           restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
 
-      - name: Install ccache
-        if: steps.build-restore.outputs.cache-hit != 'true' && startsWith(matrix.runs-on, 'macos-')
-        run: |
-          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
-          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
-          printf '%s\n' "$PWD/ccache-${{ inputs.ccache_version }}-darwin" >>"${GITHUB_PATH}"
-
       - name: Setup build cache
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: |
@@ -116,19 +144,6 @@ jobs:
       # }}}
 
       # Build. {{{
-
-      - name: Install build dependencies
-        run: |
-          packages=(
-            nasm coreutils libtool autoconf automake cmake make
-            sdl2 gettext pkg-config gnu-getopt grep ninja
-          )
-          brew install --formula --quiet "${packages[@]}"
-          paths=(
-            "$(brew --prefix)/opt/gettext/bin"
-            "$(brew --prefix)/opt/gnu-getopt/bin"
-          )
-          printf '%s\n' "${paths[@]}" >>"${GITHUB_PATH}"
 
       - name: Build
         if: steps.build-restore.outputs.cache-hit != 'true'
