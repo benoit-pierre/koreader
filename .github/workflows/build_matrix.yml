@@ -30,7 +30,7 @@ jobs:
 
     name: ${{ matrix.job }}
     runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
-    container: "${{ matrix.image && fromJSON(format('{{ \"image\": {0}, \"options\": \"--user root\" }}', matrix.image)) || '' }}"
+    container: "${{ matrix.image && fromJSON(format('{{ \"image\": \"{0}\", \"options\": \"--user root\" }}', matrix.image)) || '' }}"
 
     env:
       # Work around glib configure check for `msgfmt`
