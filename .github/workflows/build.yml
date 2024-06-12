@@ -29,12 +29,14 @@ jobs:
           "job": [
             "emu_gcc_ninja"
           ],
-          "include": {
-            "job": "emu_gcc_ninja",
-            "abort_on_error": true,
-            "lint": true,
-            "test": true
-          }
+          "include": [
+            {
+              "job": "emu_gcc_ninja",
+              "abort_on_error": true,
+              "lint": true,
+              "test": true
+            }
+          ]
         }
 
     # strategy:
