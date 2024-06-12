@@ -30,9 +30,7 @@ jobs:
 
     name: ${{ matrix.job }}
     runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
-    container: ${{ '' }}
-      # image: #${{ matrix.image || 'benoitpierre/kobase:dev-20.04' }}
-      # options: --user root
+    container: ${{ matrix.image && format('{ "image": {0}, "options": "--user root" }', matrix.image) || '' }}
 
     env:
       # Work around glib configure check for `msgfmt`
