@@ -18,522 +18,539 @@ env:
 
 jobs:
 
+  # strategy:
+  #   fail-fast: true
+  #   matrix:
   build:
-
-    strategy:
-      fail-fast: true
-      matrix:
-        job:
-          - android_arm
-          - android_arm64
-          - emu_gcc_ninja
-          - kobo
-        include:
-          # Android.
-          - job: android_arm
-            image: benoitpierre/koandroid:dev-20.04
-            target: 'android'
-            makeflags: 'ANDROID_ARCH=arm'
-            artifact: 'koreader-android-*.apk'
-          - job: android_arm64
-            image: benoitpierre/koandroid:dev-20.04
-            target: 'android'
-            makeflags: 'ANDROID_ARCH=arm64'
-            artifact: 'koreader-android-*.apk'
-          # Emulator.
-          - job: emu_gcc_ninja
-            abort_on_error: true
-            lint: true
-            test: true
-          # Kobo.
-          - job: kobo
-            image: benoitpierre/kokobo:dev-20.04
-            target: 'kobo'
-            artifact: 'koreader-kobo-*.targz'
-
-    name: ${{ matrix.job }}
-    runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
-    container:
-      image: ${{ matrix.image || 'benoitpierre/kobase:dev-20.04' }}
-      options: --user root
-    continue-on-error: ${{ !matrix.abort_on_error }}
-
-    env:
-      # Work around glib configure check for `msgfmt`
-      # (which is not needed to build what we need).
-      ac_cv_path_MSGFMT: '/usr/bin/false'
-      # Disable `tar` configure "safety" check…
-      FORCE_UNSAFE_CONFIGURE: 1
-      MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
-
-    steps:
-
-      # Checkout / fetch. {{{
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          clean: false
-          fetch-depth: 0
-          fetch-tags: true
-          # filter: tree:0
-          show-progress: false
-
-      - name: Fix checkout ownership
-        run: chown 'root:root' .
-
-      - name: Fetch
-        run: make fetchthirdparty
-
-      # }}}
-
-      - name: Lint
-        if: matrix.lint
-        run: .ci/check.sh
-
-      # Restore / setup caches. {{{
-
-      - name: Generate cache key
-        run: make -C base cache-key
-
-      - name: Restore build directory
-        id: build-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: base/build
-          key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-build-${{ hashFiles('base/cache-key') }}
-
-      - name: Restore build cache
-        id: ccache-restore
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
-        with:
-          path: /github/home/.ccache
-          key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
-          restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
-
-      - name: Setup build cache
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: |
-          set -x
-          ccache --zero-stats
-          ccache --max-size=256M
-          ccache --show-config
-
-      # }}}
-
-      # Build. {{{
-
-      - name: Build
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: make base
-
-      - name: Dump build timings
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: make buildstats
-
-      - name: Dump binaries runtime path & dependencies
-        run: make bindeps
-
-      # }}}
-
-      # Clean / save caches. {{{
-
-      - name: Clean caches
-        if: steps.build-restore.outputs.cache-hit != 'true' && always()
-        run: |
-          set -x
-          # Trim the build directory.
-          rm -rf base/build/{cmake,staging,thirdparty}
-          ccache --cleanup >/dev/null
-          ccache --show-stats
-
-      - name: Save build cache
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
-        with:
-          path: /github/home/.ccache
-          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
-
-      - name: Save build directory
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        with:
-          path: base/build
-          key: ${{ steps.build-restore.outputs.cache-primary-key }}
-
-      # }}}
-
-      - name: Install
-        run: make --assume-old=base all
-
-      - name: Test
-        if: matrix.test
-        run: make --assume-old=all testfront
-
-      # Generate / upload artifact. {{{
-
-      - name: Setup gradle
-        if: matrix.target == 'android'
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-read-only: false
-          generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
-          gradle-home-cache-cleanup: true
-          gradle-version: '7.5'
-
-      - name: Generate artifact
-        if: matrix.artifact
-        run: make --assume-old=all update
-
-      - name: Sign artifact
-        if: matrix.target == 'android'
-        run: uber-apk-signer --overwrite --apks ${{ matrix.artifact }}
-
-      - name: Upload artifact
-        if: matrix.artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: koreader-${{ matrix.job }}
-          path: ${{ matrix.artifact }}
-
-      # }}}
-
-  # }}}
-
-  # # Android. {{{
-
-  # android:
-
-  #   runs-on: ubuntu-latest
-
-  #   env:
-  #     # Work around glib configure check for `msgfmt`
-  #     # (which is not needed to build what we need).
-  #     ac_cv_path_MSGFMT: '/usr/bin/false'
-  #     ANDROID_ARCH: 'arm64'
-  #     ANDROID_NDK_HOME: '${{ github.workspace }}/ndk'
-  #     CLICOLOR_FORCE: '1'
-  #     MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=android'
-
-  #   steps:
-
-  #     # Checkout / fetch. {{{
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         clean: false
-  #         fetch-depth: 0
-  #         filter: tree:0
-  #         show-progress: false
-
-  #     - name: Fetch
-  #       run: make fetchthirdparty
-
-  #     # }}}
-
-  #     # Restore / setup caches. {{{
-
-  #     - name: Generate cache key
-  #       run: make -C base TARGET= cache-key
-
-  #     - name: Restore build directory
-  #       id: build-restore
-  #       uses: actions/cache/restore@v4
-  #       with:
-  #         path: base/build
-  #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-build-${{ hashFiles('base/cache-key') }}
-
-  #     - name: Install ccache
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: |
-  #         v=4.10
-  #         curl -L https://github.com/ccache/ccache/releases/download/v$v/ccache-$v-linux-x86_64.tar.xz | sudo tar xJ --strip-components=1 --directory=/usr/local/bin ccache-$v-linux-x86_64/ccache
-  #         which ccache
-  #         ccache --version
-
-  #     - name: Restore build cache
-  #       id: ccache-restore
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       uses: actions/cache/restore@v4
-  #       with:
-  #         path: /Users/runner/Library/Caches/ccache
-  #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-${{ hashFiles('base/cache-key') }}
-  #         restore-keys: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-
-
-  #     - name: Setup build cache
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: |
-  #         set -x
-  #         ccache --zero-stats
-  #         ccache --max-size=256M
-  #         ccache --show-config
-
-  #     # }}}
-
-  #     # Install ninja. {{{
-
-  #     - name: Install ninja
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: |
-  #         v=1.12.1
-  #         curl -LO https://github.com/ninja-build/ninja/releases/download/v$v/ninja-linux.zip
-  #         sudo unzip -d /usr/local/bin ninja-linux.zip
-  #         rm ninja-linux.zip
-  #         which ninja
-  #         ninja --version
-
-  #     # }}}
-
-  #     # Setup Android NDK {{{.
-
-  #     - name: Restore NDK cache
-  #       uses: actions/cache/restore@v4
-  #       id: ndk-cache
-  #       with:
-  #         path: ndk
-  #         key: ${{ env.CACHE_EPOCH }}-ndk-r23c
-
-  #     - name: Install NDK
-  #       if: steps.ndk-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         make -C base/toolchain android-ndk
-  #         mv base/toolchain/android-ndk-r23c ndk
-
-  #     - name: Save NDK cache
-  #       uses: actions/cache/save@v4
-  #       if: steps.ndk-cache.outputs.cache-hit != 'true'
-  #       with:
-  #         path: ndk
-  #         key: ${{ steps.ndk-cache.outputs.cache-primary-key }}
-
-  #     # }}}
-
-  #     # Build. {{{
-
-  #     - name: Build
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: make base
-
-  #     - name: Dump binaries runtime path & dependencies
-  #       run: make bindeps
-
-  #     # }}}
-
-  #     # Clean / save caches. {{{
-
-  #     - name: Clean caches
-  #       if: steps.build-restore.outputs.cache-hit != 'true' && always()
-  #       run: |
-  #         set -x
-  #         # Trim the build directory.
-  #         rm -rf base/build/{cmake,staging,thirdparty}
-  #         ccache --cleanup >/dev/null
-  #         ccache --show-stats --verbose
-
-  #     - name: Save build cache
-  #       uses: actions/cache/save@v4
-  #       if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
-  #       with:
-  #         path: /home/runner/.cache/ccache
-  #         key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
-
-  #     - name: Save build directory
-  #       uses: actions/cache/save@v4
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       with:
-  #         path: base/build
-  #         key: ${{ steps.build-restore.outputs.cache-primary-key }}
-
-  #     # }}}
-
-  #     # Generate / upload artifact. {{{
-
-  #     - name: Setup gradle
-  #       uses: gradle/actions/setup-gradle@v3
-  #       with:
-  #         cache-read-only: false
-  #         generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
-  #         gradle-home-cache-cleanup: true
-  #         gradle-version: '7.5'
-
-  #     - name: Generate artifact
-  #       run: make update --assume-old=base
-
-  #     - name: Install uber-apk-signer
-  #       run: |
-  #         v=1.3.0
-  #         curl -L -o uber-apk-signer.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v$v/uber-apk-signer-$v.jar
-
-  #     - name: Sign artifact
-  #       run: java -jar uber-apk-signer.jar --overwrite --apks *.apk
-
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: koreader-android-${{ env.ANDROID_ARCH }}
-  #         path: '*.apk'
-
-  #     # }}}
+    uses: .github/workflows/build_matrix.yml
+    with:
+      matrix: |
+        {
+          "job": [
+            "emu_gcc_ninja"
+          ],
+          "include": {
+            "job": "emu_gcc_ninja",
+            "abort_on_error": true,
+            "lint": true,
+            "test": true
+          }
+        }
+
+    # strategy:
+    #   fail-fast: true
+    #   matrix:
+    #     job:
+    #       - android_arm
+    #       - android_arm64
+    #       - emu_gcc_ninja
+    #       - kobo
+    #     include:
+    #       # Android.
+    #       - job: android_arm
+    #         image: benoitpierre/koandroid:dev-20.04
+    #         target: 'android'
+    #         makeflags: 'ANDROID_ARCH=arm'
+    #         artifact: 'koreader-android-*.apk'
+    #       - job: android_arm64
+    #         image: benoitpierre/koandroid:dev-20.04
+    #         target: 'android'
+    #         makeflags: 'ANDROID_ARCH=arm64'
+    #         artifact: 'koreader-android-*.apk'
+    #       # Emulator.
+    #       - job: emu_gcc_ninja
+    #         abort_on_error: true
+    #         lint: true
+    #         test: true
+    #       # Kobo.
+    #       - job: kobo
+    #         image: benoitpierre/kokobo:dev-20.04
+    #         target: 'kobo'
+    #         artifact: 'koreader-kobo-*.targz'
+
+    # name: ${{ matrix.job }}
+    # runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
+    # container:
+    #   image: ${{ matrix.image || 'benoitpierre/kobase:dev-20.04' }}
+    #   options: --user root
+    # continue-on-error: ${{ !matrix.abort_on_error }}
+
+    # env:
+    #   # Work around glib configure check for `msgfmt`
+    #   # (which is not needed to build what we need).
+    #   ac_cv_path_MSGFMT: '/usr/bin/false'
+    #   # Disable `tar` configure "safety" check…
+    #   FORCE_UNSAFE_CONFIGURE: 1
+    #   MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
+
+    # steps:
+
+    #   # Checkout / fetch. {{{
+
+    #   - name: Checkout
+    #     uses: actions/checkout@v4
+    #     with:
+    #       clean: false
+    #       fetch-depth: 0
+    #       fetch-tags: true
+    #       # filter: tree:0
+    #       show-progress: false
+
+    #   - name: Fix checkout ownership
+    #     run: chown 'root:root' .
+
+    #   - name: Fetch
+    #     run: make fetchthirdparty
+
+    #   # }}}
+
+    #   - name: Lint
+    #     if: matrix.lint
+    #     run: .ci/check.sh
+
+    #   # Restore / setup caches. {{{
+
+    #   - name: Generate cache key
+    #     run: make -C base cache-key
+
+    #   - name: Restore build directory
+    #     id: build-restore
+    #     uses: actions/cache/restore@v4
+    #     with:
+    #       path: base/build
+    #       key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-build-${{ hashFiles('base/cache-key') }}
+
+    #   - name: Restore build cache
+    #     id: ccache-restore
+    #     if: steps.build-restore.outputs.cache-hit != 'true'
+    #     uses: actions/cache/restore@v4
+    #     with:
+    #       path: /github/home/.ccache
+    #       key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
+    #       restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
+
+    #   - name: Setup build cache
+    #     if: steps.build-restore.outputs.cache-hit != 'true'
+    #     run: |
+    #       set -x
+    #       ccache --zero-stats
+    #       ccache --max-size=256M
+    #       ccache --show-config
+
+    #   # }}}
+
+    #   # Build. {{{
+
+    #   - name: Build
+    #     if: steps.build-restore.outputs.cache-hit != 'true'
+    #     run: make base
+
+    #   - name: Dump build timings
+    #     if: steps.build-restore.outputs.cache-hit != 'true'
+    #     run: make buildstats
+
+    #   - name: Dump binaries runtime path & dependencies
+    #     run: make bindeps
+
+    #   # }}}
+
+    #   # Clean / save caches. {{{
+
+    #   - name: Clean caches
+    #     if: steps.build-restore.outputs.cache-hit != 'true' && always()
+    #     run: |
+    #       set -x
+    #       # Trim the build directory.
+    #       rm -rf base/build/{cmake,staging,thirdparty}
+    #       ccache --cleanup >/dev/null
+    #       ccache --show-stats
+
+    #   - name: Save build cache
+    #     uses: actions/cache/save@v4
+    #     if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
+    #     with:
+    #       path: /github/home/.ccache
+    #       key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+    #   - name: Save build directory
+    #     uses: actions/cache/save@v4
+    #     if: steps.build-restore.outputs.cache-hit != 'true'
+    #     with:
+    #       path: base/build
+    #       key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+    #   # }}}
+
+    #   - name: Install
+    #     run: make --assume-old=base all
+
+    #   - name: Test
+    #     if: matrix.test
+    #     run: make --assume-old=all testfront
+
+    #   # Generate / upload artifact. {{{
+
+    #   - name: Setup gradle
+    #     if: matrix.target == 'android'
+    #     uses: gradle/actions/setup-gradle@v3
+    #     with:
+    #       cache-read-only: false
+    #       generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
+    #       gradle-home-cache-cleanup: true
+    #       gradle-version: '7.5'
+
+    #   - name: Generate artifact
+    #     if: matrix.artifact
+    #     run: make --assume-old=all update
+
+    #   - name: Sign artifact
+    #     if: matrix.target == 'android'
+    #     run: uber-apk-signer --overwrite --apks ${{ matrix.artifact }}
+
+    #   - name: Upload artifact
+    #     if: matrix.artifact
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: koreader-${{ matrix.job }}
+    #       path: ${{ matrix.artifact }}
+
+    #   # }}}
 
   # # }}}
 
-  # # macOS. {{{
+  # # # Android. {{{
 
-  # macos:
+  # # android:
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       platform: ['arm64', 'x86_64']
+  # #   runs-on: ubuntu-latest
 
-  #   runs-on: ${{ matrix.platform == 'arm64' && 'macos-14' || 'macos-13' }}
+  # #   env:
+  # #     # Work around glib configure check for `msgfmt`
+  # #     # (which is not needed to build what we need).
+  # #     ac_cv_path_MSGFMT: '/usr/bin/false'
+  # #     ANDROID_ARCH: 'arm64'
+  # #     ANDROID_NDK_HOME: '${{ github.workspace }}/ndk'
+  # #     CLICOLOR_FORCE: '1'
+  # #     MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=android'
 
-  #   env:
-  #     CLICOLOR_FORCE: '1'
-  #     MACOSX_DEPLOYMENT_TARGET: ${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
-  #     MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=macos'
+  # #   steps:
 
-  #   steps:
-  #     - name: XCode version
-  #       run: xcode-select -p
+  # #     # Checkout / fetch. {{{
 
-  #     # Checkout / fetch. {{{
+  # #     - name: Checkout
+  # #       uses: actions/checkout@v4
+  # #       with:
+  # #         clean: false
+  # #         fetch-depth: 0
+  # #         filter: tree:0
+  # #         show-progress: false
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         clean: false
-  #         fetch-depth: 0
-  #         filter: tree:0
-  #         show-progress: false
+  # #     - name: Fetch
+  # #       run: make fetchthirdparty
 
-  #     - name: Fetch
-  #       run: make fetchthirdparty
+  # #     # }}}
 
-  #     # }}}
+  # #     # Restore / setup caches. {{{
 
-  #     # Restore / setup caches. {{{
+  # #     - name: Generate cache key
+  # #       run: make -C base TARGET= cache-key
 
-  #     - name: Generate cache key
-  #       run: make -C base TARGET= cache-key
+  # #     - name: Restore build directory
+  # #       id: build-restore
+  # #       uses: actions/cache/restore@v4
+  # #       with:
+  # #         path: base/build
+  # #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-build-${{ hashFiles('base/cache-key') }}
 
-  #     - name: Restore build directory
-  #       id: build-restore
-  #       uses: actions/cache/restore@v4
-  #       with:
-  #         path: base/build
-  #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('base/cache-key') }}
+  # #     - name: Install ccache
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         v=4.10
+  # #         curl -L https://github.com/ccache/ccache/releases/download/v$v/ccache-$v-linux-x86_64.tar.xz | sudo tar xJ --strip-components=1 --directory=/usr/local/bin ccache-$v-linux-x86_64/ccache
+  # #         which ccache
+  # #         ccache --version
 
-  #     - name: Restore build cache
-  #       id: ccache-restore
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       uses: actions/cache/restore@v4
-  #       with:
-  #         path: /Users/runner/Library/Caches/ccache
-  #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-ccache-${{ hashFiles('base/cache-key') }}
-  #         restore-keys: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-
+  # #     - name: Restore build cache
+  # #       id: ccache-restore
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       uses: actions/cache/restore@v4
+  # #       with:
+  # #         path: /Users/runner/Library/Caches/ccache
+  # #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-${{ hashFiles('base/cache-key') }}
+  # #         restore-keys: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-
 
-  #     - name: Install ccache
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: |
-  #         wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v4.9.1/ccache-4.9.1-darwin.tar.gz
-  #         tar xf ccache-4.9.1-darwin.tar.gz
-  #         printf '%s\n' "$PWD/ccache-4.9.1-darwin" >>"${GITHUB_PATH}"
+  # #     - name: Setup build cache
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         set -x
+  # #         ccache --zero-stats
+  # #         ccache --max-size=256M
+  # #         ccache --show-config
 
-  #     - name: Setup build cache
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: |
-  #         set -x
-  #         which ccache
-  #         ccache --version
-  #         ccache --zero-stats
-  #         ccache --max-size=256M
-  #         ccache --show-config
+  # #     # }}}
 
-  #     # }}}
+  # #     # Install ninja. {{{
 
-  #     # Install dependencies. {{{
+  # #     - name: Install ninja
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         v=1.12.1
+  # #         curl -LO https://github.com/ninja-build/ninja/releases/download/v$v/ninja-linux.zip
+  # #         sudo unzip -d /usr/local/bin ninja-linux.zip
+  # #         rm ninja-linux.zip
+  # #         which ninja
+  # #         ninja --version
 
-  #     - name: Setup Python
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         # Note: Python 3.12 removal of `distutils` breaks GLib's build.
-  #         python-version: '3.11'
+  # #     # }}}
 
-  #     - name: Install homebrew dependencies
-  #       # Compared to the README, adds p7zip.
-  #       run: |
-  #         packages=(
-  #           nasm binutils coreutils libtool autoconf automake cmake make
-  #           sdl2 gettext pkg-config wget gnu-getopt grep p7zip ninja
-  #         )
-  #         brew install --formula --quiet "${packages[@]}"
+  # #     # Setup Android NDK {{{.
 
-  #     - name: Update PATH
-  #       run: >
-  #         printf '%s\n'
-  #         "$(brew --prefix)/opt/gettext/bin"
-  #         "$(brew --prefix)/opt/gnu-getopt/bin"
-  #         "$(brew --prefix)/opt/grep/libexec/gnubin"
-  #         "$(brew --prefix)/opt/make/libexec/gnubin"
-  #         | tee "${GITHUB_PATH}"
+  # #     - name: Restore NDK cache
+  # #       uses: actions/cache/restore@v4
+  # #       id: ndk-cache
+  # #       with:
+  # #         path: ndk
+  # #         key: ${{ env.CACHE_EPOCH }}-ndk-r23c
 
-  #     # }}}
+  # #     - name: Install NDK
+  # #       if: steps.ndk-cache.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         make -C base/toolchain android-ndk
+  # #         mv base/toolchain/android-ndk-r23c ndk
 
-  #     # Build. {{{
+  # #     - name: Save NDK cache
+  # #       uses: actions/cache/save@v4
+  # #       if: steps.ndk-cache.outputs.cache-hit != 'true'
+  # #       with:
+  # #         path: ndk
+  # #         key: ${{ steps.ndk-cache.outputs.cache-primary-key }}
 
-  #     - name: Build
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       run: make base
+  # #     # }}}
 
-  #     - name: Dump binaries runtime path & dependencies
-  #       run: make bindeps
+  # #     # Build. {{{
 
-  #     # }}}
+  # #     - name: Build
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: make base
 
-  #     # Clean / save caches. {{{
+  # #     - name: Dump binaries runtime path & dependencies
+  # #       run: make bindeps
 
-  #     - name: Clean caches
-  #       if: steps.build-restore.outputs.cache-hit != 'true' && always()
-  #       run: |
-  #         set -x
-  #         # Trim the build directory.
-  #         rm -rf base/build/{cmake,staging,thirdparty}
-  #         ccache --cleanup >/dev/null
-  #         ccache --show-stats --verbose
+  # #     # }}}
 
-  #     - name: Save build cache
-  #       uses: actions/cache/save@v4
-  #       if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
-  #       with:
-  #         path: /Users/runner/Library/Caches/ccache
-  #         key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+  # #     # Clean / save caches. {{{
 
-  #     - name: Save build directory
-  #       uses: actions/cache/save@v4
-  #       if: steps.build-restore.outputs.cache-hit != 'true'
-  #       with:
-  #         path: base/build
-  #         key: ${{ steps.build-restore.outputs.cache-primary-key }}
+  # #     - name: Clean caches
+  # #       if: steps.build-restore.outputs.cache-hit != 'true' && always()
+  # #       run: |
+  # #         set -x
+  # #         # Trim the build directory.
+  # #         rm -rf base/build/{cmake,staging,thirdparty}
+  # #         ccache --cleanup >/dev/null
+  # #         ccache --show-stats --verbose
 
-  #     # }}}
+  # #     - name: Save build cache
+  # #       uses: actions/cache/save@v4
+  # #       if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
+  # #       with:
+  # #         path: /home/runner/.cache/ccache
+  # #         key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
 
-  #     # Generate / upload artifact. {{{
+  # #     - name: Save build directory
+  # #       uses: actions/cache/save@v4
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       with:
+  # #         path: base/build
+  # #         key: ${{ steps.build-restore.outputs.cache-primary-key }}
 
-  #     - name: Generate artifact
-  #       run: make update --assume-old=base
+  # #     # }}}
 
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: koreader-macos-${{ matrix.platform }}
-  #         path: '*.7z'
+  # #     # Generate / upload artifact. {{{
 
-  #     # }}}
+  # #     - name: Setup gradle
+  # #       uses: gradle/actions/setup-gradle@v3
+  # #       with:
+  # #         cache-read-only: false
+  # #         generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
+  # #         gradle-home-cache-cleanup: true
+  # #         gradle-version: '7.5'
 
-  # # }}}
+  # #     - name: Generate artifact
+  # #       run: make update --assume-old=base
+
+  # #     - name: Install uber-apk-signer
+  # #       run: |
+  # #         v=1.3.0
+  # #         curl -L -o uber-apk-signer.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v$v/uber-apk-signer-$v.jar
+
+  # #     - name: Sign artifact
+  # #       run: java -jar uber-apk-signer.jar --overwrite --apks *.apk
+
+  # #     - name: Upload artifact
+  # #       uses: actions/upload-artifact@v4
+  # #       with:
+  # #         name: koreader-android-${{ env.ANDROID_ARCH }}
+  # #         path: '*.apk'
+
+  # #     # }}}
+
+  # # # }}}
+
+  # # # macOS. {{{
+
+  # # macos:
+
+  # #   strategy:
+  # #     fail-fast: false
+  # #     matrix:
+  # #       platform: ['arm64', 'x86_64']
+
+  # #   runs-on: ${{ matrix.platform == 'arm64' && 'macos-14' || 'macos-13' }}
+
+  # #   env:
+  # #     CLICOLOR_FORCE: '1'
+  # #     MACOSX_DEPLOYMENT_TARGET: ${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
+  # #     MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=macos'
+
+  # #   steps:
+  # #     - name: XCode version
+  # #       run: xcode-select -p
+
+  # #     # Checkout / fetch. {{{
+
+  # #     - name: Checkout
+  # #       uses: actions/checkout@v4
+  # #       with:
+  # #         clean: false
+  # #         fetch-depth: 0
+  # #         filter: tree:0
+  # #         show-progress: false
+
+  # #     - name: Fetch
+  # #       run: make fetchthirdparty
+
+  # #     # }}}
+
+  # #     # Restore / setup caches. {{{
+
+  # #     - name: Generate cache key
+  # #       run: make -C base TARGET= cache-key
+
+  # #     - name: Restore build directory
+  # #       id: build-restore
+  # #       uses: actions/cache/restore@v4
+  # #       with:
+  # #         path: base/build
+  # #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('base/cache-key') }}
+
+  # #     - name: Restore build cache
+  # #       id: ccache-restore
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       uses: actions/cache/restore@v4
+  # #       with:
+  # #         path: /Users/runner/Library/Caches/ccache
+  # #         key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-ccache-${{ hashFiles('base/cache-key') }}
+  # #         restore-keys: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-ccache-
+
+  # #     - name: Install ccache
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v4.9.1/ccache-4.9.1-darwin.tar.gz
+  # #         tar xf ccache-4.9.1-darwin.tar.gz
+  # #         printf '%s\n' "$PWD/ccache-4.9.1-darwin" >>"${GITHUB_PATH}"
+
+  # #     - name: Setup build cache
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: |
+  # #         set -x
+  # #         which ccache
+  # #         ccache --version
+  # #         ccache --zero-stats
+  # #         ccache --max-size=256M
+  # #         ccache --show-config
+
+  # #     # }}}
+
+  # #     # Install dependencies. {{{
+
+  # #     - name: Setup Python
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       uses: actions/setup-python@v5
+  # #       with:
+  # #         # Note: Python 3.12 removal of `distutils` breaks GLib's build.
+  # #         python-version: '3.11'
+
+  # #     - name: Install homebrew dependencies
+  # #       # Compared to the README, adds p7zip.
+  # #       run: |
+  # #         packages=(
+  # #           nasm binutils coreutils libtool autoconf automake cmake make
+  # #           sdl2 gettext pkg-config wget gnu-getopt grep p7zip ninja
+  # #         )
+  # #         brew install --formula --quiet "${packages[@]}"
+
+  # #     - name: Update PATH
+  # #       run: >
+  # #         printf '%s\n'
+  # #         "$(brew --prefix)/opt/gettext/bin"
+  # #         "$(brew --prefix)/opt/gnu-getopt/bin"
+  # #         "$(brew --prefix)/opt/grep/libexec/gnubin"
+  # #         "$(brew --prefix)/opt/make/libexec/gnubin"
+  # #         | tee "${GITHUB_PATH}"
+
+  # #     # }}}
+
+  # #     # Build. {{{
+
+  # #     - name: Build
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       run: make base
+
+  # #     - name: Dump binaries runtime path & dependencies
+  # #       run: make bindeps
+
+  # #     # }}}
+
+  # #     # Clean / save caches. {{{
+
+  # #     - name: Clean caches
+  # #       if: steps.build-restore.outputs.cache-hit != 'true' && always()
+  # #       run: |
+  # #         set -x
+  # #         # Trim the build directory.
+  # #         rm -rf base/build/{cmake,staging,thirdparty}
+  # #         ccache --cleanup >/dev/null
+  # #         ccache --show-stats --verbose
+
+  # #     - name: Save build cache
+  # #       uses: actions/cache/save@v4
+  # #       if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
+  # #       with:
+  # #         path: /Users/runner/Library/Caches/ccache
+  # #         key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+  # #     - name: Save build directory
+  # #       uses: actions/cache/save@v4
+  # #       if: steps.build-restore.outputs.cache-hit != 'true'
+  # #       with:
+  # #         path: base/build
+  # #         key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+  # #     # }}}
+
+  # #     # Generate / upload artifact. {{{
+
+  # #     - name: Generate artifact
+  # #       run: make update --assume-old=base
+
+  # #     - name: Upload artifact
+  # #       uses: actions/upload-artifact@v4
+  # #       with:
+  # #         name: koreader-macos-${{ matrix.platform }}
+  # #         path: '*.7z'
+
+  # #     # }}}
+
+  # # # }}}
 
 # vim: foldmethod=marker foldlevel=0
