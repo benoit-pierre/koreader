@@ -13,6 +13,9 @@ on:
       ccache_version:
         default: '4.10'
         type: string
+      gradle_version:
+        default: '7.5'
+        type: string
       ninjatracing_version:
         default: 'a669e3644cf22b29cbece31dbed2cfbf34e5f48e'
         type: string
@@ -50,7 +53,7 @@ jobs:
     steps:
 
       - name: Setup macOS build environment
-        if: startsWith(matrix.runs-on, 'macos-')
+        if: runner.os == 'macOS'
         run: |
           # brew packages
           wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
@@ -89,7 +92,7 @@ jobs:
           ccache --version
           # macos environment
           macos_env=(
-            MACOSX_DEPLOYMENT_TARGET=${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macosx_deployment_target }}
           )
           printf '%s\n' "${macos_env[@]}" | tee -a "${GITHUB_ENV}"
 
@@ -134,7 +137,7 @@ jobs:
         if: steps.build-restore.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
-          path: /github/home/.ccache
+          path: ${{ runner.os == 'macOS' && '/Users/runner/Library/Caches/ccache' || '/github/home/.ccache' }}
           key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
           restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
 
@@ -156,7 +159,7 @@ jobs:
         run: make base
 
       - name: Dump build timings
-        if: steps.build-restore.outputs.cache-hit != 'true'
+        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
         run: make buildstats
 
       - name: Dump binaries runtime path & dependencies
@@ -179,7 +182,7 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
         with:
-          path: /github/home/.ccache
+          path: ${{ runner.os == 'macOS' && '/Users/runner/Library/Caches/ccache' || '/github/home/.ccache' }}
           key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
 
       - name: Save build directory
@@ -207,7 +210,7 @@ jobs:
           cache-read-only: false
           generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
           gradle-home-cache-cleanup: true
-          gradle-version: '7.5'
+          gradle-version: ${{ inputs.gradle_version }}
 
       - name: Generate artifact
         if: matrix.artifact

@@ -45,6 +45,14 @@ jobs:
               "job": "macos_arm64",
               "runs-on": "macos-14",
               "target": "macos",
+              "macosx_deployment_target": "11.0",
+              "artifact": "KOReader-*.7z"
+            },
+            {
+              "job": "macos_x86_64",
+              "runs-on": "macos-13",
+              "target": "macos",
+              "macosx_deployment_target": "10.15",
               "artifact": "KOReader-*.7z"
             }
           ]
