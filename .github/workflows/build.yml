@@ -18,23 +18,23 @@ env:
 
 jobs:
 
-  # emulators:
-  #   uses: ./.github/workflows/build_matrix.yml
-  #   with:
-  #     matrix: |
-  #       {
-  #         "include": [
-  #           {
-  #             "job": "emu_gcc_ninja",
-  #             "image": "benoitpierre/kobase:dev-20.04",
-  #             "lint": true,
-  #             "test": true
-  #           }
-  #         ]
-  #       }
+  emulators:
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "emu_gcc_ninja",
+              "image": "benoitpierre/kobase:dev-20.04",
+              "lint": true,
+              "test": true
+            }
+          ]
+        }
 
   macos:
-    # needs: emulators
+    needs: emulators
     uses: ./.github/workflows/build_matrix.yml
     with:
       fail-fast: false
