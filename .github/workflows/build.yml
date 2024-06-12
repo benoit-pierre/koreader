@@ -18,54 +18,85 @@ env:
 
 jobs:
 
-  emulators:
+  # emulators:
+  #   uses: ./.github/workflows/build_matrix.yml
+  #   with:
+  #     matrix: |
+  #       {
+  #         "job": [
+  #           "emu_gcc_ninja"
+  #         ],
+  #         "include": [
+  #           {
+  #             "job": "emu_gcc_ninja",
+  #             "lint": true,
+  #             "test": true
+  #           }
+  #         ]
+  #       }
 
-    uses: ./.github/workflows/build_matrix.yml
-    with:
-      matrix: |
-        {
-          "job": [
-            "emu_gcc_ninja"
-          ],
-          "include": [
-            {
-              "job": "emu_gcc_ninja",
-              "abort_on_error": true,
-              "lint": true,
-              "test": true
-            }
-          ]
-        }
-
-  platforms:
-
-    needs: emulators
-
+  macos:
+    # needs: emulators
     uses: ./.github/workflows/build_matrix.yml
     with:
       fail-fast: false
       matrix: |
         {
           "job": [
-            "android_arm",
-            "kobo"
+            "macos_arm64",
+            "macos_x86_64"
           ],
           "include": [
             {
-              "job": "android_arm",
-              "image": "benoitpierre/koandroid:dev-20.04",
-              "target": "android",
-              "makeflags": "ANDROID_ARCH=arm",
-              "artifact": "koreader-android-*.apk"
+              "job": "macos_arm64",
+              "runs-on": "macos-14",
+              "target": "macos",
+              "artifact": "KOReader-*.7z"
             },
             {
-              "job": "kobo",
-              "image": "benoitpierre/kokobo:dev-20.04",
-              "target": "kobo",
-              "artifact": "koreader-kobo-*.targz"
+              "job": "macos_x86_64",
+              "runs-on": "macos-13",
+              "target": "macos",
+              "artifact": "KOReader-*.7z"
             }
           ]
         }
+
+  # platforms:
+  #   needs: emulators
+  #   uses: ./.github/workflows/build_matrix.yml
+  #   with:
+  #     fail-fast: false
+  #     matrix: |
+  #       {
+  #         "job": [
+  #           "android_arm",
+  #           "android_arm64",
+  #           "kobo"
+  #         ],
+  #         "include": [
+  #           {
+  #             "job": "android_arm",
+  #             "image": "benoitpierre/koandroid:dev-20.04",
+  #             "target": "android",
+  #             "makeflags": "ANDROID_ARCH=arm",
+  #             "artifact": "koreader-android-*.apk"
+  #           },
+  #           {
+  #             "job": "android_arm64",
+  #             "image": "benoitpierre/koandroid:dev-20.04",
+  #             "target": "android",
+  #             "makeflags": "ANDROID_ARCH=arm64",
+  #             "artifact": "koreader-android-*.apk"
+  #           },
+  #           {
+  #             "job": "kobo",
+  #             "image": "benoitpierre/kokobo:dev-20.04",
+  #             "target": "kobo",
+  #             "artifact": "koreader-kobo-*.targz"
+  #           }
+  #         ]
+  #       }
 
     # strategy:
     #   fail-fast: true
