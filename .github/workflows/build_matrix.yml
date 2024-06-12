@@ -46,6 +46,8 @@ jobs:
 
     steps:
 
+      - run: echo "${{ toJSON(matrix) }}"
+
       - name: Install make
         if: startsWith('macos-', matrix.runs-on)
         run: |
