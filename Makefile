@@ -64,17 +64,12 @@ all: base
 ifdef ANDROID
 	rm -f android-fdroid-version; echo -e "$(ANDROID_NAME)\n$(ANDROID_VERSION)" > koreader-android-fdroid-latest
 endif
-ifeq ($(IS_RELEASE),1)
-	bash -O extglob -c '$(RCP) -fL $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
-else
-	cp -f $(KOR_BASE)/ev_replay.py $(INSTALL_DIR)/koreader/
-	@echo "[*] create symlink instead of copying files in development mode"
+	$(SYMLINK) $(abspath $(KOR_BASE)/ev_replay.py) $(INSTALL_DIR)/koreader/
 	bash -O extglob -c '$(SYMLINK) $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
-  ifneq (,$(EMULATE_READER))
+ifneq (,$(EMULATE_READER))
 	@echo "[*] install front spec only for the emulator"
 	$(SYMLINK) $(abspath spec) $(INSTALL_DIR)/koreader/spec/front
 	$(SYMLINK) $(abspath test) $(INSTALL_DIR)/koreader/spec/front/unit/data
-  endif
 endif
 	$(SYMLINK) $(abspath $(INSTALL_FILES)) $(INSTALL_DIR)/koreader/
 ifdef ANDROID
