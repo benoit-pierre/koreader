@@ -52,6 +52,7 @@ jobs:
       - name: Setup macOS build environment
         if: startsWith(matrix.runs-on, 'macos-')
         run: |
+          # brew packages
           wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
           unzip -j ninjatracing.zip '*/ninjatracing'
           install -m755 ninjatracing /usr/local/bin/
@@ -73,19 +74,22 @@ jobs:
             sdl2
           )
           brew install --formula --quiet "${packages[@]}"
-          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
-          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
-          paths=(
+          brew_paths=(
             "$(brew --prefix)/opt/gettext/bin"
             "$(brew --prefix)/opt/gnu-getopt/bin"
             "$(brew --prefix)/opt/make/libexec/gnubin"
-            "$PWD/ccache-${{ inputs.ccache_version }}-darwin"
           )
-          printf '%s\n' "${paths[@]}" | tee -a "${GITHUB_PATH}"
-          env=(
+          printf '%s\n' "${brew_paths[@]}" | tee -a "${GITHUB_PATH}"
+          # ccache
+          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          sudo make -C ccache-${{ inputs.ccache_version }}-darwin install
+          ccache --version
+          # macos environment
+          macos_env=(
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
           )
-          printf '%s\n' "${env[@]}" | tee -a "${GITHUB_ENV}"
+          printf '%s\n' "${macos_env[@]}" | tee -a "${GITHUB_ENV}"
 
       # Checkout / fetch. {{{
 
