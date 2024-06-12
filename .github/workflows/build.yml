@@ -18,10 +18,8 @@ env:
 
 jobs:
 
-  # strategy:
-  #   fail-fast: true
-  #   matrix:
-  build:
+  emulators:
+
     uses: ./.github/workflows/build_matrix.yml
     with:
       matrix: |
@@ -35,6 +33,36 @@ jobs:
               "abort_on_error": true,
               "lint": true,
               "test": true
+            }
+          ]
+        }
+
+  platforms:
+
+    needs: emulators
+
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      fail-fast: false
+      matrix: |
+        {
+          "job": [
+            "android_arm",
+            "kobo"
+          ],
+          "include": [
+            {
+              "job": "android_arm",
+              "image": "benoitpierre/koandroid:dev-20.04",
+              "target": "android",
+              "makeflags": "ANDROID_ARCH=arm",
+              "artifact": "koreader-android-*.apk"
+            },
+            {
+              "job": "kobo",
+              "image": "benoitpierre/kokobo:dev-20.04",
+              "target": "kobo",
+              "artifact": "koreader-kobo-*.targz"
             }
           ]
         }

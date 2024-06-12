@@ -33,7 +33,6 @@ jobs:
     container:
       image: ${{ matrix.image || 'benoitpierre/kobase:dev-20.04' }}
       options: --user root
-    continue-on-error: ${{ !matrix.abort_on_error }}
 
     env:
       # Work around glib configure check for `msgfmt`
