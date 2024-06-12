@@ -1,3 +1,6 @@
+# Use the git commit count as the (integer) Android version code
+ANDROID_VERSION ?= $(shell git rev-list --count HEAD)
+ANDROID_NAME ?= $(VERSION)
 ANDROID_DIR = $(PLATFORM_DIR)/android
 ANDROID_LAUNCHER_DIR = $(ANDROID_DIR)/luajit-launcher
 ANDROID_LAUNCHER_BUILD = $(INSTALL_DIR)/luajit-launcher
@@ -5,6 +8,7 @@ ANDROID_ASSETS = $(ANDROID_LAUNCHER_BUILD)/assets/module
 ANDROID_LIBS_ROOT = $(ANDROID_LAUNCHER_BUILD)/libs
 ANDROID_LIBS_ABI = $(ANDROID_LIBS_ROOT)/$(ANDROID_ABI)
 ANDROID_FLAVOR ?= Rocks
+ANDROID_APK = koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(ANDROID_NAME).apk
 
 ifneq (,$(CI))
   GRADLE_FLAGS ?= --console=plain --no-daemon -x lintVitalArmRocksRelease
@@ -81,6 +85,8 @@ update: all
 		-PversName='$(ANDROID_NAME)' \
 		$(GRADLE_FLAGS) \
 		'app:assemble$(ANDROID_ARCH)$(ANDROID_FLAVOR)$(if $(KODEBUG),Debug,Release)'
-	cp $(ANDROID_LAUNCHER_BUILD)/outputs/apk/$(ANDROID_ARCH)$(ANDROID_FLAVOR)/$(if $(KODEBUG),debug,release)/NativeActivity.apk koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(ANDROID_NAME).apk
+	cp $(ANDROID_LAUNCHER_BUILD)/outputs/apk/$(ANDROID_ARCH)$(ANDROID_FLAVOR)/$(if $(KODEBUG),debug,release)/NativeActivity.apk $(ANDROID_APK)
+	# sign the APK with uber-apk-signer if it's available
+	$$(command -v uber-apk-signer true) --overwrite --apks $(ANDROID_APK)
 
 PHONY += androiddev update

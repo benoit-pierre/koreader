@@ -28,10 +28,6 @@ else
 	ANDROID_ABI?=armeabi-v7a
 endif
 
-# Use the git commit count as the (integer) Android version code
-ANDROID_VERSION?=$(shell git rev-list --count HEAD)
-ANDROID_NAME?=$(VERSION)
-
 LINUX_ARCH?=native
 ifeq ($(LINUX_ARCH), native)
 	LINUX_ARCH_NAME:=$(shell uname -m)
