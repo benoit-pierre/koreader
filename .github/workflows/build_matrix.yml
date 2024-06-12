@@ -11,7 +11,7 @@ on:
         type: string
       # Internal.
       ccache_version:
-        default: 4.10
+        default: '4.10'
         type: string
 
 defaults:
@@ -45,8 +45,6 @@ jobs:
       MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
 
     steps:
-
-      - run: echo "${{ toJSON(matrix) }}"
 
       - name: Install make
         if: startsWith(matrix.runs-on, 'macos-')
