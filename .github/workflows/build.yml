@@ -22,7 +22,7 @@ jobs:
   #   fail-fast: true
   #   matrix:
   build:
-    uses: .github/workflows/build_matrix.yml
+    uses: ./.github/workflows/build_matrix.yml
     with:
       matrix: |
         {
