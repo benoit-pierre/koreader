@@ -94,9 +94,9 @@ jobs:
       - name: Install ccache
         if: steps.build-restore.outputs.cache-hit != 'true' && startsWith('macos-', matrix.runs-on)
         run: |
-          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ input.ccache_version }}/ccache-${{ input.ccache_version }}-darwin.tar.gz
-          tar xf ccache-${{ input.ccache_version }}-darwin.tar.gz
-          printf '%s\n' "$PWD/ccache-${{ input.ccache_version }}-darwin" >>"${GITHUB_PATH}"
+          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          printf '%s\n' "$PWD/ccache-${{ inputs.ccache_version }}-darwin" >>"${GITHUB_PATH}"
 
       - name: Setup build cache
         if: steps.build-restore.outputs.cache-hit != 'true'
