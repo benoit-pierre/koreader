@@ -46,7 +46,7 @@ jobs:
       # Work around glib configure check for `msgfmt`
       # (which is not needed to build what we need).
       ac_cv_path_MSGFMT: '/usr/bin/false'
-      CCACHE_DIR: "${{ format('{0}/ccache', runner.temp) }}"
+      CCACHE_DIR: "${{ format('{0}/ccache', github.workspace) }}"
       # Disable `tar` configure "safety" check…
       FORCE_UNSAFE_CONFIGURE: 1
       MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
