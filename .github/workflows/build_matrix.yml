@@ -46,6 +46,12 @@ jobs:
 
     steps:
 
+      - name: Install make
+        if: startsWith('macos-', matrix.runs-on)
+        run: |
+          brew install --formula --quiet make
+          printf '%s\n' "$(brew --prefix)/opt/make/libexec/gnubin" >>"${GITHUB_PATH}"
+
       # Checkout / fetch. {{{
 
       - name: Checkout
@@ -111,6 +117,19 @@ jobs:
 
       # Build. {{{
 
+      - name: Install build dependencies
+        run: |
+          packages=(
+            nasm coreutils libtool autoconf automake cmake make
+            sdl2 gettext pkg-config gnu-getopt grep ninja
+          )
+          brew install --formula --quiet "${packages[@]}"
+          paths=(
+            "$(brew --prefix)/opt/gettext/bin"
+            "$(brew --prefix)/opt/gnu-getopt/bin"
+          )
+          printf '%s\n' "${paths[@]}" >>"${GITHUB_PATH}"
+
       - name: Build
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: make base
@@ -127,7 +146,7 @@ jobs:
       # Clean / save caches. {{{
 
       - name: Clean caches
-        if: steps.build-restore.outputs.cache-hit != 'true' && always()
+        if: steps.build-restore.outputs.cache-hit != 'true' && always() && !cancelled()
         run: |
           set -x
           # Trim the build directory.
