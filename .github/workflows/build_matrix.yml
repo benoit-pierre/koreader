@@ -146,7 +146,7 @@ jobs:
       # Clean / save caches. {{{
 
       - name: Clean caches
-        if: steps.build-restore.outputs.cache-hit != 'true' && always() && !cancelled()
+        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
         run: |
           set -x
           # Trim the build directory.
