@@ -58,23 +58,18 @@ else
 endif
 OUTPUT_DIR_ARTIFACTS = $(ABSOLUTE_OUTPUT_DIR)/!(cache|cmake|history|staging|thirdparty)
 
-all: base
+all: skeleton base
 	install -d $(INSTALL_DIR)/koreader
 	rm -f $(INSTALL_DIR)/koreader/git-rev; echo "$(VERSION)" > $(INSTALL_DIR)/koreader/git-rev
 ifdef ANDROID
 	rm -f android-fdroid-version; echo -e "$(ANDROID_NAME)\n$(ANDROID_VERSION)" > koreader-android-fdroid-latest
 endif
-ifeq ($(IS_RELEASE),1)
-	bash -O extglob -c '$(RCP) -fL $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
-else
-	cp -f $(KOR_BASE)/ev_replay.py $(INSTALL_DIR)/koreader/
-	@echo "[*] create symlink instead of copying files in development mode"
+	$(SYMLINK) $(abspath $(KOR_BASE)/ev_replay.py) $(INSTALL_DIR)/koreader/
 	bash -O extglob -c '$(SYMLINK) $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
-  ifneq (,$(EMULATE_READER))
+ifneq (,$(EMULATE_READER))
 	@echo "[*] install front spec only for the emulator"
 	$(SYMLINK) $(abspath spec) $(INSTALL_DIR)/koreader/spec/front
 	$(SYMLINK) $(abspath test) $(INSTALL_DIR)/koreader/spec/front/unit/data
-  endif
 endif
 	$(SYMLINK) $(abspath $(INSTALL_FILES)) $(INSTALL_DIR)/koreader/
 ifdef ANDROID
@@ -96,7 +91,7 @@ endif
 	$(SYMLINK) $(abspath plugins) $(INSTALL_DIR)/koreader/
 	@echo "[*] Install resources"
 	$(SYMLINK) $(abspath resources/fonts/*) $(INSTALL_DIR)/koreader/fonts/
-	install -d $(INSTALL_DIR)/koreader/{screenshots,data/{dict,tessdata},fonts/host,ota}
+	install -d $(INSTALL_DIR)/koreader/{screenshots,fonts/host,ota}
 ifeq ($(IS_RELEASE),1)
 	@echo "[*] Clean up, remove unused files for releases"
 	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,cr3skin-format.txt,desktop,devices,manual}
