@@ -56,6 +56,7 @@ jobs:
           wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
           unzip -j ninjatracing.zip '*/ninjatracing'
           install -m755 ninjatracing /usr/local/bin/
+          rm ninjatracing*
           packages=(
             autoconf
             automake
@@ -83,7 +84,8 @@ jobs:
           # ccache
           wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
           tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
-          sudo make -C ccache-${{ inputs.ccache_version }}-darwin install
+          install -m755 ccache-${{ inputs.ccache_version }}-darwin/ccache /usr/local/bin/
+          rm -rf ccache-*
           ccache --version
           # macos environment
           macos_env=(
