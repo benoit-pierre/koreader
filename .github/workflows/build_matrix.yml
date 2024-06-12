@@ -9,6 +9,10 @@ on:
       matrix:
         required: true
         type: string
+      # Internal.
+      ccache_version:
+        default: 4.10
+        type: string
 
 defaults:
   run:
@@ -87,10 +91,18 @@ jobs:
           key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
           restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
 
+      - name: Install ccache
+        if: steps.build-restore.outputs.cache-hit != 'true' && startsWith('macos-', matrix.runs-on)
+        run: |
+          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ input.ccache_version }}/ccache-${{ input.ccache_version }}-darwin.tar.gz
+          tar xf ccache-${{ input.ccache_version }}-darwin.tar.gz
+          printf '%s\n' "$PWD/ccache-${{ input.ccache_version }}-darwin" >>"${GITHUB_PATH}"
+
       - name: Setup build cache
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: |
           set -x
+          ccache --version
           ccache --zero-stats
           ccache --max-size=256M
           ccache --show-config
