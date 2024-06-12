@@ -27,7 +27,8 @@ defaults:
 env:
   BASH_ENV: '/root/.bashrc'
   # Change to reset all caches.
-  CACHE_EPOCH: 'Cuthi4iu'
+  CACHE_EPOCH: 'oofoh9Ai'
+  CCACHE_DIR: "${{ format('{0}/ccache', runner.temp) }}"
   CLICOLOR_FORCE: '1'
 
 jobs:
@@ -141,7 +142,7 @@ jobs:
         if: steps.build-restore.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
-          path: ${{ runner.os == 'macOS' && '/Users/runner/Library/Caches/ccache' || '/github/home/.ccache' }}
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('base/cache-key') }}
           restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
 
@@ -186,7 +187,7 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
         with:
-          path: ${{ runner.os == 'macOS' && '/Users/runner/Library/Caches/ccache' || '/github/home/.ccache' }}
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
 
       - name: Save build directory
