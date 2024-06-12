@@ -79,7 +79,7 @@ jobs:
             "$(brew --prefix)/opt/gettext/bin"
             "$(brew --prefix)/opt/gnu-getopt/bin"
             "$(brew --prefix)/opt/make/libexec/gnubin"
-            "$PWD/ccache-${{ inputs.ccache_version }}-darwin
+            "$PWD/ccache-${{ inputs.ccache_version }}-darwin"
           )
           printf '%s\n' "${paths[@]}" | tee -a "${GITHUB_PATH}"
           env=(
