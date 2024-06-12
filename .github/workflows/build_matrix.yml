@@ -49,7 +49,7 @@ jobs:
       - run: echo "${{ toJSON(matrix) }}"
 
       - name: Install make
-        if: startsWith('macos-', matrix.runs-on)
+        if: startsWith(matrix.runs-on, 'macos-')
         run: |
           brew install --formula --quiet make
           printf '%s\n' "$(brew --prefix)/opt/make/libexec/gnubin" >>"${GITHUB_PATH}"
@@ -100,7 +100,7 @@ jobs:
           restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
 
       - name: Install ccache
-        if: steps.build-restore.outputs.cache-hit != 'true' && startsWith('macos-', matrix.runs-on)
+        if: steps.build-restore.outputs.cache-hit != 'true' && startsWith(matrix.runs-on, 'macos-')
         run: |
           wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
           tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
