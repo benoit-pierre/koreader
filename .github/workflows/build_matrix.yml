@@ -160,11 +160,12 @@ jobs:
       # Build. {{{
 
       - name: Build
+        id: build
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: make base
 
       - name: Dump build timings
-        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
         run: make buildstats
 
       - name: Dump binaries runtime path & dependencies
@@ -175,7 +176,7 @@ jobs:
       # Clean / save caches. {{{
 
       - name: Clean caches
-        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
         run: |
           set -x
           # Trim the build directory.
