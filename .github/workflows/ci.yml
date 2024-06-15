@@ -1,0 +1,92 @@
+name: ci
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
+
+env:
+  BASH_ENV: '/root/.bashrc'
+  # Bump number to reset all caches.
+  CACHE_EPOCH: '0'
+  CLICOLOR_FORCE: '1'
+
+jobs:
+
+  emulators:
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "emu_gcc_ninja",
+              "image": "benoitpierre/kobase:dev-20.04",
+              "lint": true,
+              "test": true
+            }
+          ]
+        }
+
+  macos:
+    needs: emulators
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      fail-fast: false
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "macos_arm64",
+              "runs-on": "macos-14",
+              "target": "macos",
+              "macosx_deployment_target": "11.0",
+              "artifact": "KOReader-*.7z"
+            },
+            {
+              "job": "macos_x86_64",
+              "runs-on": "macos-13",
+              "target": "macos",
+              "macosx_deployment_target": "10.15",
+              "artifact": "KOReader-*.7z"
+            }
+          ]
+        }
+
+  platforms:
+    needs: emulators
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      fail-fast: false
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "android_arm",
+              "image": "benoitpierre/koandroid:dev-20.04",
+              "target": "android",
+              "makeflags": "ANDROID_ARCH=arm",
+              "artifact": "koreader-android-*.apk"
+            },
+            {
+              "job": "android_arm64",
+              "image": "benoitpierre/koandroid:dev-20.04",
+              "target": "android",
+              "makeflags": "ANDROID_ARCH=arm64",
+              "artifact": "koreader-android-*.apk"
+            },
+            {
+              "job": "kobo",
+              "image": "benoitpierre/kokobo:dev-20.04",
+              "target": "kobo",
+              "artifact": "koreader-kobo-*.targz"
+            }
+          ]
+        }
+
+# vim: foldmethod=marker foldlevel=0
