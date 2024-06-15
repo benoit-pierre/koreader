@@ -1,0 +1,235 @@
+name: build matrix
+
+on:
+  workflow_call:
+    inputs:
+      fail-fast:
+        default: true
+        type: boolean
+      matrix:
+        required: true
+        type: string
+      # Internal.
+      ccache_version:
+        default: '4.10'
+        type: string
+      gradle_version:
+        default: '7.5'
+        type: string
+      ninjatracing_version:
+        default: 'a669e3644cf22b29cbece31dbed2cfbf34e5f48e'
+        type: string
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
+
+env:
+  BASH_ENV: '/root/.bashrc'
+  # Change to reset all caches.
+  CACHE_EPOCH: 'oofoh9Ai'
+  CLICOLOR_FORCE: '1'
+
+jobs:
+
+  build:
+
+    strategy:
+      fail-fast: ${{ inputs.fail-fast }}
+      matrix: ${{ fromJSON(inputs.matrix) }}
+
+    name: ${{ matrix.job }}
+    runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
+    container: "${{ matrix.image && fromJSON(format('{{ \"image\": \"{0}\", \"options\": \"--user root\" }}', matrix.image)) || '' }}"
+
+    env:
+      # Work around glib configure check for `msgfmt`
+      # (which is not needed to build what we need).
+      ac_cv_path_MSGFMT: '/usr/bin/false'
+      CCACHE_DIR: "${{ format('{0}/ccache', github.workspace) }}"
+      # Disable `tar` configure "safety" check…
+      FORCE_UNSAFE_CONFIGURE: 1
+      MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
+
+    steps:
+
+      # Setup. {{{
+
+      - name: Setup macOS build environment
+        if: runner.os == 'macOS'
+        run: |
+          # brew packages
+          wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
+          unzip -j ninjatracing.zip '*/ninjatracing'
+          install -m755 ninjatracing /usr/local/bin/
+          rm ninjatracing*
+          packages=(
+            autoconf
+            automake
+            cmake
+            coreutils
+            gettext
+            gnu-getopt
+            grep
+            jq
+            libtool
+            make
+            nasm
+            ninja
+            p7zip
+            pkg-config
+            sdl2
+          )
+          brew install --formula --quiet "${packages[@]}"
+          brew_paths=(
+            "$(brew --prefix)/opt/gettext/bin"
+            "$(brew --prefix)/opt/gnu-getopt/bin"
+            "$(brew --prefix)/opt/make/libexec/gnubin"
+          )
+          printf '%s\n' "${brew_paths[@]}" | tee -a "${GITHUB_PATH}"
+          # ccache
+          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          tar xf ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          install -m755 ccache-${{ inputs.ccache_version }}-darwin/ccache /usr/local/bin/
+          rm -rf ccache-*
+          ccache --version
+          # macos environment
+          macos_env=(
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macosx_deployment_target }}
+          )
+          printf '%s\n' "${macos_env[@]}" | tee -a "${GITHUB_ENV}"
+
+      # }}}
+
+      # Checkout / fetch. {{{
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 0
+          fetch-tags: true
+          # filter: tree:0
+          show-progress: false
+
+      - name: Fix checkout ownership
+        if: matrix.image
+        run: chown 'root:root' .
+
+      - name: Fetch
+        run: make fetchthirdparty
+
+      # }}}
+
+      - name: Lint
+        if: matrix.lint
+        run: .ci/check.sh
+
+      # Restore / setup caches. {{{
+
+      - name: Generate cache key
+        run: make cache-key
+
+      - name: Restore build directory
+        id: build-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: build
+          key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-build-${{ hashFiles('cache-key') }}
+
+      - name: Restore build cache
+        id: ccache-restore
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-${{ hashFiles('cache-key') }}
+          restore-keys: ${{ env.CACHE_EPOCH }}-${{ matrix.job }}-ccache-
+
+      - name: Setup build cache
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: |
+          set -x
+          ccache --version
+          ccache --zero-stats
+          ccache --max-size=256M
+          ccache --show-config
+
+      # }}}
+
+      # Build. {{{
+
+      - name: Build
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: make base
+
+      - name: Dump build timings
+        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
+        run: make buildstats
+
+      - name: Dump binaries runtime path & dependencies
+        run: make bindeps
+
+      # }}}
+
+      # Clean / save caches. {{{
+
+      - name: Clean caches
+        if: steps.build-restore.outputs.cache-hit != 'true' && !cancelled()
+        run: |
+          set -x
+          # Trim the build directory.
+          rm -rf build/{cmake,staging,thirdparty}
+          ccache --cleanup >/dev/null
+          ccache --show-stats
+
+      - name: Save build cache
+        uses: actions/cache/save@v4
+        if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+      - name: Save build directory
+        uses: actions/cache/save@v4
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        with:
+          path: build
+          key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+      # }}}
+
+      - name: Install
+        run: make --assume-old=base all
+
+      - name: Test
+        if: matrix.test
+        run: make --assume-old=all testfront
+
+      # Generate / upload artifact. {{{
+
+      - name: Setup gradle
+        if: matrix.target == 'android'
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+          generate-job-summary: ${{ runner.debug == '1' && 'true' || 'false' }}
+          gradle-home-cache-cleanup: true
+          gradle-version: ${{ inputs.gradle_version }}
+
+      - name: Generate artifact
+        if: matrix.artifact
+        run: make --assume-old=all update
+
+      - name: Upload artifact
+        if: matrix.artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: koreader-${{ matrix.job }}
+          path: ${{ matrix.artifact }}
+
+      # }}}
+
+  # }}}
+
+# vim: foldmethod=marker foldlevel=0
