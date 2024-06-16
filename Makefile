@@ -88,10 +88,6 @@ endif
 	@echo "[*] Install resources"
 	$(SYMLINK) $(abspath resources/fonts/*) $(INSTALL_DIR)/koreader/fonts/
 	install -d $(INSTALL_DIR)/koreader/{screenshots,fonts/host,ota}
-ifeq ($(IS_RELEASE),1)
-	@echo "[*] Clean up, remove unused files for releases"
-	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,cr3skin-format.txt,desktop,devices,manual}
-endif
 
 base: base-all
 
@@ -153,6 +149,29 @@ distclean: clean base-distclean
 
 re: clean
 	$(MAKE) all
+
+# Things to exclude from a release.
+define release_excludes
+  */*.orig
+  */*.swo
+  */*.swp
+  */*.un~
+  */.*
+  */.*/*
+  */README.md
+  koreader/cache/*
+  koreader/clipboard/*
+  koreader/data/cr3.ini
+  koreader/data/dict/*
+  koreader/data/tessdata/*
+  koreader/ev_replay.py
+  koreader/ota/*
+  koreader/resources/fonts/*
+  koreader/resources/icons/src/*
+  koreader/spec/*
+  koreader/tools/*
+endef
+release_excludes := $(strip $(patsubst %,'%',$(release_excludes)))
 
 # Include target specific rules.
 ifneq (,$(wildcard make/$(TARGET).mk))

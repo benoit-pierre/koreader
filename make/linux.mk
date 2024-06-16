@@ -22,12 +22,8 @@ update: all
 	chmod 644 \
 		$(INSTALL_DIR)/linux/share/doc/koreader/copyright \
 		$(INSTALL_DIR)/linux/share/man/man1/koreader.1.gz
-	rm -rf \
-		$(INSTALL_DIR)/linux/lib/koreader/{ota,cache,clipboard,screenshots,spec,tools,resources/fonts,resources/icons/src}
-
-	# remove leftovers
-	find $(INSTALL_DIR)/linux -type f \( -name ".git" -o -name ".gitignore" -o -name "discovery2spore" -o -name "wadl2spore" -o -name "*.txt" -o -name "LICENSE*" -o -name "NOTICE" -o -name "README.md" \) -print0 | xargs -0 rm -rf
-	find $(INSTALL_DIR)/linux -type d \( -name "test" -o -name ".github" \) -print0 | xargs -0 rm -rf
+	# Remove release excludes & empty directories.
+	cd $(INSTALL_DIR)/linux/lib && find koreader \( $(patsubst %,-path % -o,$(release_excludes)) -type d -empty \) -delete
 
 	# add instructions
 	sed -e 's/%%VERSION%%/$(VERSION)/' \

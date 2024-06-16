@@ -3,7 +3,7 @@ UBUNTUTOUCH_SDL_DIR = $(UBUNTUTOUCH_DIR)/ubuntu-touch-sdl
 
 update: all
 	# ensure that the binaries were built for ARM
-	file --dereference $(INSTALL_DIR)/koreader/luajit | grep ARM || exit 1
+	file --dereference $(INSTALL_DIR)/koreader/luajit | grep ARM
 	# remove old package if any
 	rm -f koreader-ubuntu-touch-$(MACHINE)-$(VERSION).click
 	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.sh) $(INSTALL_DIR)/koreader/
@@ -14,12 +14,7 @@ update: all
 	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.png) $(INSTALL_DIR)/koreader/
 	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/libSDL2.so) $(INSTALL_DIR)/koreader/libs/
 	# create new package
-	cd $(INSTALL_DIR) && pwd && \
-		zip -9 -r \
-			../koreader-$(DIST)-$(MACHINE)-$(VERSION).zip \
-			koreader -x "koreader/resources/fonts/*" "koreader/ota/*" \
-			"koreader/resources/icons/src/*" "koreader/spec/*" \
-			$(ZIP_EXCLUDE)
+	cd $(INSTALL_DIR) && zip -9 -r ../koreader-$(DIST)-$(MACHINE)-$(VERSION).zip koreader -x $(release_excludes)
 	# generate ubuntu touch click package
 	rm -rf $(INSTALL_DIR)/tmp && mkdir -p $(INSTALL_DIR)/tmp
 	cd $(INSTALL_DIR)/tmp && \
