@@ -6,13 +6,13 @@ update: all
 	file --dereference $(INSTALL_DIR)/koreader/luajit | grep ARM
 	# remove old package if any
 	rm -f koreader-ubuntu-touch-$(MACHINE)-$(VERSION).click
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.sh) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/manifest.json) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.apparmor) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.apparmor.openstore) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.desktop) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/koreader.png) $(INSTALL_DIR)/koreader/
-	$(SYMLINK) $(abspath $(UBUNTUTOUCH_DIR)/libSDL2.so) $(INSTALL_DIR)/koreader/libs/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/koreader.sh $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/manifest.json $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/koreader.apparmor $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/koreader.apparmor.openstore $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/koreader.desktop $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/koreader.png $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(UBUNTUTOUCH_DIR)/libSDL2.so $(INSTALL_DIR)/koreader/libs/
 	# create new package
 	cd $(INSTALL_DIR) && zip -9 -r ../koreader-$(DIST)-$(MACHINE)-$(VERSION).zip koreader -x $(release_excludes)
 	# generate ubuntu touch click package

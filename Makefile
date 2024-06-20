@@ -60,22 +60,22 @@ all: skeleton base
 ifdef ANDROID
 	rm -f android-fdroid-version; echo -e "$(ANDROID_NAME)\n$(ANDROID_VERSION)" > koreader-android-fdroid-latest
 endif
-	$(SYMLINK) $(abspath $(KOR_BASE)/ev_replay.py) $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(KOR_BASE)/ev_replay.py $(INSTALL_DIR)/koreader/
 	bash -O extglob -c '$(SYMLINK) $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
 ifneq (,$(EMULATE_READER))
 	@echo "[*] install front spec only for the emulator"
-	$(SYMLINK) $(abspath spec) $(INSTALL_DIR)/koreader/spec/front
-	$(SYMLINK) $(abspath test) $(INSTALL_DIR)/koreader/spec/front/unit/data
+	$(SYMLINK) spec $(INSTALL_DIR)/koreader/spec/front
+	$(SYMLINK) test $(INSTALL_DIR)/koreader/spec/front/unit/data
 endif
-	$(SYMLINK) $(abspath $(INSTALL_FILES)) $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(INSTALL_FILES) $(INSTALL_DIR)/koreader/
 ifdef ANDROID
-	$(SYMLINK) $(abspath $(ANDROID_DIR)/*.lua) $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(ANDROID_DIR)/*.lua $(INSTALL_DIR)/koreader/
 endif
 	@echo "[*] Install update once marker"
 	@echo "# This file indicates that update once patches have not been applied yet." > $(INSTALL_DIR)/koreader/update_once.marker
 ifdef WIN32
 	@echo "[*] Install runtime libraries for win32..."
-	$(SYMLINK) $(abspath $(WIN32_DIR)/*.dll) $(INSTALL_DIR)/koreader/
+	$(SYMLINK) $(WIN32_DIR)/*.dll $(INSTALL_DIR)/koreader/
 endif
 ifdef SHIP_SHARED_STL
 	@echo "[*] Install C++ runtime..."
@@ -84,18 +84,18 @@ ifdef SHIP_SHARED_STL
 	$(STRIP) --strip-unneeded $(INSTALL_DIR)/koreader/libs/$(notdir $(SHARED_STL_LIB))
 endif
 	@echo "[*] Install plugins"
-	$(SYMLINK) $(abspath plugins) $(INSTALL_DIR)/koreader/
+	$(SYMLINK) plugins $(INSTALL_DIR)/koreader/
 	@echo "[*] Install resources"
-	$(SYMLINK) $(abspath resources/fonts/*) $(INSTALL_DIR)/koreader/fonts/
+	$(SYMLINK) resources/fonts/* $(INSTALL_DIR)/koreader/fonts/
 	install -d $(INSTALL_DIR)/koreader/{screenshots,fonts/host,ota}
 
 base: base-all
 
 $(INSTALL_DIR)/koreader/.busted: .busted
-	$(SYMLINK) $(abspath .busted) $@
+	$(SYMLINK) .busted $@
 
 $(INSTALL_DIR)/koreader/.luacov:
-	$(SYMLINK) $(abspath .luacov) $@
+	$(SYMLINK) .luacov $@
 
 testbase: base-test
 
