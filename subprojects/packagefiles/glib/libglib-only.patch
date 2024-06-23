@@ -1,16 +1,7 @@
 diff --git a/glib/meson.build b/glib/meson.build
 --- a/glib/meson.build
 +++ b/glib/meson.build
-@@ -445,8 +445,6 @@ pkg.generate(libglib,
-   subdirs : ['glib-2.0'],
-   extra_cflags : ['-I${libdir}/glib-2.0/include'] + win32_cflags,
-   variables : [
--    'bindir=' + '${prefix}' / get_option('bindir'),
--    'datadir=' + '${prefix}' / get_option('datadir'),
-     'glib_genmarshal=' + '${bindir}' / 'glib-genmarshal',
-     'gobject_query=' + '${bindir}' / 'gobject-query',
-     'glib_mkenums=' + '${bindir}' / 'glib-mkenums',
-@@ -462,6 +460,8 @@ pkg.generate(libglib,
+@@ -462,6 +462,8 @@ pkg.generate(libglib,
  )
  meson.override_dependency('glib-2.0', libglib_dep)
  
@@ -19,7 +10,7 @@ diff --git a/glib/meson.build b/glib/meson.build
  # On Windows, glib needs a spawn helper for g_spawn* API
  if host_system == 'windows'
    if host_machine.cpu_family() == 'x86'
-@@ -499,6 +499,8 @@ else
+@@ -499,6 +501,8 @@ else
    meson.override_find_program('gtester', gtester)
  endif
  
@@ -31,7 +22,7 @@ diff --git a/glib/meson.build b/glib/meson.build
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -2122,13 +2122,13 @@ else
+@@ -2214,13 +2214,13 @@ else
  endif
  
  # Import the gvdb sources as a subproject to avoid having the copylib in-tree
@@ -49,20 +40,33 @@ diff --git a/meson.build b/meson.build
  
  # First check in libc, fallback to libintl, and as last chance build
  # proxy-libintl subproject.
-@@ -2456,23 +2456,17 @@ pkg = import('pkgconfig')
- windows = import('windows')
+@@ -2422,7 +2422,7 @@ endif
+ 
+ glib_conf.set('HAVE_PROC_SELF_CMDLINE', have_proc_self_cmdline)
+ 
+-python = import('python').find_installation(modules: ['packaging'])
++python = import('python').find_installation()
+ # used for '#!/usr/bin/env <name>'
+ python_name = 'python3'
+ 
+@@ -2570,25 +2570,19 @@ gnome = import('gnome')
+ 
  subdir('tools')
  subdir('glib')
 -subdir('gobject')
 -subdir('gthread')
 -subdir('gmodule')
 -subdir('gio')
+-subdir('girepository')
 -subdir('fuzzing')
+-subdir('tests')
 +# subdir('gobject')
 +# subdir('gthread')
 +# subdir('gmodule')
 +# subdir('gio')
++# subdir('girepository')
 +# subdir('fuzzing')
++# subdir('tests')
  
  # xgettext is optional (on Windows for instance)
  if find_program('xgettext', required : get_option('nls')).found()
@@ -78,7 +82,7 @@ diff --git a/meson.build b/meson.build
  # Check whether we support overriding the invalid parameter handler on Windows for _get_osfhandle(),
  # g_fsync() (i.e. _commit()), etc
  if host_system == 'windows'
-@@ -2507,7 +2501,7 @@ if get_option('man')
+@@ -2614,7 +2608,7 @@ if rst2man.found()
  endif
  
  gnome = import('gnome')

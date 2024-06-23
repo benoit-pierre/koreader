@@ -42,7 +42,7 @@ diff --git a/glib/gthreadprivate.h b/glib/gthreadprivate.h
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -621,7 +621,6 @@ functions = [
+@@ -661,7 +661,6 @@ functions = [
    'copy_file_range',
    'endmntent',
    'endservent',
@@ -50,7 +50,7 @@ diff --git a/meson.build b/meson.build
    'fallocate',
    'fchmod',
    'fchown',
-@@ -741,6 +740,10 @@ foreach f : functions
+@@ -782,6 +781,10 @@ foreach f : functions
    endif
  endforeach
  
@@ -61,7 +61,7 @@ diff --git a/meson.build b/meson.build
  # Export the information about free_sized() so we can correctly define a macro
  # wrapper around g_free()/g_free_sized() depending on whether it’s available
  glibconfig_conf.set('G_HAVE_FREE_SIZED', have_func_free_sized)
-@@ -947,7 +950,7 @@ if cc.compiles('''#include <linux/futex.h>
+@@ -988,7 +991,7 @@ if cc.compiles('''#include <linux/futex.h>
                 }''', name : 'futex(2) system call')
    glib_conf.set('HAVE_FUTEX', 1)
  endif
