@@ -65,7 +65,6 @@ trim-thirdparty:
 	rm -vrf subprojects/glib-*/po
 	rm -vrf subprojects/gumbo-parser-*/benchmark
 	rm -vrf subprojects/harfbuzz-*/{docs,perf,test}
-	rm -vrf subprojects/k2pdfopt-*/kindlepdfviewer
 	rm -vrf subprojects/leptonica-*/prog/{*/,*.ba,*.c,*.jpg,*.pa*,*.png,*.tif}
 	rm -vrf subprojects/libarchive-*/{build/autoconf,contrib,doc,examples,libarchive/test,Makefile.in,test_utils}
 	rm -vrf subprojects/libffi-*/{doc,testsuite}

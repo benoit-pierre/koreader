@@ -1126,16 +1126,17 @@ function kodev-ci-install-reqs-linux() {
 
 function kodev-ci-install-reqs() {
     kodev-ci-func-banner
-    run python -m pip --disable-pip-version-check install "${JOB_MESON_VERSION}" "${JOB_NINJA_VERSION}"
     case "${RUNNER_OS}" in
         'Linux')
             kodev-ci-install-reqs-linux "$@"
             ;;
     esac
+    kodev-ci-install-meson
     if [[ "${JOB_BUILDING}" != 'true' ]]; then
         return
     fi
     kodev-ci-install-ccache
+    kodev-ci-install-ninja
 }
 
 function kodev-ci-install-ccache() {
@@ -1158,6 +1159,21 @@ function kodev-ci-install-ccache() {
     run "${tar}" x${JOB_RUNNER_DEBUG:+v}af "${dist}.${dist_ext}" -C ..
     run rm "${dist}.${dist_ext}"
     addpath "${PWD%/*}/${dist}"
+}
+
+function kodev-ci-install-meson() {
+    kodev-ci-func-banner
+    run python -m pip --disable-pip-version-check install "meson==${JOB_MESON_VERSION}"
+}
+
+function kodev-ci-install-ninja() {
+    kodev-ci-func-banner
+    local dist='ninja-linux.zip'
+    download "https://github.com/ninja-build/ninja/releases/download/v${JOB_NINJA_VERSION}/${dist}"
+    run mkdir ../ninja
+    unzip -d ../ninja ninja-linux.zip
+    run rm "${dist}"
+    addpath "${PWD%/*}/ninja"
 }
 
 function kodev-ci-ccache-post-restore() {

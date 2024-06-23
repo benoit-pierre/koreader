@@ -34,7 +34,7 @@ inputs:
   # Internal.
 
   cache_epoch:
-    default: '0' # increment to reset all caches
+    default: '1' # increment to reset all caches
 
   subprojects_cache_paths:
     default: |
@@ -55,16 +55,16 @@ inputs:
   # Internal: tools versions.
 
   ccache_version:
-    default: '4.9'
+    default: '4.10'
 
   gradle_version:
     default: '8.6'
 
   meson_version:
-    default: 'meson==1.4.0'
+    default: '1.4.1'
 
   ninja_version:
-    default: 'ninja==1.11.1.1'
+    default: '1.12.1'
 
   ndk_version:
     default: 'r23c'
@@ -282,7 +282,7 @@ runs:
       if: always() && inputs.tests != ''
       run: |
         # Show tests post-mortem.
-        run cat koreader-*/koreader/spec/.run/meson-logs/testlog.txt
+        run cat koreader-*/koreader/spec/run/meson-logs/testlog.txt
 
     # Upload tests' coredump(s) if any.
     - uses: actions/upload-artifact@v4
