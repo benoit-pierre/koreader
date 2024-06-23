@@ -179,8 +179,8 @@ function Document:getProps(cached_doc_metadata)
         return str
     end
     local props = cached_doc_metadata or self:getDocumentProps()
-    local title = makeNilIfEmpty(props.title or props.Title)
-    local authors = makeNilIfEmpty(props.authors or props.author or props.Author)
+    props.title = makeNilIfEmpty(props.title or props.Title)
+    props.authors = makeNilIfEmpty(props.authors or props.author or props.Author)
     local series = makeNilIfEmpty(props.series or props.Series)
     local series_index
     if series and string.find(series, "#") then
@@ -198,20 +198,13 @@ function Document:getProps(cached_doc_metadata)
             series_index = tonumber(series_index)
         end
     end
-    local language = makeNilIfEmpty(props.language or props.Language)
-    local keywords = makeNilIfEmpty(props.keywords or props.Keywords)
-    local description = makeNilIfEmpty(props.description or props.Description or props.subject)
-    local identifiers = makeNilIfEmpty(props.identifiers)
-    return {
-        title        = title,
-        authors      = authors,
-        series       = series,
-        series_index = series_index,
-        language     = language,
-        keywords     = keywords,
-        description  = description,
-        identifiers  = identifiers,
-    }
+    props.series = series
+    props.series_index = series_index
+    props.language = makeNilIfEmpty(props.language or props.Language)
+    props.keywords = makeNilIfEmpty(props.keywords or props.Keywords)
+    props.description = makeNilIfEmpty(props.description or props.Description or props.subject)
+    props.identifiers = makeNilIfEmpty(props.identifiers)
+    return props
 end
 
 function Document:_readMetadata()
