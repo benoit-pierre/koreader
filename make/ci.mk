@@ -60,7 +60,7 @@ trim-thirdparty:
 	rm -vrf subprojects/freetype-*/builds/{amiga,wince,windows,mac}
 	rm -vrf subprojects/freetype-*/docs
 	rm -vrf subprojects/fribidi-*/test
-	rm -vrf subprojects/giflib-*/{doc,pic,tests,util}
+	rm -vrf subprojects/giflib-*/{doc,pic,tests}
 	rm -vrf subprojects/glib-*/*/tests
 	rm -vrf subprojects/glib-*/po
 	rm -vrf subprojects/gumbo-parser-*/benchmark
