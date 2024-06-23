@@ -4,7 +4,7 @@ diff --git a/meson.build b/meson.build
 @@ -2,7 +2,7 @@ project(
    'libpng',
    'c',
-   version: '1.6.42', license: 'libpng',
+   version: '1.6.43', license: 'libpng',
 -  meson_version: '>=0.50.0',
 +  meson_version: '>=0.60.0',
  )
