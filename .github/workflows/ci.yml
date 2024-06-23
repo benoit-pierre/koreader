@@ -1,0 +1,191 @@
+name: build
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - 'ota'
+  pull_request:
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+
+  Tests:
+
+    timeout-minutes: 60
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - name: 'Linux x86_64 (Clang)'
+            os: ubuntu-latest
+            target: emulator-linux-x86_64
+            target_options: |
+              b_lto = false
+              strip = false
+              [binaries]
+              c = [CCACHE, 'clang', '-g']
+              c_ld = 'lld'
+              cpp = [CCACHE, 'clang++', '-g']
+              cpp_ld = 'lld'
+            cache_extra_key: tests＿clang
+            extra_packages: >
+              clang-15 lld-15
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 60
+              run sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 60
+              run sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-15 60
+              run sudo update-alternatives --install /usr/bin/lld-link lld-link /usr/bin/lld-link-15 60
+              run clang --version
+              run clang++ --version
+
+          - name: 'Linux x86_64 (GCC)'
+            os: ubuntu-20.04
+            target: emulator-linux-x86_64
+            target_options: |
+              b_lto = false
+              strip = false
+              [binaries]
+              c = [CCACHE, 'gcc', '-ggdb']
+              cpp = [CCACHE, 'g++', '-ggdb']
+              [constants]
+              static_if_amalgam = 'static'
+            cache_extra_key: tests＿gcc
+            extra_packages: >
+              gcc-10
+              g++-10
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+              run gcc --version
+              run g++ --version
+
+    name: "Test: ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ !!matrix.continue-on-error }}
+
+    steps:
+
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 0
+          filter: tree:0
+          show-progress: false
+
+      - name: Build & Test
+        uses: ./.github/actions/build
+        with:
+          name: ${{ matrix.name }}
+          target: ${{ matrix.target }}
+          target_options: ${{ matrix.target_options }}
+          cache_extra_key: ${{ matrix.cache_extra_key }}
+          extra_packages: ${{ matrix.extra_packages }}
+          extra_setup: ${{ matrix.extra_setup }}
+          tests: ${{ matrix.tests || 'all' }}
+
+  Release:
+
+    needs: Tests
+    timeout-minutes: 60
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - name: 'Android ARM'
+            os: ubuntu-latest
+            target: android-arm
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-arm
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Android ARM64'
+            os: ubuntu-latest
+            target: android-arm64
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-arm64
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Android x86'
+            os: ubuntu-latest
+            target: android-x86
+            target_options: |
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: android-x86
+            update_artifacts: 'koreader-*-aligned-debugSigned.apk'
+
+          - name: 'Kindle Paperwhite 2'
+            os: ubuntu-latest
+            target: kindlepw2
+            target_options: |
+              buildtype = 'minsize'
+              debug = false
+              [constants]
+              static_if_amalgam = 'static'
+            update_target: kindlepw2
+            update_artifacts: '*.targz'
+
+          - name: 'Linux x86_64 AppImage'
+            os: ubuntu-20.04
+            target: emulator-linux-x86_64
+            target_options: |
+              sdl = true
+              [constants]
+              static_if_amalgam = 'static'
+            cache_extra_key: appimage
+            update_target: appimage
+            update_artifacts: 'koreader-*.AppImage'
+            extra_packages: >
+              gcc-10
+              g++-10
+            extra_setup: |
+              run sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+              run gcc --version
+              run g++ --version
+
+    name: "Release: ${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 0
+          filter: tree:0
+          show-progress: false
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          name: ${{ matrix.name }}
+          target: ${{ matrix.target }}
+          target_options: ${{ matrix.target_options }}
+          cache_extra_key: ${{ matrix.cache_extra_key }}
+          update_target: ${{ matrix.update_target }}
+          update_artifacts: ${{ matrix.update_artifacts }}
+          extra_packages: ${{ matrix.extra_packages }}
+          extra_setup: ${{ matrix.extra_setup }}

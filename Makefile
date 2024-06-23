@@ -229,6 +229,10 @@ else
   include make/$(TARGET).mk
 endif
 
+ifeq (true,$(CI))
+  include make/ci.mk
+endif
+
 # for gettext
 DOMAIN=koreader
 TEMPLATE_DIR=l10n/templates
