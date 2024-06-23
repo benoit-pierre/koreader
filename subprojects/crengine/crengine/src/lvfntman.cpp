@@ -6586,7 +6586,7 @@ public:
 
             if ( _cache.findDuplicate( &def ) ) {
                 CRLog::trace("font definition is duplicate");
-                return false;
+                return true;
             }
             _cache.update( &def, LVFontRef(NULL) );
             if ( scal && !def.getItalic() ) {
