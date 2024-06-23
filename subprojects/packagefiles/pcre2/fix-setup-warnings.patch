@@ -7,14 +7,14 @@ diff --git a/meson.build b/meson.build
    license: 'BSD-3',
 -  meson_version: '>=0.49.0',
 +  meson_version: '>=0.64.0',
-   version: '10.43',
+   version: '10.44',
  )
  
 +fs = import('fs')
 +
- pcre2_8_lib_version = '0.12.0'
- pcre2_16_lib_version = '0.12.0'
- pcre2_32_lib_version = '0.12.0'
+ pcre2_8_lib_version = '0.13.0'
+ pcre2_16_lib_version = '0.13.0'
+ pcre2_32_lib_version = '0.13.0'
 @@ -161,12 +163,10 @@ pcre2_h = configure_file(
    configuration: pcredata,
  )
