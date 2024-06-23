@@ -1253,7 +1253,7 @@ private:
         tftDoubleEmptyLineBeforeHeaders = 128,
         tftPreFormatted = 256,
         tftPML = 512 // Palm Markup Language
-    } formatFlags_t;
+    };
 public:
     LVTextLineQueue( LVTextFileBase * f, int maxLineLen )
     : file(f), first_line_index(0), maxLineSize(maxLineLen), lastParaWasTitle(false), inSubSection(false)
@@ -1819,7 +1819,7 @@ public:
                 return;
             //if ( updateStack )
             //if ( !line.empty() )
-                postText();
+            postText();
             for ( int i=styleTags.length()-1; i>=pos; i-- ) {
                 const lChar32 * tag = getStyleTagName(styleTags[i]);
                 if ( updateStack )

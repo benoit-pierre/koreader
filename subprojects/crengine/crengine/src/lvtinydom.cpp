@@ -426,6 +426,7 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
     return hash;
 }
 
+#if 0
 static void dumpRendMethods( ldomNode * node, lString32 prefix )
 {
     lString32 name = prefix;
@@ -438,6 +439,7 @@ static void dumpRendMethods( ldomNode * node, lString32 prefix )
         dumpRendMethods( node->getChildNode(i), prefix + "   ");
     }
 }
+#endif
 
 
 
@@ -14317,13 +14319,12 @@ class ldomTextCollector : public ldomNodeCallback
 private:
     bool newBlock;
     lChar32  delimiter;
-    int  maxLen;
     lChar32 imageReplacement;
     LVArray<ldomNode*> * imageNodes;
     lString32 text;
 public:
     ldomTextCollector( lChar32 blockDelimiter, int maxTextLen, lChar32 imageReplacementChar, LVArray<ldomNode*> * imageNodesArray )
-        : newBlock(true), delimiter( blockDelimiter), maxLen( maxTextLen )
+        : newBlock(true), delimiter( blockDelimiter)
         , imageReplacement(imageReplacementChar), imageNodes(imageNodesArray)
     {
     }
@@ -15767,8 +15768,6 @@ void ldomDocumentWriterFilter::OnAttribute( const lChar32 * nsname, const lChar3
     if ( _curTagIsIgnored ) { // Ignore attributes if tag was ignored
         return;
     }
-
-    lUInt16 id = _currNode->_element->getNodeId();
 
     // Add the attribute
     lUInt16 attr_ns = (nsname && nsname[0]) ? _document->getNsNameIndex( nsname ) : 0;

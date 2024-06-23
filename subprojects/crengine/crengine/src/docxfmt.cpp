@@ -215,10 +215,6 @@ const struct item_def_t footnotes_elements[] = {
     DOCX_LAST_ITEM
 };
 
-const struct item_def_t no_elements[] = {
-    DOCX_LAST_ITEM
-};
-
 const struct item_def_t jc_attr_values[] = {
     { css_ta_left, U"left"},
     { css_ta_right, U"right" },
@@ -337,7 +333,6 @@ typedef LVFastRef< docxNumLevel > docxNumLevelRef;
 class docxAbstractNum : public LVRefCounter
 {
 private:
-    docx_multilevel_type m_multilevel;
     css_length_t m_abstractNumId;
     LVHashTable<lUInt32, docxNumLevelRef> m_levels;
 public:
@@ -2249,7 +2244,7 @@ void docxAbstractNum::addLevel(docxNumLevelRef docxLevel)
     m_levels.set(docxLevel->getLevel().value, docxLevel);
 }
 
-docxAbstractNum::docxAbstractNum() : m_multilevel(docx_singlelevel),
+docxAbstractNum::docxAbstractNum() :
     m_abstractNumId(css_val_unspecified, 0), m_levels(10)
 {
 }
