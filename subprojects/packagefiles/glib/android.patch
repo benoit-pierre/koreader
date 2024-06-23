@@ -1,46 +1,7 @@
-diff --git a/gio/gsocket.c b/gio/gsocket.c
---- a/gio/gsocket.c
-+++ b/gio/gsocket.c
-@@ -461,7 +461,7 @@ g_socket_details_from_fd (GSocket *socket)
-     struct sockaddr sa;
-   } address;
-   gint fd;
--  guint addrlen;
-+  socklen_t addrlen;
-   int value, family;
-   int errsv;
- 
-@@ -1990,7 +1990,7 @@ g_socket_get_local_address (GSocket  *socket,
-     struct sockaddr_storage storage;
-     struct sockaddr sa;
-   } buffer;
--  guint len = sizeof (buffer);
-+  socklen_t len = sizeof (buffer);
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), NULL);
- 
-@@ -2026,7 +2026,7 @@ g_socket_get_remote_address (GSocket  *socket,
-     struct sockaddr_storage storage;
-     struct sockaddr sa;
-   } buffer;
--  guint len = sizeof (buffer);
-+  socklen_t len = sizeof (buffer);
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), NULL);
- 
-@@ -6220,7 +6220,7 @@ g_socket_get_option (GSocket  *socket,
- 		     gint     *value,
- 		     GError  **error)
- {
--  guint size;
-+  socklen_t size;
- 
-   g_return_val_if_fail (G_IS_SOCKET (socket), FALSE);
- 
 diff --git a/glib/gthreadprivate.h b/glib/gthreadprivate.h
 --- a/glib/gthreadprivate.h
 +++ b/glib/gthreadprivate.h
-@@ -60,7 +60,7 @@ struct  _GRealThread
+@@ -67,7 +67,7 @@ struct  _GRealThread
   * This must not be called with a timeout parameter as that differs
   * in size between the two syscall variants!
   */
@@ -49,25 +10,27 @@ diff --git a/glib/gthreadprivate.h b/glib/gthreadprivate.h
  #define g_futex_simple(uaddr, futex_op, ...)                                     \
    G_STMT_START                                                                   \
    {                                                                              \
-@@ -69,23 +69,21 @@ struct  _GRealThread
-       syscall (__NR_futex, uaddr, (gsize) futex_op, __VA_ARGS__);                \
+@@ -84,7 +84,7 @@ struct  _GRealThread
+       }                                                                          \
    }                                                                              \
    G_STMT_END
 -#elif defined(__NR_futex_time64)
 +#elif defined(HAVE_FUTEX_TIME64)
- #define g_futex_simple(uaddr, futex_op, ...)                           \
-   G_STMT_START                                                         \
-   {                                                                    \
-     syscall (__NR_futex_time64, uaddr, (gsize) futex_op, __VA_ARGS__); \
-   }                                                                    \
+ #define g_futex_simple(uaddr, futex_op, ...)                                     \
+   G_STMT_START                                                                   \
+   {                                                                              \
+@@ -96,7 +96,7 @@ struct  _GRealThread
+       }                                                                          \
+   }                                                                              \
    G_STMT_END
 -#elif defined(__NR_futex)
 +#elif defined(HAVE_FUTEX)
- #define g_futex_simple(uaddr, futex_op, ...)                    \
-   G_STMT_START                                                  \
-   {                                                             \
-     syscall (__NR_futex, uaddr, (gsize) futex_op, __VA_ARGS__); \
-   }                                                             \
+ #define g_futex_simple(uaddr, futex_op, ...)                              \
+   G_STMT_START                                                            \
+   {                                                                       \
+@@ -108,9 +108,7 @@ struct  _GRealThread
+       }                                                                   \
+   }                                                                       \
    G_STMT_END
 -#else /* !defined(__NR_futex) && !defined(__NR_futex_time64) */
 -#error "Neither __NR_futex nor __NR_futex_time64 are defined but were found by meson"
@@ -79,7 +42,7 @@ diff --git a/glib/gthreadprivate.h b/glib/gthreadprivate.h
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -595,7 +595,6 @@ functions = [
+@@ -610,7 +610,6 @@ functions = [
    'close_range',
    'endmntent',
    'endservent',
@@ -87,7 +50,7 @@ diff --git a/meson.build b/meson.build
    'fallocate',
    'fchmod',
    'fchown',
-@@ -708,6 +707,10 @@ foreach f : functions
+@@ -725,6 +724,10 @@ foreach f : functions
    endif
  endforeach
  
@@ -96,9 +59,9 @@ diff --git a/meson.build b/meson.build
 +endif
 +
  # Check that stpcpy() is usable; must use header.
- # cc.has_function() in some cases (clang, gcc 10+) assumes that if the
- # compiler provides a builtin of the same name that the function exists, while
-@@ -894,7 +897,7 @@ if cc.compiles('''#include <linux/futex.h>
+ # See:
+ # https://github.com/mesonbuild/meson/issues/5628.
+@@ -903,7 +906,7 @@ if cc.compiles('''#include <linux/futex.h>
                 }''', name : 'futex(2) system call')
    glib_conf.set('HAVE_FUTEX', 1)
  endif

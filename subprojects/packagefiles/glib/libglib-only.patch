@@ -1,7 +1,7 @@
 diff --git a/glib/meson.build b/glib/meson.build
 --- a/glib/meson.build
 +++ b/glib/meson.build
-@@ -396,8 +396,7 @@ pkg.generate(libglib,
+@@ -440,8 +440,7 @@ pkg.generate(libglib,
    libraries_private : [win32_ldflags],
    subdirs : ['glib-2.0'],
    extra_cflags : ['-I${libdir}/glib-2.0/include'] + win32_cflags,
@@ -11,7 +11,7 @@ diff --git a/glib/meson.build b/glib/meson.build
                 'gobject_query=' + join_paths('${bindir}', 'gobject-query'),
                 'glib_mkenums=' + join_paths('${bindir}', 'glib-mkenums')],
    version : glib_version,
-@@ -408,6 +407,8 @@ pkg.generate(libglib,
+@@ -452,6 +451,8 @@ pkg.generate(libglib,
  )
  meson.override_dependency('glib-2.0', libglib_dep)
  
@@ -20,7 +20,7 @@ diff --git a/glib/meson.build b/glib/meson.build
  # On Windows, glib needs a spawn helper for g_spawn* API
  if host_system == 'windows'
    if host_machine.cpu_family() == 'x86'
-@@ -442,6 +443,8 @@ else
+@@ -486,6 +487,8 @@ else
      dependencies : [libglib_dep])
  endif
  
@@ -32,7 +32,7 @@ diff --git a/glib/meson.build b/glib/meson.build
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -2095,13 +2095,13 @@ else
+@@ -2076,13 +2076,13 @@ else
  endif
  
  # Import the gvdb sources as a subproject to avoid having the copylib in-tree
@@ -42,30 +42,28 @@ diff --git a/meson.build b/meson.build
 +# gvdb_dep = dependency('gvdb')
  
  libm = cc.find_library('m', required : false)
--libffi_dep = dependency('libffi', version : '>= 3.0.0', fallback : ['libffi', 'ffi_dep'])
-+# libffi_dep = dependency('libffi', version : '>= 3.0.0', fallback : ['libffi', 'ffi_dep'])
+-libffi_dep = dependency('libffi', version : '>= 3.0.0')
++# libffi_dep = dependency('libffi', version : '>= 3.0.0')
  
 -libz_dep = dependency('zlib')
 +# libz_dep = dependency('zlib')
  
  # First check in libc, fallback to libintl, and as last chance build
  # proxy-libintl subproject.
-@@ -2394,24 +2394,18 @@ test_timeout_slow = 180
- pkg = import('pkgconfig')
+@@ -2387,23 +2387,17 @@ pkg = import('pkgconfig')
  windows = import('windows')
+ subdir('tools')
  subdir('glib')
 -subdir('gobject')
 -subdir('gthread')
 -subdir('gmodule')
 -subdir('gio')
 -subdir('fuzzing')
--subdir('tools')
 +# subdir('gobject')
 +# subdir('gthread')
 +# subdir('gmodule')
 +# subdir('gio')
 +# subdir('fuzzing')
-+# subdir('tools')
  
  # xgettext is optional (on Windows for instance)
  if find_program('xgettext', required : get_option('nls')).found()
@@ -78,12 +76,15 @@ diff --git a/meson.build b/meson.build
 -  install_tag : 'devel',
 -)
 -
- configure_file(output : 'config.h', configuration : glib_conf)
- 
+ # Check whether we support overriding the invalid parameter handler on Windows for _get_osfhandle(),
+ # g_fsync() (i.e. _commit()), etc
  if host_system == 'windows'
-@@ -2436,4 +2430,4 @@ if get_option('man')
+@@ -2442,7 +2436,7 @@ if get_option('man')
  endif
  
  gnome = import('gnome')
 -subdir('docs/reference')
 +# subdir('docs/reference')
+ 
+ summary({
+   'host cpu' : host_machine.cpu_family(),
