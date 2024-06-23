@@ -1,0 +1,84 @@
+diff --git a/libdjvu/DataPool.cpp b/libdjvu/DataPool.cpp
+--- a/libdjvu/DataPool.cpp
++++ b/libdjvu/DataPool.cpp
+@@ -132,6 +132,13 @@ private:
+ 
+    GPList<DataPool::OpenFiles_File>		files_list;
+    GCriticalSection	files_lock;
++
++   __attribute__((destructor)) static void teardown() {
++     if (global_ptr) {
++       delete global_ptr;
++       global_ptr = NULL;
++     }
++   }
+ public:
+    static OpenFiles	* get(void);
+ 
+@@ -320,6 +327,13 @@ private:
+    GCriticalSection		map_lock;
+ 
+    static FCPools	* global_ptr;
++
++   __attribute__((destructor)) static void teardown() {
++     if (global_ptr) {
++       delete global_ptr;
++       global_ptr = NULL;
++     }
++   }
+ public:
+    static FCPools *	get(void);
+       // Adds the <furl, pool> pair into the list
+diff --git a/libdjvu/DjVuDocument.cpp b/libdjvu/DjVuDocument.cpp
+--- a/libdjvu/DjVuDocument.cpp
++++ b/libdjvu/DjVuDocument.cpp
+@@ -239,6 +239,7 @@ DjVuDocument::~DjVuDocument(void)
+        file->stop(false);	// Disable any access to data
+      }
+    }
++   init_data_pool->clear_stream(true);
+    DataPool::close_all();
+ }
+ 
+diff --git a/libdjvu/DjVuPort.cpp b/libdjvu/DjVuPort.cpp
+--- a/libdjvu/DjVuPort.cpp
++++ b/libdjvu/DjVuPort.cpp
+@@ -203,6 +203,27 @@ DjVuPort::operator delete(void * addr)
+   ::operator delete(addr);
+ }
+ 
++void
++DjVuPort::teardown()
++{
++    DjVuPortCorpse * corpse = corpse_head;
++    while (corpse) {
++        DjVuPortCorpse * oldcorpse = corpse;
++        corpse = corpse->next;
++        delete oldcorpse;
++    }
++    corpse_head = NULL;
++    corpse_tail = NULL;
++    if (pcaster) {
++        delete pcaster;
++        pcaster = NULL;
++    }
++    if (corpse_lock) {
++        delete corpse_lock;
++        corpse_lock = NULL;
++    }
++}
++
+ DjVuPort::DjVuPort()
+ {
+   DjVuPortcaster *pcaster = get_portcaster();
+diff --git a/libdjvu/DjVuPort.h b/libdjvu/DjVuPort.h
+--- a/libdjvu/DjVuPort.h
++++ b/libdjvu/DjVuPort.h
+@@ -265,6 +265,7 @@ private:
+    static DjVuPortCorpse	* corpse_head;
+    static DjVuPortCorpse        * corpse_tail;
+    static int			corpse_num;
++   __attribute__((destructor)) static void teardown(void);
+ };
+ 
+ /** Simple port.  

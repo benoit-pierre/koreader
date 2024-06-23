@@ -1,0 +1,122 @@
+diff --git a/C/7z.h b/C/7z.h
+--- a/C/7z.h
++++ b/C/7z.h
+@@ -8,6 +8,8 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ #define k7zStartHeaderSize 0x20
+ #define k7zSignatureSize 6
+ 
+@@ -197,6 +199,8 @@ SZ_ERROR_FAIL
+ SRes SzArEx_Open(CSzArEx *p, ILookInStream *inStream,
+     ISzAllocPtr allocMain, ISzAllocPtr allocTemp);
+ 
++#pragma GCC visibility pop
++
+ EXTERN_C_END
+ 
+ #endif
+diff --git a/C/7zAlloc.h b/C/7zAlloc.h
+--- a/C/7zAlloc.h
++++ b/C/7zAlloc.h
+@@ -8,9 +8,13 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ void *SzAlloc(ISzAllocPtr p, size_t size);
+ void SzFree(ISzAllocPtr p, void *address);
+ 
++#pragma GCC visibility pop
++
+ void *SzAllocTemp(ISzAllocPtr p, size_t size);
+ void SzFreeTemp(ISzAllocPtr p, void *address);
+ 
+diff --git a/C/7zBuf.h b/C/7zBuf.h
+--- a/C/7zBuf.h
++++ b/C/7zBuf.h
+@@ -8,6 +8,8 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ typedef struct
+ {
+   Byte *data;
+@@ -30,6 +32,8 @@ void DynBuf_SeekToBeg(CDynBuf *p);
+ int DynBuf_Write(CDynBuf *p, const Byte *buf, size_t size, ISzAllocPtr alloc);
+ void DynBuf_Free(CDynBuf *p, ISzAllocPtr alloc);
+ 
++#pragma GCC visibility pop
++
+ EXTERN_C_END
+ 
+ #endif
+diff --git a/C/7zCrc.h b/C/7zCrc.h
+--- a/C/7zCrc.h
++++ b/C/7zCrc.h
+@@ -8,6 +8,8 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ extern UInt32 g_CrcTable[];
+ 
+ /* Call CrcGenerateTable one time before other CRC functions */
+@@ -20,6 +22,8 @@ void MY_FAST_CALL CrcGenerateTable(void);
+ UInt32 MY_FAST_CALL CrcUpdate(UInt32 crc, const void *data, size_t size);
+ UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size);
+ 
++#pragma GCC visibility pop
++
+ EXTERN_C_END
+ 
+ #endif
+diff --git a/C/7zFile.h b/C/7zFile.h
+--- a/C/7zFile.h
++++ b/C/7zFile.h
+@@ -18,6 +18,8 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ /* ---------- File ---------- */
+ 
+ typedef struct
+@@ -78,6 +80,8 @@ typedef struct
+ 
+ void FileOutStream_CreateVTable(CFileOutStream *p);
+ 
++#pragma GCC visibility pop
++
+ EXTERN_C_END
+ 
+ #endif
+diff --git a/C/7zTypes.h b/C/7zTypes.h
+--- a/C/7zTypes.h
++++ b/C/7zTypes.h
+@@ -22,6 +22,8 @@
+ 
+ EXTERN_C_BEGIN
+ 
++#pragma GCC visibility push(default)
++
+ #define SZ_OK 0
+ 
+ #define SZ_ERROR_DATA 1
+@@ -370,6 +372,8 @@ struct ISzAlloc
+ 
+ #endif
+ 
++#pragma GCC visibility pop
++
+ EXTERN_C_END
+ 
+ #endif

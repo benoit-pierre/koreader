@@ -1,0 +1,46 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -232,6 +232,8 @@ foreach _opt : [
+   'rsa_priv_filename',
+   'ecdsa_priv_filename',
+   'ed25519_priv_filename',
++  # Hack…
++  'dbscp_path',
+ ]
+   _flag = _opt.to_upper()
+   _value = get_option(_opt)
+diff --git a/meson_options.txt b/meson_options.txt
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -4,6 +4,9 @@ option('zlib', type: 'feature', value: 'auto')
+ 
+ # Server options.
+ 
++# Hack! Absolute path, no trailing slash...
++option('dbscp_path', type: 'string')
++
+ option('debug_trace', type: 'integer', value: 0)
+ option('default_path', type: 'string')
+ option('default_port', type: 'integer', value: 22)
+diff --git a/src/svr-chansession.c b/src/svr-chansession.c
+--- a/src/svr-chansession.c
++++ b/src/svr-chansession.c
+@@ -681,6 +681,17 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
+ 				TRACE(("leave sessioncommand, command too long %d", cmdlen))
+ 				return DROPBEAR_FAILURE;
+ 			}
++
++#ifdef DBSCP_PATH
++			// HACK. This is terrible. Truly, truly awful.
++			if (strncmp(chansess->cmd, "scp", 3) == 0) {
++				char* mangled_cmd = m_malloc(cmdlen + sizeof(DBSCP_PATH));
++				snprintf(mangled_cmd, cmdlen + sizeof(DBSCP_PATH) + 1, "%s/%s", DBSCP_PATH, chansess->cmd);
++				m_free(chansess->cmd);
++				chansess->cmd = m_strdup(mangled_cmd);
++				m_free(mangled_cmd);
++			}
++#endif
+ 		}
+ 		if (issubsys) {
+ #if DROPBEAR_SFTPSERVER

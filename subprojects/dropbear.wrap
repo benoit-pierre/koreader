@@ -1,0 +1,10 @@
+[wrap-file]
+directory = dropbear-DROPBEAR_2024.85
+source_url = https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_2024.85.tar.gz
+source_hash = 694a1e8d78c7da00f8a4eb29f61381900bb264d716d5b4f839b3e16336f8aeb6
+source_filename = dropbear-2024.85.tar.gz
+patch_directory = dropbear/overlay
+diff_files = 
+	dropbear/pubkey-hack.patch,
+	dropbear/nochdir-hack.patch,
+	dropbear/dbscp-path.patch

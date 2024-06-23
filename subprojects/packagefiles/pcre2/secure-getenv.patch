@@ -1,0 +1,41 @@
+diff --git a/config-cmake.h.in b/config-cmake.h.in
+--- a/config-cmake.h.in
++++ b/config-cmake.h.in
+@@ -13,6 +13,7 @@
+ #cmakedefine HAVE_MEMMOVE 1
+ #cmakedefine HAVE_SECURE_GETENV 1
+ #cmakedefine HAVE_STRERROR 1
++#cmakedefine HAVE___SECURE_GETENV 1
+ 
+ #cmakedefine SUPPORT_PCRE2_8 1
+ #cmakedefine SUPPORT_PCRE2_16 1
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -119,6 +119,7 @@ check_funs = [
+   'memmove',
+   'realpath',
+   'secure_getenv',
++  '__secure_getenv',
+   'strerror',
+ ]
+ 
+diff --git a/src/sljit/sljitProtExecAllocator.c b/src/sljit/sljitProtExecAllocator.c
+--- a/src/sljit/sljitProtExecAllocator.c
++++ b/src/sljit/sljitProtExecAllocator.c
+@@ -97,10 +97,14 @@ struct chunk_header {
+ #define O_TMPFILE 020200000
+ #endif
+ 
+-#ifndef _GNU_SOURCE
++#ifndef HAVE_SECURE_GETENV
++#ifdef HAVE___SECURE_GETENV
++#define secure_getenv  __secure_getenv
++#else
+ char *secure_getenv(const char *name);
+ int mkostemp(char *template, int flags);
+ #endif
++#endif
+ 
+ static SLJIT_INLINE int create_tempfile(void)
+ {

@@ -1,0 +1,8 @@
+[wrap-git]
+directory = luajit-launcher
+url = https://github.com/koreader/android-luajit-launcher.git
+revision = 17d3e4612d8b74b51628ada1fce7ba3016bf95ad
+depth = 1
+patch_directory = luajit-launcher/overlay
+diff_files = 
+	luajit-launcher/android.patch

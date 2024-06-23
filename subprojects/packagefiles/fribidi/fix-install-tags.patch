@@ -1,0 +1,32 @@
+diff --git a/gen.tab/meson.build b/gen.tab/meson.build
+--- a/gen.tab/meson.build
++++ b/gen.tab/meson.build
+@@ -42,6 +42,7 @@ fribidi_unicode_version_h = custom_target('fribidi-unicode-version.h',
+   command: [gen_unicode_version, '@INPUT0@', '@INPUT1@', 'gen-unicode-version'],
+   capture: true,
+   install_dir: join_paths(get_option('includedir'), 'fribidi'),
++  install_tag: 'devel',
+   install: true)
+ 
+ COMPRESSION='2'
+diff --git a/lib/meson.build b/lib/meson.build
+--- a/lib/meson.build
++++ b/lib/meson.build
+@@ -24,6 +24,7 @@ endif
+ fribidi_config_h = configure_file(input: files('fribidi-config.h.in'),
+   output: 'fribidi-config.h',
+   configuration: fribidi_config,
++  install_tag: 'devel',
+   install_dir: join_paths(get_option('includedir'), 'fribidi'))
+ 
+ fribidi_headers = files(
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -1,5 +1,5 @@
+ project('fribidi', 'c', version: '1.0.13',
+-  meson_version : '>= 0.54')
++  meson_version : '>= 0.60.0')
+ 
+ # New release:
+ #   interface_age++

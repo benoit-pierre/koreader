@@ -1,0 +1,12 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -2109,7 +2109,7 @@ libz_dep = dependency('zlib')
+ # implementations. This could be extended if issues are found in some platforms.
+ libintl_deps = []
+ libintl = dependency('intl', required: false)
+-if libintl.found()
++if libintl.found() and libintl.type_name() != 'internal'
+   # libintl supports different threading APIs, which may not
+   # require additional flags, but it defaults to using pthreads if
+   # found. Meson's "threads" dependency does not allow you to

@@ -1,0 +1,9 @@
+[wrap-file]
+directory = zsync2-b4953c95611d9507bd6c7b94dd8447ae87ead734
+source_url = https://github.com/NiLuJe/zsync2/archive/b4953c95611d9507bd6c7b94dd8447ae87ead734.tar.gz
+source_hash = e329774e154fcd16d31533cca374592bbc72d6faceff4d9a3d93de90cab63335
+source_filename = zsync2-b4953c95611d9507bd6c7b94dd8447ae87ead734.tar.gz
+patch_directory = zsync2/overlay
+diff_files = 
+	zsync2/fix-static-build.patch,
+	zsync2/fix-invalid-fclose-on-popen-handle.patch

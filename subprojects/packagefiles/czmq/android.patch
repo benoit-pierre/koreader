@@ -1,0 +1,24 @@
+diff --git a/include/czmq_prelude.h b/include/czmq_prelude.h
+--- a/include/czmq_prelude.h
++++ b/include/czmq_prelude.h
+@@ -268,7 +268,7 @@
+ #   include <sys/un.h>
+ #   include <sys/uio.h>             //  Let CZMQ build with libzmq/3.x
+ #   include <netinet/in.h>          //  Must come before arpa/inet.h
+-#   if (!defined (__UTYPE_ANDROID)) && (!defined (__UTYPE_IBMAIX)) \
++#   if (!defined (__UTYPE_IBMAIX)) \
+     && (!defined (__UTYPE_HPUX))
+ #       include <ifaddrs.h>
+ #   endif
+diff --git a/src/zbeacon.c b/src/zbeacon.c
+--- a/src/zbeacon.c
++++ b/src/zbeacon.c
+@@ -448,7 +448,7 @@ s_agent_new (void *pipe, int port_nbr)
+ static void
+ s_get_interface (agent_t *self)
+ {
+-#if defined (HAVE_GETIFADDRS)
++#if defined (HAVE_GETIFADDRS) && defined (HAVE_FREEIFADDRS)
+     struct ifaddrs *interfaces;
+     if (getifaddrs (&interfaces) == 0) {
+         int num_interfaces = 0;

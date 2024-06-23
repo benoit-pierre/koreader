@@ -1,0 +1,23 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -93,6 +93,7 @@ libpng = library(
+   version: png_libversion,
+   dependencies: libpng_deps,
+   c_args: c_args,
++  gnu_symbol_visibility: 'hidden',
+   install: true,
+ )
+ 
+diff --git a/scripts/pnglibconf.h.prebuilt b/scripts/pnglibconf.h.prebuilt
+--- a/scripts/pnglibconf.h.prebuilt
++++ b/scripts/pnglibconf.h.prebuilt
+@@ -199,7 +199,7 @@
+ #define PNG_GAMMA_THRESHOLD_FIXED 5000
+ #define PNG_IDAT_READ_SIZE PNG_ZBUF_SIZE
+ #define PNG_INFLATE_BUF_SIZE 1024
+-#define PNG_LINKAGE_API extern
++#define PNG_LINKAGE_API extern __attribute__ ((visibility("default")))
+ #define PNG_LINKAGE_CALLBACK extern
+ #define PNG_LINKAGE_DATA extern
+ #define PNG_LINKAGE_FUNCTION extern

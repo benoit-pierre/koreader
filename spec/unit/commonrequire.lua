@@ -34,9 +34,6 @@ if not busted_ok then
     end
 end
 
-package.path = "?.lua;common/?.lua;frontend/?.lua;" .. package.path
-package.cpath = "?.so;common/?.so;/usr/lib/lua/?.so;" .. package.cpath
-
 -- turn off debug by default and set log level to warning
 require("dbg"):turnOff()
 local logger = require("logger")

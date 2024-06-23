@@ -33,14 +33,10 @@ ko_update_check() {
         # Setup the FBInk daemon
         export FBINK_NAMED_PIPE="/tmp/koreader.fbink"
         rm -f "${FBINK_NAMED_PIPE}"
-        FBINK_PID="$(./fbink --daemon 1 %KOREADER% -q -y -6 -P 0)"
-        # NOTE: See frontend/ui/otamanager.lua for a few more details on how we squeeze a percentage out of tar's checkpoint feature
-        # NOTE: %B should always be 512 in our case, so let stat do part of the maths for us instead of using %s ;).
-        FILESIZE="$(stat -c %b "${NEWUPDATE}")"
-        BLOCKS="$((FILESIZE / 20))"
-        export CPOINTS="$((BLOCKS / 100))"
-        # shellcheck disable=SC2016
-        ./tar xf "${NEWUPDATE}" --strip-components=1 --no-same-permissions --no-same-owner --checkpoint="${CPOINTS}" --checkpoint-action=exec='printf "%s" $((TAR_CHECKPOINT / CPOINTS)) > ${FBINK_NAMED_PIPE}'
+        FBINK_PID="$(./fbink --daemon 1 %KOREADER% -q -y -6)"
+        eval "$(./fbink -e)"
+        ./pv --force --format=' %t %p %e ' --width="${MAXCOLS}" "${NEWUPDATE}" 2>"${FBINK_NAMED_PIPE}" |
+            ./bsdtar --no-same-permissions --no-same-owner -x
         fail=$?
         kill -TERM "${FBINK_PID}"
         # Cleanup behind us...
@@ -54,8 +50,8 @@ ko_update_check() {
             ./fbink -q -y -5 -pm "KOReader may fail to function properly!"
         fi
         rm -f "${NEWUPDATE}" # always purge newupdate to prevent update loops
-        unset CPOINTS FBINK_NAMED_PIPE
-        unset BLOCKS FILESIZE FBINK_PID
+        unset FBINK_NAMED_PIPE
+        unset FBINK_PID
         # Ensure everything is flushed to disk before we restart. This *will* stall for a while on slow storage!
         busybox sync
 

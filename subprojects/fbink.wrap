@@ -1,0 +1,10 @@
+[wrap-git]
+url = https://github.com/NiLuJe/FBInk.git
+# v1.25.0-413-g012dd737
+revision = 012dd73784969a05095400137b358ef43522aed5
+depth = 1
+clone-recursive = true
+patch_directory = fbink/overlay
+
+[provide]
+dependency_names = fbink, fbink_input

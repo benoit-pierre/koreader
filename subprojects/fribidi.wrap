@@ -1,0 +1,13 @@
+[wrap-file]
+directory = fribidi-1.0.13
+source_url = https://github.com/fribidi/fribidi/releases/download/v1.0.13/fribidi-1.0.13.tar.xz
+source_filename = fribidi-1.0.13.tar.xz
+source_hash = 7fa16c80c81bd622f7b198d31356da139cc318a63fc7761217af4130903f54a2
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/fribidi_1.0.13-1/fribidi-1.0.13.tar.xz
+wrapdb_version = 1.0.13-1
+diff_files = 
+	fribidi/fix-install-tags.patch,
+	fribidi/no-unnecessary-lto.patch
+
+[provide]
+fribidi = libfribidi_dep

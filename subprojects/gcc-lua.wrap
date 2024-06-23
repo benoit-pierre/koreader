@@ -1,0 +1,9 @@
+[wrap-file]
+directory = gcc-lua-1.3.0-13-g4d1f3ef
+source_url = https://git.colberg.org/gcc-lua/snapshot/gcc-lua-1.3.0-13-g4d1f3ef.tar.gz
+source_hash = ffba7353e47a838631e6641cf76bc68631ef96d5fcb49e4f2d6be9a9214a69bd
+source_filename = gcc-lua-1.3.0-13-g4d1f3ef.tar.gz
+patch_directory = gcc-lua/overlay
+
+[provide]
+dependency_names = gcc-lua

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = lua-Spore-0.3.3
+source_url = https://framagit.org/fperrad/lua-Spore/-/archive/0.3.3/lua-Spore-0.3.3.tar.bz2
+source_hash = 77172106f41bc45c008fcb9a3de497dc6683ce7eba72b2e0916cd584f37799d9
+source_filename = lua-Spore-0.3.3.tar.bz2
+patch_directory = lua-spore/overlay

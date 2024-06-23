@@ -1,0 +1,11 @@
+option('4in6', type: 'feature', value: 'auto')
+option('openssl', type: 'feature', value: 'auto')
+option('piddir', type: 'string', value: '/var/run')
+option('progs', type: 'array', choices: ['all', 'scp', 'sftp-server', 'ssh', 'ssh-add', 'ssh-agent', 'ssh-keygen', 'ssh-keyscan', 'ssh-keysign', 'ssh-pkcs11-helper', 'ssh-sk-helper', 'sshd'], value: ['all'],
+  description: 'Which programs should be built')
+option('pkcs11', type: 'feature', value: 'auto')
+option('privsep_user', type: 'string', value: '')
+option('sandbox', type: 'combo', choices: ['auto', 'pledge', 'systrace', 'darwin', 'seccomp_filter', 'capsicum', 'rlimit', 'disabled'])
+option('security-key', type: 'combo', choices: ['auto', 'libfido2', 'builtin', 'disabled'])
+option('wtmpx', type: 'feature', value: 'auto')
+option('zlib', type: 'feature', value: 'auto')

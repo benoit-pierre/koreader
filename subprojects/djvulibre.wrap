@@ -1,0 +1,10 @@
+[wrap-file]
+directory = djvulibre-release.3.5.28-7-g6a1e5ba
+source_url = https://gitlab.com/koreader/djvulibre/-/archive/release.3.5.28-7-g6a1e5ba/djvulibre-release.3.5.28-7-g6a1e5ba.tar.bz2
+source_hash = 57271bf0418b1f6a0f050eaddfdfaf87024dc9916930d061bf742e4212a7667c
+source_filename = djvulibre-release.3.5.28-7-g6a1e5ba.tar.bz2
+patch_directory = djvulibre/overlay
+diff_files = 
+	djvulibre/no-locale-mangling.patch,
+	djvulibre/android.patch,
+	djvulibre/leaks.patch

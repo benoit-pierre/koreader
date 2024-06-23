@@ -1,0 +1,12 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -255,7 +255,7 @@ else
+     libusb_dep = dependency('libusb-1.0', required : opt_hidapi)
+ endif
+ 
+-if platform_is_unixlike
++if false and platform_is_unixlike
+     dbus_dep = dependency('dbus-1', required : false).partial_dependency(
+         compile_args : true, includes : true, sources : true
+     )

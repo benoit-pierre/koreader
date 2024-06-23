@@ -1,0 +1,13 @@
+[wrap-file]
+directory = gumbo-parser
+source_url = https://codeberg.org/grisha/gumbo-parser/archive/0.12.1.tar.gz
+source_filename = gumbo-parser-0.12.1.tar.gz
+source_hash = c0bb5354e46539680724d638dbea07296b797229a7e965b13305c930ddc10d82
+patch_filename = gumbo-parser_0.12.1-2_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/gumbo-parser_0.12.1-2/get_patch
+patch_hash = 29da1740ce63852669bf84b0edb2bca439edb9662408b589bcd41e3d456f236d
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/gumbo-parser_0.12.1-2/gumbo-parser-0.12.1.tar.gz
+wrapdb_version = 0.12.1-2
+
+[provide]
+dependency_names = gumbo

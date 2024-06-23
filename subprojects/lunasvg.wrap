@@ -1,0 +1,8 @@
+[wrap-file]
+directory = lunasvg-9a05e196382ebe4ef7993039d069ab6312b60fac
+source_url = https://github.com/sammycage/lunasvg/archive/v2.3.8-2-g9a05e19.tar.gz
+source_hash = 7e1fdc9865b41eb7229341c915a28b9cfebe97936174855ca724c517dc48e4fd
+source_filename = lunasvg-2.3.8-2-g9a05e19.tar.gz
+patch_directory = lunasvg/overlay
+diff_files = 
+	lunasvg/extended.patch

@@ -1,5 +1,5 @@
 [submodule "test"]
-	path = test
+	path = spec/unit/data
 	url = https://github.com/koreader/test-data.git
 	shallow = true
 [submodule "resources/fonts"]

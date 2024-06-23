@@ -1,0 +1,36 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -24,7 +24,7 @@
+ #
+ 
+ project('freetype2', 'c',
+-  meson_version: '>= 0.55.0',
++  meson_version: '>= 0.60.0',
+   version: run_command('builds/meson/extract_freetype_version.py',
+                        'include/freetype/freetype.h',
+                        check: true).stdout().strip(),
+@@ -64,6 +64,7 @@ ftmodule_h = custom_target('ftmodule.h',
+             '--format=ftmodule.h', '@INPUT@', '--output', '@OUTPUT@'],
+   install: true,
+   install_dir: join_paths(freetype_includedir, 'freetype/config'),
++  install_tag: 'devel',
+ )
+ ft2_sources = [ftmodule_h]
+ ft2_defines += ['-DFT_CONFIG_MODULES_H=<ftmodule.h>']
+@@ -362,6 +363,7 @@ ftoption_h = custom_target('ftoption.h',
+   command: ftoption_command,
+   install: true,
+   install_dir: join_paths(freetype_includedir, 'freetype/config'),
++  install_tag: 'devel',
+ )
+ ft2_sources += ftoption_h
+ ft2_defines += ['-DFT_CONFIG_OPTIONS_H=<ftoption.h>']
+@@ -389,6 +391,7 @@ if use_unix_ftsystem_c
+     command: ftconfig_command,
+     install: true,
+     install_dir: join_paths(freetype_includedir, 'freetype/config'),
++    install_tag: 'devel',
+   )
+   ft2_sources += ftconfig_h
+   ft2_defines += ['-DFT_CONFIG_CONFIG_H=<ftconfig.h>']

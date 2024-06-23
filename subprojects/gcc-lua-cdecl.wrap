@@ -1,0 +1,8 @@
+[wrap-file]
+directory = gcc-lua-cdecl-3.0.0-5-gd69e45b
+source_url = https://git.colberg.org/gcc-lua-cdecl/snapshot/gcc-lua-cdecl-3.0.0-5-gd69e45b.tar.gz
+source_hash = 21f78fe49958303b40d6283d2d64de17910c62203ce459993bbe100abbc35505
+source_filename = gcc-lua-cdecl-3.0.0-5-gd69e45b.tar.gz
+patch_directory = gcc-lua-cdecl/overlay
+diff_files = 
+	gcc-lua-cdecl/gcc-lua-cdecl-do-not-mangle-c99-types.patch

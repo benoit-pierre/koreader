@@ -1,0 +1,23 @@
+diff --git a/src/environ.h b/src/environ.h
+--- a/src/environ.h
++++ b/src/environ.h
+@@ -84,7 +84,7 @@ typedef int l_atomic;
+       #define LEPT_DLL
+     #endif
+   #else  /* non-Windows specifics */
+-    #define LEPT_DLL
++    #define LEPT_DLL __attribute__ ((visibility("default")))
+   #endif  /* _WIN32 */
+ #endif  /* LEPT_DLL */
+ 
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -196,6 +196,7 @@ lept_lib = library(
+     '-DLIBLEPT_EXPORTS',
+   ],
+   dependencies: dependencies,
++  gnu_symbol_visibility: 'hidden',
+   include_directories: '..',
+   install: true,
+   soversion: 6,

@@ -1,0 +1,13 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -308,6 +308,9 @@ foreach library: openssl_libraries
+       compiler.find_library(library),
+     ]
+   else
++    if host_machine.system() == 'android' and library == 'atomic'
++      continue
++    endif
+     dependencies += [
+       compiler.find_library(
+         library,

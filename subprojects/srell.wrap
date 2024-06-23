@@ -1,0 +1,7 @@
+[wrap-file]
+directory = srell-3.018
+source_url = https://www.akenotsuki.com/misc/srell/srell3_018.zip
+source_hash = 0cb7587b3613085204ed847259cb46a54f7328aef90a0ce85a1eaa895a755ccf
+source_filename = srell3_018.zip
+lead_directory_missing = true
+patch_directory = srell/overlay

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = lua_cliargs-3.0-2
+source_url = https://github.com/amireh/lua_cliargs/archive/refs/tags/v3.0-2.tar.gz
+source_hash = 971d6f1440a55bdf9db581d4b2bcbf472a301d76f696a0d0ed9423957c7d176e
+source_filename = lua_cliargs-3.0-2.tar.gz
+patch_directory = lua_cliargs/overlay

@@ -1,0 +1,635 @@
+#!/usr/bin/env python3
+
+from collections import ChainMap
+from configparser import ConfigParser
+from datetime import datetime
+from hashlib import sha256
+from io import StringIO
+from pathlib import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+import argparse
+import os.path
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tarfile
+import zipfile
+
+try:
+    from readchar import readchar
+except ImportError:
+    readchar = None
+
+def confirm(text='Proceed'):
+    sys.stdout.write(f'{text}? [yN] ')
+    sys.stdout.flush()
+    if readchar is not None:
+        yes = readchar() in 'Yy'
+        print('Yes' if yes else 'No')
+    else:
+        yes = input('').lower() in {'y', 'yes'}
+    return yes
+
+def info(text):
+    print(text)
+
+def shell_quote(s):
+    return shlex.quote(str(s))
+
+def print_cmd(*args, comment=False, quote=True):
+    if quote:
+        args = map(shell_quote, args)
+    print('#' if comment else '▸', *args)
+
+def ensure_paths_exist(paths):
+    for p in paths:
+        if not p.exists():
+            raise FileNotFoundError(p)
+
+def tree_files(root):
+    for dirpath, __, filenames in os.walk(root):
+        dirpath = Path(dirpath)
+        for f in filenames:
+            yield dirpath / f
+
+
+class Wrap:
+
+    def __init__(self, path=None):
+        self._cfg = ConfigParser(interpolation=None)
+        if path is None:
+            self._section = None
+            self.type = None
+            self.path = None
+            return
+        self.path = Path(path)
+        self._cfg.read(path, encoding='utf-8')
+        self._section = self._cfg.sections()[0]
+        assert self._section.startswith('wrap-')
+        self.type = self._section[5:]
+
+    def tostring(self):
+        s = StringIO()
+        self._cfg.write(s)
+        return s.getvalue().rstrip() + '\n'
+
+    def tobytes(self):
+        return self.tostring().encode('utf-8')
+
+    def save(self):
+        self.path.write_bytes(self.tobytes())
+
+    def hash(self):
+        return sha256(self.tobytes()).hexdigest()
+
+    @property
+    def directory(self):
+        d = self.get('directory')
+        if d is None:
+            d = self.path.stem
+        return d
+
+    def get(self, key, fallback=None):
+        return self._cfg.get(self._section, key, fallback=fallback)
+
+    def set(self, key, value):
+        if value is None:
+            self._cfg.remove_option(self._section, key)
+        else:
+            assert isinstance(value, str)
+            self._cfg.set(self._section, key, value)
+
+    def __eq__(self, other):
+        assert isinstance(other, Wrap)
+        return self.hash() == other.hash()
+
+
+class Shellper:
+
+    def __init__(self, debug=False, dry_run=False):
+        self._debug = debug
+        self._dry_run = dry_run
+        self._dry_mkdirs = set()
+        self._verbose = debug or dry_run
+
+    def mkdir(self, *paths):
+        paths = [
+            p for p in paths
+            if not p.exists() or p in self._dry_mkdirs
+        ]
+        if not paths:
+            return
+        if self._verbose:
+            print_cmd('mkdir', '-p', *paths, comment=self._dry_run)
+        if self._dry_run:
+            self._dry_mkdirs.update(paths)
+            return
+        for p in paths:
+            p.mkdir(parents=True)
+
+    def mv(self, src, dst):
+        if self._verbose:
+            print_cmd('mv', src, dst, comment=self._dry_run)
+        if self._dry_run:
+            return
+        Path(src).rename(dst)
+
+    def cp(self, src, dst):
+        if self._verbose:
+            print_cmd('cp', src, dst, comment=self._dry_run)
+        if self._dry_run:
+            return
+        shutil.copy(src, dst)
+
+    def rm(self, *paths):
+        if self._verbose:
+            print_cmd('rm', *paths, comment=self._dry_run)
+        if self._dry_run:
+            return
+        for p in paths:
+            os.unlink(p)
+
+
+class Manager:
+
+    def __init__(self, directory='.', debug=False, dry_run=False):
+        self._debug = debug
+        self._dry_run = dry_run
+        self._verbose = debug or dry_run
+        self._directory = Path(directory)
+        assert self._directory.exists()
+        dirname = self._directory.resolve().name
+        parent_dir = Path(os.path.normpath(self._directory / '..'))
+        wrap_file = parent_dir / (dirname + '.wrap')
+        if wrap_file.exists():
+            wrap = Wrap(wrap_file)
+        else:
+            for wrap_file in self._directory.glob('../*.wrap'):
+                wrap_file = Path(os.path.normpath(wrap_file))
+                wrap = Wrap(wrap_file)
+                if wrap.directory == dirname:
+                    break
+            else:
+                raise ValueError("could not determine directory wrap file")
+        self._wrap = wrap
+        self._mswh = self._directory / '.meson-subproject-wrap-hash.txt'
+        self._packagecache = parent_dir / 'packagecache'
+        self._packagefiles = parent_dir / 'packagefiles'
+        self._project_packagefiles = self._packagefiles / wrap_file.stem
+        self._sh = Shellper(debug=debug, dry_run=dry_run)
+
+    # Miscellaneous helpers. {{{
+
+    def _extract_archive(self, archive, directory):
+        if self._verbose:
+            print_cmd('extract', '-d', directory, archive.name, comment=self._dry_run)
+        if self._dry_run:
+            return
+        Path(directory).mkdir(parents=True, exist_ok=True)
+        archive.extractall(directory)
+
+    def _run(self, cmd, dry_run=None, **kwargs):
+        if dry_run is None:
+            dry_run = self._dry_run
+        if self._verbose:
+            qcmd = list(map(shell_quote, cmd))
+            stdout = kwargs.get('stdout')
+            if stdout not in (None, subprocess.PIPE):
+                if stdout is subprocess.DEVNULL:
+                    stdout = '/dev/null'
+                else:
+                    stdout = stdout.name
+                qcmd.append('>' + shell_quote(stdout))
+            print_cmd(*qcmd, comment=dry_run, quote=False)
+        if dry_run:
+            return subprocess.CompletedProcess(cmd, 0)
+        return subprocess.run(cmd, check=kwargs.pop('check', True), **kwargs)
+
+    def _update_meson_subproject_wrap_hash(self, digest=None):
+        if digest is None:
+            digest = self._wrap.hash()
+        if self._verbose:
+            print_cmd(
+                'echo', digest, '>' + shell_quote(self._mswh),
+                comment=self._dry_run, quote=False,
+            )
+        if self._dry_run:
+            return
+        self._mswh.write_text(digest + '\n')
+
+    # }}}
+
+    # Git helpers. {{{
+
+    def _git(self, cmd, dry_run=None, **kwargs):
+        cmd = list(cmd)
+        if cmd[0] not in ('clone', 'init') and str(self._directory) != '.':
+            cmd[0:0] = ['-C', str(self._directory)]
+        cmd.insert(0, 'git')
+        return self._run(cmd, dry_run=dry_run, **kwargs)
+
+    def _git_output(self, cmd, dry_run=None):
+        return self._git(cmd, dry_run=dry_run, stdout=subprocess.PIPE).stdout.decode().strip()
+
+    def _git_show(self, args, dry_run=None, stdout=None):
+        show_cmd = ['show', '--format=format:'] + list(args)
+        if stdout is None:
+            if dry_run is None:
+                dry_run = False
+            return self._git_output(show_cmd, dry_run=dry_run)
+        return self._git(show_cmd, dry_run=dry_run, stdout=stdout)
+
+    def _git_rev(self, args, dry_run=False):
+        rev_cmd = ['rev-' + args[0]]
+        rev_cmd.extend(args[1:])
+        return self._git_output(rev_cmd, dry_run=dry_run)
+
+    def _has_git_repo(self):
+        toplevel = self._git_rev(('parse', '--show-toplevel'))
+        return Path(toplevel).resolve() == self._directory.resolve()
+
+    def _extract_changes_from_history(self, revision, force_first_as_overlay=False):
+        commits = []
+        for line in self._git_rev(('list', '--format=format:%H:%f',
+                                   '--no-commit-header', '--reverse',
+                                   revision + '..')).split():
+            revision, subject = line.split(':', 1)
+            if subject.startswith('SKIP-'):
+                continue
+            patch = subject.removeprefix('.patch') + '.patch'
+            commits.append((revision, False, self._project_packagefiles / patch))
+        if not commits:
+            return []
+        revision, __, patch = commits[0]
+        if force_first_as_overlay:
+            others = self._git_show(['--name-only', '--diff-filter=amt', revision])
+            added = self._git_show(['--name-only', '--diff-filter=AMT', revision])
+            assert not others and added, "patch cannot be saved as an overlay"
+        else:
+            others = self._git_show(['--name-only', '--diff-filter=at', revision])
+            if others:
+                return commits
+            added = self._git_show(['--name-only', '--diff-filter=AT', revision])
+            if not added:
+                return commits
+        overlay = self._wrap_overlay()
+        if overlay is None or patch.stem != overlay.name:
+            overlay = self._project_packagefiles / patch.stem
+        commits[0] = [revision, True, overlay] + added.split('\n')
+        return commits
+
+    # }}}
+
+    # Wrap helpers. {{{
+
+    def _wrap_revision(self):
+        if self._wrap.type == 'file':
+            return self._git_rev(('parse', 'BASE'))
+        if self._wrap.type == 'git':
+            return self._wrap.get('revision')
+        raise ValueError(f'unsupported wrap type: {self._wrap.type}')
+
+    def _wrap_overlay(self):
+        overlay = self._wrap.get('patch_directory')
+        if overlay is None:
+            return None
+        return self._packagefiles / overlay
+
+    def _wrap_patches(self):
+        diff_files = self._wrap.get('diff_files')
+        if diff_files is None:
+            return []
+        patches = [p.strip() for p in diff_files.split(',')]
+        return list(map(self._packagefiles.joinpath, patches))
+
+    def _wrap_source_filename(self):
+        assert self._wrap.type == 'file'
+        return self._packagecache / self._wrap.get('source_filename')
+
+    def _wrap_patch_filename(self):
+        assert self._wrap.type == 'file'
+        patch_filename = self._wrap.get('patch_filename')
+        if patch_filename is None:
+            return None
+        return self._packagecache / patch_filename
+
+    # }}}
+
+    # Apply helpers. {{{
+
+    def _apply_patch_with_git(self, fname, check=False):
+        apply_cmd = ['apply', '--3way']
+        if check:
+            apply_cmd.extend(('--check', '--quiet'))
+        apply_cmd.append(str(fname))
+        return self._git(apply_cmd, check=not check).returncode == 0
+
+    def _apply_patch_with_patch(self, fname):
+        patch_cmd = ['patch']
+        if str(self._directory) != '.':
+            patch_cmd.extend(('--directory', str(self._directory)))
+        patch_cmd.extend(('--merge=diff3', '--no-backup-if-mismatch',
+                          '--strip=1', '--input', str(fname)))
+        res = self._run(patch_cmd, check=False, stdout=subprocess.PIPE)
+        filelist = []
+        for line in res.stdout.decode().split('\n'):
+            print(line)
+            if line.startswith('patching file '):
+                filelist.append(line[14:])
+            elif line.startswith('Hunk ') and ' NOT MERGED ' in line:
+                filelist.pop(-1)
+        if filelist:
+            self._git(['add', '--'] + filelist)
+        if res.returncode != 0:
+            raise subprocess.CalledProcessError(res.returncode, patch_cmd)
+
+    def _apply_patch(self, fname):
+        if self._dry_run or (
+            self._wrap.type == 'git' and
+            self._apply_patch_with_git(fname, check=True)
+        ):
+            self._apply_patch_with_git(fname)
+        else:
+            # Git does not do fuzz, so give patch a try…
+            self._apply_patch_with_patch(fname)
+        return [], fname.stem
+
+    def _apply_overlay(self, root, move=False):
+        filelist = []
+        file_fn = self._sh.mv if move else self._sh.cp
+        for src in tree_files(root):
+            dst = src.relative_to(root)
+            filelist.append(str(dst))
+            dst = self._directory / dst
+            self._sh.mkdir(dst.parent)
+            file_fn(src, dst)
+        return filelist, root.absolute().name
+
+    def _apply_archive(self, archive, iterator):
+        with TemporaryDirectory(dir=self._directory) as tmpdir:
+            if self._verbose:
+                print_cmd('extract', '-d', tmpdir, archive.name, comment=self._dry_run)
+            namelist = []
+            filelist = []
+            for name, member, isdir in iterator:
+                assert not Path(name).is_absolute()
+                namelist.append(name)
+                if isdir:
+                    continue
+                filelist.append(name)
+                if self._dry_run:
+                    continue
+                archive.extract(member, tmpdir)
+            root = os.path.commonpath(namelist)
+            if root:
+                root = Path(root).parts[0]
+                filelist = [str(Path(*Path(p).parts[1:])) for p in filelist]
+            self._apply_overlay(Path(tmpdir, root), move=True)
+            return filelist, 'SKIP: ' + Path(archive.name).name
+
+    def _apply_tar_file(self, fname):
+        with tarfile.open(fname) as t:
+            return self._apply_archive(t, (
+                (member.name, member, member.isdir())
+                for member in t
+            ))
+
+    def _apply_zip_file(self, fname):
+        with zipfile.ZipFile(fname) as z:
+            z.name = z.filename
+            return self._apply_archive(z, (
+                (member.filename, member, member.is_dir())
+                for member in z.infolist()
+            ))
+
+    _APPLY_HANDLERS = {
+        'patch'  : '_apply_patch',
+        'tar'    : '_apply_tar_file',
+        'tar.bz2': '_apply_tar_file',
+        'tar.gz' : '_apply_tar_file',
+        'tar.xz' : '_apply_tar_file',
+        'tgz'    : '_apply_tar_file',
+        'zip'    : '_apply_zip_file',
+    }
+
+    def _apply_handler(self, path):
+        if path.is_dir():
+            return self._apply_overlay
+        extension_list = path.name.split('.')[1:]
+        for n in range(len(extension_list)):
+            extension = '.'.join(extension_list[n:])
+            handler_name = self._APPLY_HANDLERS.get(extension)
+            if handler_name is not None:
+                return getattr(self, handler_name)
+        raise ValueError(f'unsupported patch type: {str(path)}')
+
+    # }}}
+
+    # Apply. {{{
+
+    def _apply_prepare(self, patches):
+        assert self._has_git_repo()
+        patches = list(map(Path, patches))
+        ensure_paths_exist(patches)
+        return [patches]
+
+    def _apply_preview(self, patches):
+        for p in patches:
+            info(f'Would apply “{p}”')
+
+    def _apply_execute(self, patches):
+        for p in patches:
+            info(f'Applying “{p}”')
+            handler = self._apply_handler(p)
+            filelist, message = handler(p)
+            if filelist:
+                self._git(['add', '--force'] + sorted(filelist))
+            timestamp = datetime.fromtimestamp(p.stat().st_mtime).isoformat()
+            self._git(['commit', '--quiet', '--date=' + timestamp, '--message=' + message],
+                      env=ChainMap(os.environ, {'GIT_COMMITTER_DATE': timestamp}))
+
+    # }}}
+
+    # Reset. {{{
+
+    def _reset_prepare(self, args):
+        assert not args
+        if self._has_git_repo():
+            revision = self._wrap_revision()
+        else:
+            revision = None
+        patches = []
+        if self._wrap.type == 'file':
+            patches.append(self._wrap_source_filename())
+            patches.append(self._wrap_patch_filename())
+        patches.append(self._wrap_overlay())
+        patches.extend(self._wrap_patches())
+        patches = list(filter(None, patches))
+        ensure_paths_exist(patches)
+        return (revision, patches)
+
+    def _reset_preview(self, revision, patches):
+        if revision is None:
+            info('Would create a new empty repo and stash everything')
+        else:
+            info(f'Would stash everything and reset to {revision}')
+        self._apply_preview(patches)
+        info(f'Would update “{self._directory / ".meson-subproject-wrap-hash.txt"}”')
+
+    def _reset_execute(self, revision, patches):
+        if revision is None:
+            self._git(('init', '--quiet', str(self._directory)))
+            self._git(('config', 'core.autocrlf', 'false'))
+            self._git(('commit', '--quiet', '--allow-empty', '--message=BASE'))
+            self._git(('tag', 'BASE'))
+        if self._git_output(('status', '--porcelain', ':!/.meson-subproject-wrap-hash.txt'), dry_run=False):
+            self._git(('add', '--all', '--force', ':!/.meson-subproject-wrap-hash.txt'))
+            self._git(('stash', 'push', '--quiet', '--all', ':!/.meson-subproject-wrap-hash.txt'))
+        if revision is not None:
+            self._git(('switch', '--quiet', '--detach', '--discard-changes', revision))
+        self._apply_execute(patches)
+        self._update_meson_subproject_wrap_hash()
+
+    # }}}
+
+    # Save helpers. {{{
+
+    PATCH_INDEX_RX = re.compile(r'\nindex .*')
+
+    def _save_patch(self, commit, patch):
+        self._sh.mkdir(patch.parent)
+        diff = self._git_show(('--abbrev=8', commit),
+                              stdout=subprocess.PIPE,
+                              dry_run=None).stdout.decode()
+        # Strip 'index 3c55f901..c299f748 100644' lines
+        # to reduce the churn between package updates.
+        diff = self.PATCH_INDEX_RX.sub('', diff)
+        patch.write_text(diff)
+
+    def _save_overlay(self, commit, directory, files):
+        with NamedTemporaryFile(suffix='.tar', delete=False) as tmpfile:
+            tmpfile.close()
+            self._git(['archive', '--output=' + tmpfile.name, commit, '--'] + files)
+            if self._dry_run:
+                self._extract_archive(tmpfile, directory)
+            else:
+                with tarfile.open(tmpfile.name) as t:
+                    self._extract_archive(t, directory)
+
+    # }}}
+
+    # Save. {{{
+
+    def _save_prepare(self, args, force_first_as_overlay=False):
+        assert not args
+        old_packagefiles = []
+        overlay = self._wrap_overlay()
+        if overlay is not None and overlay.exists():
+            old_packagefiles.extend(tree_files(overlay))
+        old_packagefiles.extend(self._wrap_patches())
+        new_packagefiles = []
+        revision = self._wrap_revision()
+        commits = self._extract_changes_from_history(revision, force_first_as_overlay=force_first_as_overlay)
+        diff_files = []
+        patch_directory = None
+        for revision, is_overlay, savename, *files in commits:
+            if is_overlay:
+                assert patch_directory is None
+                new_packagefiles.extend(map(savename.joinpath, files))
+                patch_directory = str(savename.relative_to(self._packagefiles))
+            else:
+                new_packagefiles.append(savename)
+                diff_files.append(str(savename.relative_to(self._packagefiles)))
+        kill_list = sorted(
+            f for f in
+            set(old_packagefiles) - set(new_packagefiles)
+            if f.exists()
+        )
+        new_wrap = Wrap(self._wrap.path)
+        new_wrap.set('patch_directory', patch_directory)
+        if diff_files:
+            diff_files = '\n' + ',\n'.join(diff_files)
+        else:
+            diff_files = None
+        new_wrap.set('diff_files', diff_files)
+        new_wrap_hash = new_wrap.hash()
+        if self._mswh.exists() and new_wrap_hash == self._mswh.read_text().strip():
+            new_wrap_hash = None
+        if new_wrap == self._wrap:
+            new_wrap = None
+        if not commits and not kill_list and new_wrap is None and new_wrap is None:
+            return ()
+        return (commits, kill_list, new_wrap, new_wrap_hash)
+
+    def _save_preview(self, commits, kill_list, new_wrap, new_wrap_hash):
+        for revision, __, savename, *__ in commits:
+            info(f'Would save {revision} as “{savename}”')
+        for f in kill_list:
+            info(f'Would remove ”{f}”')
+        if new_wrap is not None:
+            info(f'Would update wrap “{new_wrap.path}”')
+        if new_wrap_hash is not None:
+            info(f'Would update “{self._mswh}”')
+
+    def _save_execute(self, commits, kill_list, new_wrap, new_wrap_hash):
+        for revision, is_overlay, savename, *files in commits:
+            if is_overlay:
+                self._save_overlay(revision, savename, files)
+            else:
+                self._save_patch(revision, savename)
+        if kill_list:
+            self._sh.rm(*kill_list)
+        if new_wrap is not None:
+            if self._verbose:
+                print_cmd(
+                    'cat', '>' + shell_quote(self._directory / new_wrap.path),
+                    '<<-\\EOF\n\t' + '\n\t'.join(new_wrap.tostring().split('\n')) + 'EOF',
+                    comment=self._dry_run, quote=False,
+                )
+            new_wrap.save()
+        if new_wrap_hash is not None:
+            self._update_meson_subproject_wrap_hash(digest=new_wrap_hash)
+
+    # }}}
+
+    def run(self, action, args, **kwargs):
+        prepare = getattr(self, f'_{action}_prepare')
+        preview = getattr(self, f'_{action}_preview')
+        execute = getattr(self, f'_{action}_execute')
+        state = prepare(args, **kwargs)
+        if not state:
+            print('Noting to do!')
+            return
+        preview(*state)
+        if confirm():
+            execute(*state)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Manage subproject patches.')
+    parser.add_argument('--debug', '-d', action='store_true')
+    parser.add_argument('--dry-run', '-n', action='store_true')
+    subparsers = parser.add_subparsers(help='sub-command help', dest='action', required=True)
+    parser_apply = subparsers.add_parser('apply', help='apply some patches')
+    parser_apply.add_argument('args', metavar='PATCH', nargs='+')
+    subparsers.add_parser('reset', help='reset current state')
+    parser_save = subparsers.add_parser('save', help='save back patches')
+    parser_save.add_argument('--force-first-as-overlay', action='store_true',
+                             dest='save_force_first_as_overlay')
+    args = parser.parse_args()
+    action_prefix = args.action + '_'
+    kwargs = {
+        k[len(action_prefix):]: v
+        for k, v in vars(args).items()
+        if k.startswith(action_prefix)
+    }
+    mgr = Manager(debug=args.debug, dry_run=args.dry_run)
+    mgr.run(args.action, getattr(args, 'args', ()), **kwargs)
+
+
+if __name__ == '__main__':
+    main()
+
+# vim: ft=python foldmethod=marker foldlevel=0

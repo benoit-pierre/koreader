@@ -1,0 +1,275 @@
+diff --git a/app/build.gradle b/app/build.gradle
+--- a/app/build.gradle
++++ b/app/build.gradle
+@@ -22,8 +22,8 @@ android {
+ 
+     sourceSets {
+         main {
+-            assets.srcDirs = [ '../assets' ]
+-            jniLibs.srcDirs = [ '../libs' ]
++            assets.srcDirs = [ '../assets', assetsPath ]
++            jniLibs.srcDirs = [ libsPath ]
+         }
+     }
+ 
+@@ -31,11 +31,13 @@ android {
+         includeInApk = false
+     }
+ 
++    /*
+     externalNativeBuild {
+         ndkBuild {
+             path file('../jni/Android.mk')
+         }
+     }
++    */
+ 
+     buildFeatures {
+         viewBinding = true
+diff --git a/app/src/main/java/org/koreader/launcher/Assets.kt b/app/src/main/java/org/koreader/launcher/Assets.kt
+--- a/app/src/main/java/org/koreader/launcher/Assets.kt
++++ b/app/src/main/java/org/koreader/launcher/Assets.kt
+@@ -18,8 +18,8 @@ class Assets {
+     private val tag = this::class.java.simpleName
+ 
+     init {
+-        Log.i(tag, "loading lib7z")
+-        System.loadLibrary("7z")
++        Log.i(tag, "loading libsevunzip")
++        System.loadLibrary("sevunzip")
+     }
+ 
+     fun extract(activity: Activity): Boolean {
+@@ -95,6 +95,7 @@ class Assets {
+                                         if (array.size == 2) {
+                                             val link = "$filesDir/${array[0]}"
+                                             val file = "$nativeLibsDir/${array[1]}"
++                                            Log.v(tag, "Symlink $file to $link")
+                                             File(file).symlink(link)
+                                         }
+                                     } catch (e: Exception) {
+diff --git a/app/src/main/java/org/koreader/launcher/MainActivity.kt b/app/src/main/java/org/koreader/launcher/MainActivity.kt
+--- a/app/src/main/java/org/koreader/launcher/MainActivity.kt
++++ b/app/src/main/java/org/koreader/launcher/MainActivity.kt
+@@ -90,8 +90,8 @@ class MainActivity : NativeActivity(), LuaInterface,
+     }
+ 
+     init {
+-        Log.i(tag, "loading libluajit")
+-        System.loadLibrary("luajit")
++        Log.i(tag, "loading libluajit-5.1")
++        System.loadLibrary("luajit-5.1")
+     }
+ 
+     /*---------------------------------------------------------------
+diff --git a/assets/android.lua b/assets/android.lua
+--- a/assets/android.lua
++++ b/assets/android.lua
+@@ -2656,9 +2656,9 @@ local function run(android_app_state)
+     package.loaded.android = android
+ 
+     -- set up a sensible package.path
+-    package.path = "?.lua;"..android.dir.."/?.lua;"
++    -- package.path = "?.lua;"..android.dir.."/?.lua;"
+     -- set absolute cpath
+-    package.cpath = "?.so;"..android.dir.."/?.so;"
++    -- package.cpath = "?.so;"..android.dir.."/?.so;"
+     -- register the asset loader
+     table.insert(package.loaders, 2, android.asset_loader)
+ 
+@@ -2673,11 +2673,11 @@ local function run(android_app_state)
+     table.insert(package.loaders, 3, android.deplib_loader)
+ 
+     -- ffi.load wrapper
+-    local ffi_load = ffi.load
+-    ffi.load = function(library, ...) -- luacheck: ignore 212
+-        android.DEBUG("ffi.load "..library)
+-        return android.dl.dlopen(library, ffi_load)
+-    end
++    -- local ffi_load = ffi.load
++    -- ffi.load = function(library, ...) -- luacheck: ignore 212
++    --     android.DEBUG("ffi.load "..library)
++    --     return android.dl.dlopen(library, ffi_load)
++    -- end
+ 
+     local installed = android.extractAssets()
+     if not installed then
+diff --git a/assets/dl.lua b/assets/dl.lua
+--- a/assets/dl.lua
++++ b/assets/dl.lua
+@@ -91,14 +91,20 @@ function dl.dlopen(library, load_func, depth)
+     local padding = depth * 4
+ 
+     for pspec in string.gmatch(
+-            library:sub(1, 1) == "/" and "" or dl.library_path,
++            library:sub(1, 1) == "/" and "/" or dl.library_path,
+             "([^;:]+)") do
+ 
+-        local lname, matches = string.gsub(pspec, "%?", library)
+-        if matches == 0 then
+-            -- if pathspec does not contain a '?',
+-            -- we append the library name to the pathspec
+-            lname = lname .. '/' .. library
++        local lname
++        if library:sub(1, 1) == "/" and pspec == "/" then
++            lname = library
++        else
++            local matches
++            lname, matches = string.gsub(pspec, "%?", library)
++            if matches == 0 then
++                -- if pathspec does not contain a '?',
++                -- we append the library name to the pathspec
++                lname = lname .. '/' .. library
++            end
+         end
+ 
+         local ok, lib = pcall(Elf.open, lname)
+diff --git a/gradle.properties b/gradle.properties
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -11,6 +11,8 @@ projectName=luajit-launcher
+ versCode=1
+ versName=1.0
+ ndkCustomPath=.
++assetsPath=../assets
++libsPath=../libs
+ 
+ # Compilation features
+ android.defaults.buildfeatures.aidl=false
+diff --git a/jni/lzma/Android.mk b/jni/lzma/Android.mk
+--- a/jni/lzma/Android.mk
++++ b/jni/lzma/Android.mk
+@@ -1,14 +1,7 @@
+ LOCAL_PATH := $(call my-dir)
+ include $(CLEAR_VARS)
+ 
+-LOCAL_MODULE := 7z
+-
+-lzma_SOURCES := \
+-	7zAlloc.c 7zArcIn.c 7zBuf.c 7zBuf2.c \
+-	7zCrc.c 7zCrcOpt.c 7zDec.c 7zFile.c \
+-	7zStream.c Bcj2.c Bra.c Bra86.c BraIA64.c \
+-	CpuArch.c Delta.c Lzma2Dec.c LzmaDec.c \
+-	Ppmd7.c Ppmd7Dec.c
++LOCAL_MODULE := sevunzip
+ 
+ un7zip_SOURCES := \
+ 	7zAssetFile.cpp \
+@@ -16,11 +9,10 @@ un7zip_SOURCES := \
+ 	7zFunctions.cpp
+ 
+ LOCAL_C_INCLUDES := \
+-    $(LOCAL_PATH)/7z/C \
++    $(SEVENZIP_INC) \
+     $(LOCAL_PATH)/un7zip
+ 
+ LOCAL_SRC_FILES := \
+-	$(addprefix 7z/C/, $(lzma_SOURCES)) \
+ 	$(addprefix un7zip/, $(un7zip_SOURCES)) \
+ 	un7z.cpp
+ 
+@@ -28,6 +20,6 @@ LOCAL_CFLAGS += -Wno-enum-conversion -ffunction-sections -fdata-sections
+ LOCAL_CXXFLAGS += -std=c++11 -fexceptions -ffunction-sections -fdata-sections
+ LOCAL_LDFLAGS += -Wl,--gc-sections
+ 
+-LOCAL_LDLIBS := -llog -landroid
++LOCAL_LDLIBS := $(SEVENZIP_LIB) -llog -landroid
+ 
+ include $(BUILD_SHARED_LIBRARY)
+diff --git a/jni/main.c b/jni/main.c
+--- a/jni/main.c
++++ b/jni/main.c
+@@ -32,9 +32,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include "android_native_app_glue.h"
+ #include "jni_helper.h"
+ 
+-#include "luajit-2.1/lua.h"
+-#include "luajit-2.1/lualib.h"
+-#include "luajit-2.1/lauxlib.h"
++#include "lua.h"
++#include "lualib.h"
++#include "lauxlib.h"
+ 
+ #define  TAG "NativeThread"
+ 
+@@ -115,72 +115,6 @@ void android_main(struct android_app* state) {
+         goto nativeError;
+     }
+ 
+-#ifdef KO_DLOPEN_LUAJIT
+-    // Crappy workaround for mcode allocation issues
+-    // c.f., android.lua for more details.
+-    // The idea is to push the libluajit.so mapping "far" enough away,
+-    // that LuaJIT then succeeds in mapping mcode area(s) +/- 32MB (on arm, 128 MB on aarch64, 2GB on x86)
+-    // from lj_vm_exit_handler (c.f., mcode_alloc @ lj_mcode.c)
+-    // ~128MB works out rather well on the API levels where this actually achieves something (while it doesn't even faze some).
+-    const size_t map_size = 144U * 1024U * 1024U;
+-    void* p = mmap(NULL, map_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+-    if (p == MAP_FAILED) {
+-        LOGE("Error allocating mmap for mcode alloc workaround");
+-        goto nativeError;
+-    }
+-
+-    // Resolve everything *now*, and put the symbols in the global scope, much like if we had linked it statically.
+-    // This is necessary in order to be able to require Lua/C modules, c.f., LuaJIT docs on embedding.
+-    // (Beware, Android's dynamic linker has a long history of weird and broken behavior,
+-    // c.f., https://android.googlesource.com/platform/bionic/+/refs/heads/master/android-changes-for-ndk-developers.md)
+-    void* luajit = dlopen("libluajit.so", RTLD_NOW | RTLD_GLOBAL);
+-    if (!luajit) {
+-        LOGE("Failed to load LuaJIT: %s", dlerror());
+-    } else {
+-        dlerror();
+-    }
+-
+-    // And free the mmap, its sole purpose is to push libluajit.so away in the virtual memory mappings.
+-    munmap(p, map_size);
+-
+-    // Get all the symbols we'll need now
+-    lua_State* (*lj_luaL_newstate)(void) = dlsym(luajit, "luaL_newstate");
+-    void (*lj_luaL_openlibs)(lua_State*) = dlsym(luajit, "luaL_openlibs");
+-    int (*lj_luaL_loadbuffer)(lua_State*, const char*, size_t,  const char*) = dlsym(luajit, "luaL_loadbuffer");
+-    const char* (*lj_lua_tolstring)(lua_State *, int, size_t *) = dlsym(luajit, "lua_tolstring");
+-    void (*lj_lua_pushlightuserdata)(lua_State*, void*) = dlsym(luajit, "lua_pushlightuserdata");
+-    int (*lj_lua_pcall)(lua_State *, int, int, int) = dlsym(luajit, "lua_pcall");
+-    void (*lj_lua_close)(lua_State*) = dlsym(luajit, "lua_close");
+-
+-    // Recap where things end up for our mcode_alloc shenanigans...
+-    LOGV("mmap for mcode alloc workaround mmap was @ %p to %p", p, p + map_size);
+-    uintptr_t lj_mcarea_target = (uintptr_t) lj_lua_pcall & ~(uintptr_t) 0xffff;
+-    LOGV("LuaJIT is mapped around %p", (void *) lj_mcarea_target);
+-    void* g_lj_mcarea_reserve = dlsym(luajit, "g_lj_mcarea_reserve");
+-    LOGV("LuaJIT reserved mcarea is @ %p", g_lj_mcarea_reserve);
+-
+-    // Load initial Lua loader from our asset store:
+-    L = (*lj_luaL_newstate)();
+-    (*lj_luaL_openlibs)(L);
+-
+-    status = (*lj_luaL_loadbuffer)(L, (const char*) buf, (size_t) bufsize, LOADER_ASSET);
+-    AAsset_close(luaCode);
+-    if (status) {
+-        LOGE("Error loading file: %s", (*lj_lua_tolstring)(L, -1, NULL));
+-        goto nativeError;
+-    }
+-
+-    // pass the android_app state to Lua land:
+-    (*lj_lua_pushlightuserdata)(L, state);
+-
+-    status = (*lj_lua_pcall)(L, 1, LUA_MULTRET, 0);
+-    if (status) {
+-        LOGE("Failed to run script: %s", (*lj_lua_tolstring)(L, -1, NULL));
+-        goto nativeError;
+-    }
+-
+-    (*lj_lua_close)(L);
+-#else
+     // Load initial Lua loader from our asset store:
+     L = luaL_newstate();
+     luaL_openlibs(L);
+@@ -202,7 +136,6 @@ void android_main(struct android_app* state) {
+     }
+ 
+     lua_close(L);
+-#endif
+ 
+ nativeError:
+     crash_report(state);

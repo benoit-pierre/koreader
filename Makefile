@@ -1,193 +1,233 @@
-PHONY = all android-ndk android-sdk base clean coverage doc fetchthirdparty po pot static-check test testfront
-
-# koreader-base directory
-KOR_BASE?=base
-
-include $(KOR_BASE)/Makefile.defs
-
-RELEASE_DATE := $(shell git show -s --format=format:"%cd" --date=short HEAD)
-# We want VERSION to carry the version of the KOReader main repo, not that of koreader-base
-VERSION := $(shell git describe HEAD)
-# Only append date if we're not on a whole version, like v2018.11
-ifneq (,$(findstring -,$(VERSION)))
-	VERSION := $(VERSION)_$(RELEASE_DATE)
+ifeq (,$(VERBOSE))
+.SILENT:
 endif
 
-# releases do not contain tests and misc data
-IS_RELEASE := $(if $(or $(EMULATE_READER),$(WIN32)),,1)
-IS_RELEASE := $(if $(or $(IS_RELEASE),$(APPIMAGE),$(LINUX),$(MACOS)),1,)
+SHELL = /bin/bash
+.SHELLFLAGS = -eo pipefail -c
 
-ifeq ($(ANDROID_ARCH), arm64)
-	ANDROID_ABI?=arm64-v8a
-else ifeq ($(ANDROID_ARCH), x86)
-	ANDROID_ABI?=$(ANDROID_ARCH)
-else ifeq ($(ANDROID_ARCH), x86_64)
-	ANDROID_ABI?=$(ANDROID_ARCH)
+ifeq ($(OS),Windows_NT)
+  BUILD_ARCH = $(PROCESSOR_ARCHITECTURE)
+  BUILD_OS = windows
 else
-	ANDROID_ARCH?=arm
-	ANDROID_ABI?=armeabi-v7a
+  UNAME:=$(shell uname -s -m)
+  BUILD_ARCH = $(lastword $(UNAME))
+  ifeq ($(firstword $(UNAME)),Linux)
+    BUILD_OS = linux
+  endif
+  ifeq ($(firstword $(UNAME)),Darwin)
+    BUILD_OS = macos
+  endif
 endif
 
-# Use the git commit count as the (integer) Android version code
-ANDROID_VERSION?=$(shell git rev-list --count HEAD)
-ANDROID_NAME?=$(VERSION)
+WGET ?= wget --no-verbose --progress=dot:mega --show-progress
 
-LINUX_ARCH?=native
-ifeq ($(LINUX_ARCH), native)
-	LINUX_ARCH_NAME:=$(shell uname -m)
-else ifeq ($(LINUX_ARCH), arm64)
-	LINUX_ARCH_NAME:=aarch64
-else ifeq ($(LINUX_ARCH), arm)
-	LINUX_ARCH_NAME:=armv7l
+ifeq ($(BUILD_OS),macos)
+  RCP ?= cp -R
+else
+  RCP ?= cp -r
 endif
-LINUX_ARCH_NAME?=$(LINUX_ARCH)
 
+# ln --symbolic --no-dereference --force --relative
+SYMLINK = ln -snf$(if $(BUILD_OS),,r)
 
-MACHINE=$(TARGET_MACHINE)
+ifdef CCACHE_DISABLE
+  CCACHE = env
+else
+  CCACHE ?= $(or \
+	    $(shell which ccache 2>/dev/null),\
+	    $(shell which sccache 2>/dev/null),\
+	    $(shell which buildcache 2>/dev/null),\
+	    env)
+endif
+
+ifeq ($(TARGET),)
+  override TARGET := emulator
+  KODEBUG ?= 1
+else
+  ifneq (,$(filter %-,$(TARGET)))
+    $(error unsupported target: $(TARGET)!)
+  endif
+endif
+
+ifeq ($(TARGET),emulator)
+  override TARGET := $(TARGET)-$(BUILD_OS)-$(BUILD_ARCH)
+else ifneq ($(filter emulator-%,$(TARGET)),)
+  ifeq ($(words $(subst -,$(empty) $(empty),$(TARGET))),2)
+    override TARGET := $(TARGET)-$(BUILD_ARCH)
+  endif
+endif
+
+VERSION = $(shell cat $(INSTALL_DIR)/koreader/git-rev)
+
+MACHINE = $(TARGET)
+
 ifdef KODEBUG
-	MACHINE:=$(MACHINE)-debug
-	KODEDUG_SUFFIX:=-debug
+  KODEDUG_SUFFIX = -debug
 endif
 
-ifdef TARGET
-	DIST:=$(TARGET)
-else
-	DIST:=emulator
-endif
-
-INSTALL_DIR ?= koreader-$(DIST)-$(MACHINE)
+DIST = $(TARGET)
+BUILD_DIR = build/$(DIST)$(KODEDUG_SUFFIX)
+INSTALL_DIR = koreader-$(DIST)$(KODEDUG_SUFFIX)
+INSTALL_SYMLINKS ?= $(and $(filter linux macos,$(BUILD_OS)),1)
 
 # platform directories
 PLATFORM_DIR=platform
 COMMON_DIR=$(PLATFORM_DIR)/common
-WIN32_DIR=$(PLATFORM_DIR)/win32
 
-# files to link from main directory
-INSTALL_FILES=reader.lua setupkoenv.lua frontend resources defaults.lua datastorage.lua \
-		l10n tools README.md COPYING
+.DEFAULT_GOAL := all
 
-ifeq ($(abspath $(OUTPUT_DIR)),$(OUTPUT_DIR))
-  ABSOLUTE_OUTPUT_DIR = $(OUTPUT_DIR)
-else
-  ABSOLUTE_OUTPUT_DIR = $(KOR_BASE)/$(OUTPUT_DIR)
+all: build install
+
+BUILD_INFO = $(BUILD_DIR)/meson-info/intro-buildoptions.json
+
+MESON ?= meson
+NINJA ?= ninja
+
+MESON_CROSS_FILES :=
+MESON_NATIVE_FILES :=
+
+# At most 3 parts to a target (type, os, arch).
+TARGET_PARTS := $(subst -,$(empty) $(empty),$(TARGET))
+TARGET_VARIANTS := $(foreach size,$(wordlist 1,$(words $(TARGET_PARTS)),1 2 3),$(subst $(empty) $(empty),-,$(wordlist 1,$(size),$(TARGET_PARTS))))
+
+TARGET_FILES := $(wildcard $(patsubst %,meson/target_%-.ini,$(TARGET_VARIANTS))) meson/target_$(TARGET).ini
+ifeq (,$(wildcard $(lastword $(TARGET_FILES))))
+  $(error unsupported target: $(TARGET)!)
 endif
-OUTPUT_DIR_ARTIFACTS = $(ABSOLUTE_OUTPUT_DIR)/!(cache|cmake|history|staging|thirdparty)
+TARGET_FILES := $(wildcard $(TARGET_FILES))
 
-all: base
-	install -d $(INSTALL_DIR)/koreader
-	rm -f $(INSTALL_DIR)/koreader/git-rev; echo "$(VERSION)" > $(INSTALL_DIR)/koreader/git-rev
-ifdef ANDROID
-	rm -f android-fdroid-version; echo -e "$(ANDROID_NAME)\n$(ANDROID_VERSION)" > koreader-android-fdroid-latest
+# Native files.
+NATIVE_FILES := meson/native.ini $(wildcard $(patsubst %,meson/native_%.ini,$(TARGET_VARIANTS)))
+
+# Default options.
+OPTIONS_FILES += meson/options.ini meson/options_$(if $(KODEBUG),debug,release).ini
+ifneq (,$(INSTALL_SYMLINKS))
+  OPTIONS_FILES += meson/options_install_symlinks.ini
 endif
-ifeq ($(IS_RELEASE),1)
-	bash -O extglob -c '$(RCP) -fL $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
+
+# Custom user options.
+USER_FILES += $(wildcard meson/user_$(TARGET)$(or $(KODEDUG_SUFFIX),-release).ini)
+
+ifeq ($(TARGET),emulator-$(BUILD_OS)-$(BUILD_ARCH))
+  # Native build.
+  MESON_NATIVE_FILES += meson/ccache.ini $(NATIVE_FILES) $(OPTIONS_FILES) $(TARGET_FILES) $(USER_FILES)
 else
-	cp -f $(KOR_BASE)/ev_replay.py $(INSTALL_DIR)/koreader/
-	@echo "[*] create symlink instead of copying files in development mode"
-	bash -O extglob -c '$(SYMLINK) $(OUTPUT_DIR_ARTIFACTS) $(INSTALL_DIR)/koreader/'
-  ifneq (,$(EMULATE_READER))
-	@echo "[*] install front spec only for the emulator"
-	$(SYMLINK) $(abspath spec) $(INSTALL_DIR)/koreader/spec/front
-	$(SYMLINK) $(abspath test) $(INSTALL_DIR)/koreader/spec/front/unit/data
+  # Cross build.
+  CROSS_FILES := $(patsubst %,meson/cross_%.ini,$(TARGET_VARIANTS))
+  ifeq (,$(wildcard $(lastword $(CROSS_FILES))))
+    $(error no cross-compilation profile for $(TARGET)!)
   endif
-endif
-	$(SYMLINK) $(abspath $(INSTALL_FILES)) $(INSTALL_DIR)/koreader/
-ifdef ANDROID
-	$(SYMLINK) $(abspath $(ANDROID_DIR)/*.lua) $(INSTALL_DIR)/koreader/
-endif
-	@echo "[*] Install update once marker"
-	@echo "# This file indicates that update once patches have not been applied yet." > $(INSTALL_DIR)/koreader/update_once.marker
-ifdef WIN32
-	@echo "[*] Install runtime libraries for win32..."
-	$(SYMLINK) $(abspath $(WIN32_DIR)/*.dll) $(INSTALL_DIR)/koreader/
-endif
-ifdef SHIP_SHARED_STL
-	@echo "[*] Install C++ runtime..."
-	cp -fL $(SHARED_STL_LIB) $(INSTALL_DIR)/koreader/libs/
-	chmod 755 $(INSTALL_DIR)/koreader/libs/$(notdir $(SHARED_STL_LIB))
-	$(STRIP) --strip-unneeded $(INSTALL_DIR)/koreader/libs/$(notdir $(SHARED_STL_LIB))
-endif
-	@echo "[*] Install plugins"
-	$(SYMLINK) $(abspath plugins) $(INSTALL_DIR)/koreader/
-	@echo "[*] Install resources"
-	$(SYMLINK) $(abspath resources/fonts/*) $(INSTALL_DIR)/koreader/fonts/
-	install -d $(INSTALL_DIR)/koreader/{screenshots,data/{dict,tessdata},fonts/host,ota}
-ifeq ($(IS_RELEASE),1)
-	@echo "[*] Clean up, remove unused files for releases"
-	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,cr3skin-format.txt,desktop,devices,manual}
+  CROSS_FILES := $(wildcard $(CROSS_FILES))
+  ifneq (,$(filter android-%,$(TARGET)))
+    CROSS_FILES := meson/android.ini $(CROSS_FILES)
+    NATIVE_FILES := meson/android.ini $(NATIVE_FILES)
+  endif
+  MESON_CROSS_FILES += meson/ccache.ini $(CROSS_FILES) $(OPTIONS_FILES) $(TARGET_FILES) $(USER_FILES)
+  MESON_NATIVE_FILES += meson/ccache.ini $(NATIVE_FILES)
 endif
 
-base:
-	$(MAKE) -C $(KOR_BASE)
+define meson_setup
+$(MESON) setup $(BUILD_DIR)
+  -Dauto_features=disabled -Dpkgconfig.relocatable=true --wrap-mode=forcefallback
+  $(patsubst %,--cross-file=%,$(MESON_CROSS_FILES))
+  $(patsubst %,--native-file=%,$(MESON_NATIVE_FILES))
+  --prefix=/ --bindir=. --libdir=libs.staging --libexecdir=libs.staging
+  $(MESON_SETUP_ARGS);
+endef
 
-$(INSTALL_DIR)/koreader/.busted: .busted
-	$(SYMLINK) $(abspath .busted) $@
+ifneq (,$(wildcard $(BUILD_DIR)/build.ninja))
+  # Calling ninja directly is faster then going through meson.
+  define meson_compile
+  $(NINJA) -C $(BUILD_DIR)
+    $(if $(VERBOSE),--verbose)
+    $(NINJAFLAGS)
+  endef
+else
+  define meson_compile
+  $(MESON) compile -C $(BUILD_DIR)
+    $(if $(VERBOSE),--verbose)
+    $(if $(NINJAFLAGS),--ninja-args='$(subst $(space),$(comma),$(NINJAFLAGS))')
+  endef
+endif
 
-$(INSTALL_DIR)/koreader/.luacov:
-	$(SYMLINK) $(abspath .luacov) $@
+define meson_install
+$(MESON) install -C $(BUILD_DIR)
+  --destdir='$(CURDIR)/$(INSTALL_DIR)/$2'
+  --no-rebuild --tags='$1' $(if $(VERBOSE),,--quiet)
+endef
 
-testfront: $(INSTALL_DIR)/koreader/.busted
-	# sdr files may have unexpected impact on unit testing
-	-rm -rf spec/unit/data/*.sdr
-	cd $(INSTALL_DIR)/koreader && $(BUSTED_LUAJIT) $(BUSTED_OVERRIDES) $(BUSTED_SPEC_FILE)
+# We want to carry the version of the KOReader main repo, not
+# that of koreader-base, and only append date if we're not on
+# a whole version, like `v2018.11`.
+define update_git_rev
+  $(eval VERSION := $(shell git describe HEAD))
+  $(eval VERSION := $(VERSION)$(if $(findstring -,$(VERSION)),_$(shell git show -s --format=format:'%cd' --date=short)))
+  echo '$(VERSION)' >'$(INSTALL_DIR)/koreader/git-rev'
+  # Note: use a precision of hours to reduce gradle cache misses…
+  touch -t "$$(git show --no-patch --date='format-local:%Y%m%d%H00' --format='%cd')" '$(INSTALL_DIR)/koreader/git-rev'
+endef
 
-test: $(INSTALL_DIR)/koreader/.busted
-	$(MAKE) -C $(KOR_BASE) test
-	$(MAKE) testfront
+meson/ccache.ini:
+	printf '%s\n' \
+		'[constants]' \
+		"CCACHE = '$(CCACHE)'" \
+		>$@
 
-coverage: $(INSTALL_DIR)/koreader/.luacov
-	-rm -rf $(INSTALL_DIR)/koreader/luacov.*.out
-	cd $(INSTALL_DIR)/koreader && \
-		./luajit $(shell which busted) --output=gtest \
-			--sort-files \
-			--coverage --exclude-tags=nocov
-	# coverage report summary
-	cd $(INSTALL_DIR)/koreader && tail -n \
-		+$$(($$(grep -nm1 -e "^Summary$$" luacov.report.out|cut -d: -f1)-1)) \
-		luacov.report.out
+$(BUILD_INFO): $(MESON_CROSS_FILES) $(MESON_NATIVE_FILES)
+	$(strip $(meson_setup))
 
-$(KOR_BASE)/Makefile.defs fetchthirdparty:
+setup: $(BUILD_INFO)
+
+empty :=
+space := $(empty) $(empty)
+comma := ,
+
+build: $(BUILD_INFO)
+	$(strip $(call meson_compile))
+
+install: $(BUILD_INFO)
+	$(strip $(call meson_install,runtime,koreader))
+	$(call update_git_rev)
+
+install-dev: $(BUILD_INFO)
+	$(strip $(call meson_install,devel,dev))
+
+update-git-rev: | install
+ifneq (,$(INSTALL_SYMLINKS))
+	$(call update_git_rev)
+endif
+
+fetch-thirdparty:
+ifneq (,$(shell git submodule status | grep -E '^-'))
 	git submodule init
 	git submodule sync
-ifneq (,$(CI))
 	git submodule update --depth 1 --jobs 3
-else
-	# Force shallow clones of submodules configured as such.
-	git submodule update --jobs 3 --depth 1 $(shell \
-		git config --file=.gitmodules --name-only --get-regexp '^submodule\.[^.]+\.shallow$$' true \
-		| sed 's/\.shallow$$/.path/' \
-		| xargs -n1 git config --file=.gitmodules \
-		)
-	# Update the rest.
-	git submodule update --jobs 3
 endif
-	$(MAKE) -C $(KOR_BASE) fetchthirdparty
+	$(MESON) subprojects download --num-processes 3
 
-VERBOSE ?= @
-Q = $(VERBOSE:1=)
 clean:
-	rm -rf $(INSTALL_DIR)
-	$(Q:@=@echo 'MAKE -C base clean'; &> /dev/null) \
-		$(MAKE) -C $(KOR_BASE) clean
-ifeq ($(TARGET), android)
-	$(MAKE) -C $(CURDIR)/platform/android/luajit-launcher clean
-endif
+	rm -rf $(BUILD_DIR) $(INSTALL_DIR)
 
-dist-clean: clean
-	rm -rf $(INSTALL_DIR)
-	$(MAKE) -C $(KOR_BASE) dist-clean
+distclean: clean
+	# $(MESON) subprojects purge --confirm
+	rm -rf subprojects/packagecache
 	$(MAKE) -C doc clean
 
-# Include target specific rules.
-ifneq (,$(wildcard make/$(TARGET).mk))
+mrproper:
+	$(MESON) subprojects purge --confirm
+
+re: clean
+	$(MAKE) all
+
+ifneq (,$(filter android-%,$(TARGET)))
+  include make/android.mk
+else ifneq (,$(filter emulator-%,$(TARGET)))
+  include make/emulator.mk
+else ifneq (,$(filter kindle%,$(TARGET)))
+  include make/kindle.mk
+else
   include make/$(TARGET).mk
 endif
-
-android-ndk:
-	$(MAKE) -C $(KOR_BASE)/toolchain $(ANDROID_NDK_HOME)
-
-android-sdk:
-	$(MAKE) -C $(KOR_BASE)/toolchain $(ANDROID_HOME)
 
 # for gettext
 DOMAIN=koreader
@@ -219,10 +259,5 @@ static-check:
 doc:
 	make -C doc
 
-.NOTPARALLEL:
-.PHONY: $(PHONY)
-
-LEFTOVERS = $(filter-out $(PHONY) $(INSTALL_DIR)/%,$(MAKECMDGOALS))
-.PHONY: $(LEFTOVERS)
-$(LEFTOVERS):
-	$(MAKE) -C $(KOR_BASE) $@
+.PHONY: all build clean distclean doc fetch-thirdparty install install-dev mrproper re setup update update-git-rev
+.NOTPARALLEL: all update

@@ -1,0 +1,18 @@
+[wrap-file]
+directory = k2pdfopt_v2.55
+source_url = https://www.willus.com/k2pdfopt/src/k2pdfopt_v2.55_src.zip
+source_hash = 3e78b4c7dd6227fde12138fd2468dd13c0c45b5251592a4f0aac67fd139ab953
+source_filename = k2pdfopt_v2.55_src.zip
+patch_directory = k2pdfopt/overlay
+diff_files = 
+	k2pdfopt/willus_config.patch,
+	k2pdfopt/tesscapi.patch,
+	k2pdfopt/linux-android.patch,
+	k2pdfopt/no-unnecessary-greyscale-conversion.patch,
+	k2pdfopt/visibility.patch,
+	k2pdfopt/fix-uninitialized-memory-access.patch,
+	k2pdfopt/fix-musl-_off64_t.patch,
+	k2pdfopt/no-network.patch
+
+[provide]
+dependency_names = k2pdfopt

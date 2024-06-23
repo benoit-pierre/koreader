@@ -1,0 +1,6 @@
+[wrap-file]
+directory = libzmq-883e95b22e0bffffa72312ea1fec76199afbe458
+source_url = https://github.com/zeromq/libzmq/archive/883e95b22e0bffffa72312ea1fec76199afbe458.tar.gz
+source_hash = 4eecb5d69b9d787e94b54386e8261529a6bf4a95de78ee5e2d3a831cb77cff18
+source_filename = libzmq-883e95b22e0bffffa72312ea1fec76199afbe458.tar.gz
+patch_directory = libzmq/overlay

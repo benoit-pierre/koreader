@@ -1,0 +1,2 @@
+option('lzma2', type: 'boolean', value: true)
+option('zstd', type: 'feature', value: 'auto')

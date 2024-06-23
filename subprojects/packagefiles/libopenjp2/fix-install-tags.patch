@@ -1,0 +1,11 @@
+diff --git a/src/lib/openjp2/meson.build b/src/lib/openjp2/meson.build
+--- a/src/lib/openjp2/meson.build
++++ b/src/lib/openjp2/meson.build
+@@ -119,6 +119,7 @@ configure_file(
+   configuration: opj_config,
+   format: 'cmake@',
+   install_dir: get_option('includedir') / openjpeg_version_subdir,
++  install_tag: 'devel',
+ )
+ configure_file(
+   input: 'opj_config_private.h.cmake.in',

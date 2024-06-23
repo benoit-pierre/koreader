@@ -1,0 +1,24 @@
+option('harden', type: 'boolean', value: true)
+option('scp', type: 'boolean', value: true)
+option('zlib', type: 'feature', value: 'auto')
+
+# Server options.
+
+option('debug_trace', type: 'integer', value: 0)
+option('default_path', type: 'string')
+option('default_port', type: 'integer', value: 22)
+option('disable_syslog', type: 'boolean', value: false)
+option('inetd_mode', type: 'boolean', value: true)
+option('log_commands', type: 'boolean', value: false)
+option('openpty', type: 'feature')
+option('pidfile', type: 'string')
+option('sftpserver_path', type: 'string')
+option('shadow', type: 'feature')
+option('small_code', type: 'boolean', value: true)
+option('x11_forwarding', type: 'boolean', value: false)
+
+# Keys.
+option('dss_priv_filename', type: 'string')
+option('rsa_priv_filename', type: 'string')
+option('ecdsa_priv_filename', type: 'string')
+option('ed25519_priv_filename', type: 'string')

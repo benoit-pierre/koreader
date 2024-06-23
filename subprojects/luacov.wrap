@@ -1,0 +1,9 @@
+[wrap-file]
+directory = luacov-0.15.0
+source_url = https://github.com/lunarmodules/luacov/archive/refs/tags/v0.15.0.tar.gz
+source_hash = 19ebe0fdd5dd05ab63d5192371dcf272f2c7ccea5366e98fee440a2f30e021d8
+source_filename = luacov-0.15.0.tar.gz
+patch_directory = luacov/overlay
+
+[provide]
+dependency_names = luacov

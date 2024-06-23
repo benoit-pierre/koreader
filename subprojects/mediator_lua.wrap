@@ -1,0 +1,6 @@
+[wrap-file]
+directory = mediator_lua-1.1.2-0
+source_url = https://github.com/Olivine-Labs/mediator_lua/archive/refs/tags/v1.1.2-0.tar.gz
+source_hash = faf5859fd2081be4e9e4fb8873a2dc65f7eff3fd93d6dd14da65f8e123fcff9b
+source_filename = mediator_lua-1.1.2-0.tar.gz
+patch_directory = mediator_lua/overlay
