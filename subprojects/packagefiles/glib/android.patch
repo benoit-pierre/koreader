@@ -42,17 +42,17 @@ diff --git a/glib/gthreadprivate.h b/glib/gthreadprivate.h
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -610,7 +610,6 @@ functions = [
-   'close_range',
+@@ -621,7 +621,6 @@ functions = [
+   'copy_file_range',
    'endmntent',
    'endservent',
 -  'epoll_create',
    'fallocate',
    'fchmod',
    'fchown',
-@@ -725,6 +724,10 @@ foreach f : functions
-   endif
- endforeach
+@@ -745,6 +744,10 @@ endforeach
+ # wrapper around g_free()/g_free_sized() depending on whether it’s available
+ glibconfig_conf.set('G_HAVE_FREE_SIZED', have_func_free_sized)
  
 +if cc.has_function('epoll_create1')
 +  glib_conf.set('HAVE_EPOLL_CREATE', 1)
@@ -61,7 +61,7 @@ diff --git a/meson.build b/meson.build
  # Check that stpcpy() is usable; must use header.
  # See:
  # https://github.com/mesonbuild/meson/issues/5628.
-@@ -903,7 +906,7 @@ if cc.compiles('''#include <linux/futex.h>
+@@ -947,7 +950,7 @@ if cc.compiles('''#include <linux/futex.h>
                 }''', name : 'futex(2) system call')
    glib_conf.set('HAVE_FUTEX', 1)
  endif
