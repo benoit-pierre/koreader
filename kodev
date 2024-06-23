@@ -610,7 +610,7 @@ function kodev-test() {
     HELP="
 usage: test <OPTIONS> <TEST_SUITE> <TEST_NAMES>
 
-    TEST_SUITE: [all|base|front]. Optional: detault to all.
+    TEST_SUITE: [all|base|bench|front]. Optional: detault to all.
 
     TEST_NAMES: if no TEST_NAMES are given, the full testsuite is run.
 ${RUNTESTS_HELP}$(build_options_help_msg 'BUILD' 'use existing build' '' 'default')

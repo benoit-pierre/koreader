@@ -58,6 +58,7 @@ runtests_meson() {
     cmd+=("${meson_args[@]}")
     case "${suite}" in
         all) ;;
+        bench) cmd+=(--benchmark) ;;
         *) cmd+=(--suite="${suite}") ;;
     esac
     local arg
@@ -104,9 +105,14 @@ runtests_busted() {
     else
         cmd+=(--output=gtest)
     fi
+    if [[ "${suite}" = 'bench' ]]; then
+        cmd+=(--run=all --pattern=_bench)
+    else
+        cmd+=(--run="${suite}")
+    fi
     cmd+=(
         --sort-files --exclude-tags=notest
-        --run="${suite}" "${busted_args[@]}"
+        "${busted_args[@]}"
         -- "$@"
     )
     # Do it.
@@ -202,7 +208,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$1" in
-    all | base | front)
+    all | base | bench | front)
         suite="$1"
         shift
         ;;
