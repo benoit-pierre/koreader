@@ -382,8 +382,6 @@ public:
     formatted_text_fragment_t * m_pbuffer;
     int       m_length;
     int       m_size;
-    bool      m_staticBufs;
-    static bool      m_staticBufs_inUse;
     #if (USE_LIBUNIBREAK==1)
     static bool      m_libunibreak_init_done;
     #endif
@@ -435,7 +433,7 @@ public:
 #define PAD_CHAR_INDEX        ((lUInt16)0xFFFC)
 
     LVFormatter(formatted_text_fragment_t * pbuffer)
-    : m_pbuffer(pbuffer), m_length(0), m_size(0), m_staticBufs(true), m_y(0)
+    : m_pbuffer(pbuffer), m_length(0), m_size(0), m_y(0)
     {
         #if (USE_LIBUNIBREAK==1)
         if (!m_libunibreak_init_done) {
@@ -444,8 +442,6 @@ public:
             init_linebreak();
         }
         #endif
-        if (m_staticBufs_inUse)
-            m_staticBufs = false;
         m_text = NULL;
         m_flags = NULL;
         m_srcs = NULL;
@@ -925,9 +921,6 @@ public:
         m_length = pos;
 
         TR("allocate(%d)", m_length);
-        // We start with static buffers, but when m_length reaches STATIC_BUFS_SIZE,
-        // we switch to dynamic buffers and we keep using them (realloc'ating when
-        // needed).
         // The code in this file will fill these buffers with m_length items, so
         // from index [0] to [m_length-1], and read them back.
         // Willingly or not (bug?), this code may also access the buffer one slot
@@ -943,53 +936,24 @@ public:
 #define STATIC_BUFS_SIZE 8192
 #define ITEMS_RESERVED 16
 
-        // "m_length+1" to keep room for the additional slot to be zero'ed
-        if ( !m_staticBufs || m_length+1 > STATIC_BUFS_SIZE ) {
-            // if (!m_staticBufs && m_text == NULL) printf("allocating dynamic buffers\n");
-            if ( m_length+1 > m_size ) {
-                // realloc
-                m_size = m_length+ITEMS_RESERVED;
-                m_text = cr_realloc(m_staticBufs ? NULL : m_text, m_size);
-                m_flags = cr_realloc(m_staticBufs ? NULL : m_flags, m_size);
-                m_charindex = cr_realloc(m_staticBufs ? NULL : m_charindex, m_size);
-                m_srcs = cr_realloc(m_staticBufs ? NULL : m_srcs, m_size);
-                m_widths = cr_realloc(m_staticBufs ? NULL : m_widths, m_size);
-                #if (USE_FRIBIDI==1)
-                    // Note: we could here check for RTL chars (and have a flag
-                    // to then not do it in copyText()) so we don't need to allocate
-                    // the following ones if we won't be using them.
-                    m_bidi_ctypes = cr_realloc(m_staticBufs ? NULL : m_bidi_ctypes, m_size);
-                    m_bidi_btypes = cr_realloc(m_staticBufs ? NULL : m_bidi_btypes, m_size);
-                    m_bidi_levels = cr_realloc(m_staticBufs ? NULL : m_bidi_levels, m_size);
-                #endif
-            }
-            m_staticBufs = false;
-        } else {
-            // static buffer space
-            static lChar32 m_static_text[STATIC_BUFS_SIZE];
-            static lUInt16 m_static_flags[STATIC_BUFS_SIZE];
-            static src_text_fragment_t * m_static_srcs[STATIC_BUFS_SIZE];
-            static lUInt16 m_static_charindex[STATIC_BUFS_SIZE];
-            static int m_static_widths[STATIC_BUFS_SIZE];
-            #if (USE_FRIBIDI==1)
-                static FriBidiCharType m_static_bidi_ctypes[STATIC_BUFS_SIZE];
-                static FriBidiBracketType m_static_bidi_btypes[STATIC_BUFS_SIZE];
-                static FriBidiLevel m_static_bidi_levels[STATIC_BUFS_SIZE];
-            #endif
-            m_text = m_static_text;
-            m_flags = m_static_flags;
-            m_charindex = m_static_charindex;
-            m_srcs = m_static_srcs;
-            m_widths = m_static_widths;
-            m_staticBufs = true;
-            m_staticBufs_inUse = true;
-            // printf("using static buffers\n");
-            #if (USE_FRIBIDI==1)
-                m_bidi_ctypes = m_static_bidi_ctypes;
-                m_bidi_btypes = m_static_bidi_btypes;
-                m_bidi_levels = m_static_bidi_levels;
-            #endif
+        if ( m_length+1 > m_size ) {
+            // realloc
+            m_size = m_length+ITEMS_RESERVED;
+            m_text = cr_realloc(m_text, m_size, false);
+            m_flags = cr_realloc(m_flags, m_size, false);
+            m_charindex = cr_realloc(m_charindex, m_size, false);
+            m_srcs = cr_realloc(m_srcs, m_size, false);
+            m_widths = cr_realloc(m_widths, m_size, false);
+#if (USE_FRIBIDI==1)
+            // Note: we could here check for RTL chars (and have a flag
+            // to then not do it in copyText()) so we don't need to allocate
+            // the following ones if we won't be using them.
+            m_bidi_ctypes = cr_realloc(m_bidi_ctypes, m_size, false);
+            m_bidi_btypes = cr_realloc(m_bidi_btypes, m_size, false);
+            m_bidi_levels = cr_realloc(m_bidi_levels, m_size, false);
+#endif
         }
+
         memset( m_flags, 0, sizeof(lUInt16)*m_length ); // start with all flags set to zero
 
         // We set to zero the additional slot that the code may peek at (with
@@ -1000,11 +964,11 @@ public:
         m_charindex[m_length] = 0;
         m_srcs[m_length] = NULL;
         m_widths[m_length] = 0;
-        #if (USE_FRIBIDI==1)
-            m_bidi_ctypes[m_length] = 0;
-            m_bidi_btypes[m_length] = 0;
-            m_bidi_levels[m_length] = 0;
-        #endif
+#if (USE_FRIBIDI==1)
+        m_bidi_ctypes[m_length] = 0;
+        m_bidi_btypes[m_length] = 0;
+        m_bidi_levels[m_length] = 0;
+#endif
     }
 
     /// copy text of current paragraph to buffers
@@ -5481,32 +5445,24 @@ public:
 
     void dealloc()
     {
-        if ( !m_staticBufs ) {
-            free( m_text );
-            free( m_flags );
-            free( m_srcs );
-            free( m_charindex );
-            free( m_widths );
-            m_text = NULL;
-            m_flags = NULL;
-            m_srcs = NULL;
-            m_charindex = NULL;
-            m_widths = NULL;
-            #if (USE_FRIBIDI==1)
-                free( m_bidi_ctypes );
-                free( m_bidi_btypes );
-                free( m_bidi_levels );
-                m_bidi_ctypes = NULL;
-                m_bidi_btypes = NULL;
-                m_bidi_levels = NULL;
-            #endif
-            m_staticBufs = true;
-            // printf("freeing dynamic buffers\n");
-        }
-        else {
-            m_staticBufs_inUse = false;
-            // printf("releasing static buffers\n");
-        }
+        free( m_text );
+        free( m_flags );
+        free( m_srcs );
+        free( m_charindex );
+        free( m_widths );
+        m_text = NULL;
+        m_flags = NULL;
+        m_srcs = NULL;
+        m_charindex = NULL;
+        m_widths = NULL;
+#if (USE_FRIBIDI==1)
+        free( m_bidi_ctypes );
+        free( m_bidi_btypes );
+        free( m_bidi_levels );
+        m_bidi_ctypes = NULL;
+        m_bidi_btypes = NULL;
+        m_bidi_levels = NULL;
+#endif
     }
 
     /// format source data
@@ -5521,7 +5477,6 @@ public:
     }
 };
 
-bool LVFormatter::m_staticBufs_inUse = false;
 #if (USE_LIBUNIBREAK==1)
 bool LVFormatter::m_libunibreak_init_done = false;
 #endif
