@@ -1,3 +1,5 @@
+#if 0
+
 #include <stdlib.h>
 #include "crconcurrent.h"
 #include "lvptrvec.h"
@@ -90,3 +92,5 @@ void CRThreadExecutor::stop() {
     }
     _thread->join();
 }
+
+#endif

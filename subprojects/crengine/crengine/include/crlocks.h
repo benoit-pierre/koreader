@@ -1,6 +1,8 @@
 #ifndef CRLOCKS_H
 #define CRLOCKS_H
 
+#if 0
+
 #include "lvautoptr.h"
 
 class CRMutex {
@@ -50,7 +52,6 @@ public:
     ~CRGuard() { if (mutex) mutex->release(); }
 };
 
-
 extern CRMutex * _refMutex;
 extern CRMutex * _fontMutex;
 extern CRMutex * _fontManMutex;
@@ -73,5 +74,16 @@ extern CRMutex * _crengineMutex;
 
 /// call to create mutexes for different parts of CoolReader engine
 void CRSetupEngineConcurrency();
+
+#else
+
+#define REF_GUARD
+#define FONT_GUARD
+#define FONT_MAN_GUARD
+#define FONT_GLYPH_CACHE_GUARD
+#define FONT_LOCAL_GLYPH_CACHE_GUARD
+#define CRENGINE_GUARD
+
+#endif
 
 #endif // CRLOCKS_H
