@@ -95,8 +95,8 @@ public:
 
     LVHashTable( int size )
     {
-        if (size < 16 )
-            size = 16;
+        if (size < _MIN_SIZE )
+            size = _MIN_SIZE;
         _table = new pair* [ size ]();
         _size = size;
         _count = 0;
@@ -127,8 +127,10 @@ public:
     int size() { return _size; }
     void resize( int nsize )
     {
-        if (nsize < 16 )
-            nsize = 16;
+        if (nsize < _MIN_SIZE )
+            nsize = _MIN_SIZE;
+        if (nsize == _size)
+            return;
         pair ** new_table = new pair * [ nsize ]();
 		if (_table) {
 			for ( int i=0; i<_size; i++ ) {
@@ -164,11 +166,8 @@ public:
             resize( _size * 2 );
             index = getHash( key ) % ( _size );
             p = &_table[index];
-            for ( ;*p ;p = &(*p)->next )
-            {
-            }
         }
-        *p = new pair( key, value, NULL );
+        *p = new pair( key, value, *p );
         _count++;
     }
     void remove( const keyT & key )
@@ -225,6 +224,7 @@ private:
     int _size;
     int _count;
     pair ** _table;
+    static constexpr int _MIN_SIZE = 16;
 };
 
 
