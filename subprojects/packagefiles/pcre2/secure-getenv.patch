@@ -12,30 +12,39 @@ diff --git a/config-cmake.h.in b/config-cmake.h.in
 diff --git a/meson.build b/meson.build
 --- a/meson.build
 +++ b/meson.build
-@@ -119,6 +119,7 @@ check_funs = [
+@@ -127,7 +127,6 @@ check_funs = [
+   'memfd_create',
    'memmove',
    'realpath',
-   'secure_getenv',
-+  '__secure_getenv',
+-  'secure_getenv',
    'strerror',
  ]
  
-diff --git a/src/sljit/sljitProtExecAllocator.c b/src/sljit/sljitProtExecAllocator.c
---- a/src/sljit/sljitProtExecAllocator.c
-+++ b/src/sljit/sljitProtExecAllocator.c
-@@ -97,10 +97,14 @@ struct chunk_header {
- #define O_TMPFILE 020200000
+@@ -137,6 +136,12 @@ foreach f : check_funs
+   endif
+ endforeach
+ 
++if c_compiler.has_function('secure_getenv', args: '-D_GNU_SOURCE')
++  cdata.set10('HAVE_SECURE_GETENV', true)
++elif c_compiler.has_function('__secure_getenv', args: '-D_GNU_SOURCE')
++  cdata.set10('HAVE___SECURE_GETENV', true)
++endif
++
+ cdata.set10('SUPPORT_PCRE2_8', true)
+ cdata.set10('SUPPORT_PCRE2_16', true)
+ cdata.set10('SUPPORT_PCRE2_32', true)
+diff --git a/src/sljit/allocator_src/sljitProtExecAllocatorPosix.c b/src/sljit/allocator_src/sljitProtExecAllocatorPosix.c
+--- a/src/sljit/allocator_src/sljitProtExecAllocatorPosix.c
++++ b/src/sljit/allocator_src/sljitProtExecAllocatorPosix.c
+@@ -45,7 +45,10 @@ struct sljit_chunk_header {
+ #define O_TMPFILE 0x404000
  #endif
  
 -#ifndef _GNU_SOURCE
-+#ifndef HAVE_SECURE_GETENV
-+#ifdef HAVE___SECURE_GETENV
++#if defined(HAVE_SECURE_GETENV)
++#elif defined(HAVE___SECURE_GETENV)
 +#define secure_getenv  __secure_getenv
 +#else
  char *secure_getenv(const char *name);
  int mkostemp(char *template, int flags);
  #endif
-+#endif
- 
- static SLJIT_INLINE int create_tempfile(void)
- {
