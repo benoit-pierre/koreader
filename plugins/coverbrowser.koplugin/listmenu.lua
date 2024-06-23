@@ -35,6 +35,15 @@ local getMenuText = require("ui/widget/menu").getMenuText
 
 local BookInfoManager = require("bookinfomanager")
 
+-- Available dotbar display modes
+local DOTBAR_DEFAULT_MODE = 'graphical_1'
+local DOTBAR_MODES = {
+    graphical_1 = {'⦁', '∙'},
+    graphical_2 = {'⦁', '⚬'},
+    graphical_3 = {'⬧', '⬨'},
+    graphical_4 = {'◾', '◽'},
+}
+
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)
 
@@ -281,6 +290,12 @@ function ListMenuItem:update()
                 bookinfo = nil
             end
         end
+        if bookinfo and self.do_raw_text_length then
+            -- Ask for raw text length extraction if page count is not available.
+            if not bookinfo.pages and not bookinfo.raw_text_length then
+                bookinfo = nil
+            end
+        end
 
         if bookinfo then -- This book is known
             self.bookinfo_found = true
@@ -361,7 +376,7 @@ function ListMenuItem:update()
             if not self.menu.cover_info_cache then
                 self.menu.cover_info_cache = {}
             end
-            local pages_str = ""
+            local pages_str
             local pages = bookinfo.pages -- default to those in bookinfo db
             local percent_finished, status, has_highlight
             if DocSettings:hasSidecarFile(self.filepath) then
@@ -411,6 +426,13 @@ function ListMenuItem:update()
             else
                 if pages then
                     pages_str = T(N_("1 page", "%1 pages", pages), pages)
+                else
+                    local length = bookinfo:get_estimated_length(true)
+                    if length then
+                        pages_str = "~" .. T(N_("1 page", "%1 pages", length), length)
+                    else
+                        pages_str = ""
+                    end
                 end
             end
 
@@ -418,9 +440,53 @@ function ListMenuItem:update()
             ┌───────┐┌───────────────────────────────────────────┐┌─────────────┐
             │ Cover ││ Title                                     ││ Progress    │
             │       ││ Authors                                   ││ Format/Size │
-            ├─┐     ││                                           ││             │
-            └─┴─────┘└───────────────────────────────────────────┘└─────────────◸
+            ├─┐     │╞═══════════════════════════════════════════╧╧════════════╤╛
+            └─┴─────┘└─────┬───────────────────────────────────────────────────┘◸
+                           ╰╴Length / progress dots
             --]]
+
+            local wmain_left_padding = Screen:scaleBySize(10)
+            if self.do_cover_image then
+                -- we need less padding, as cover image, most often in
+                -- portrait mode, will provide some padding
+                wmain_left_padding = Screen:scaleBySize(5)
+            end
+            local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation
+
+            -- Graphical dotbar
+
+            local wdotbar
+            local wdotbar_height = 0
+
+            if BookInfoManager:getSetting("dotbar_show", false) then
+                local dots_str
+                local length = bookinfo:get_estimated_length() or bookinfo.pages or pages
+                if length then
+                    local pages_per_dot = BookInfoManager:getSetting("dotbar_pages_per_dot", 100)
+                    local dotbar_mode = BookInfoManager:getSetting("dotbar_mode")
+                    local indicators = DOTBAR_MODES[dotbar_mode] or DOTBAR_MODES[DOTBAR_DEFAULT_MODE]
+                    local num_chars = math.floor((length + pages_per_dot - 1) / pages_per_dot)
+                    local completed = percent_finished and math.floor(percent_finished * num_chars) or 0
+                    dots_str = string.rep(indicators[1], completed) .. string.rep(indicators[2], num_chars - completed)
+                end
+                if dots_str then
+                    local status_face = Font:getFace("cfont", _fontSize(14, 16))
+                    local max_width = dimen.w - wleft_width - wmain_left_padding - wmain_right_padding
+                    if corner_mark and self.do_hint_opened and self.been_opened then
+                        max_width = max_width - corner_mark:getSize().w
+                    end
+                    local face_height, __ = status_face.ftsize:getHeightAndAscender()
+                    local line_height = 1 - face_height / status_face.size -- unscaled_size_check: ignore
+                    wdotbar = TextBoxWidget:new{
+                        text = dots_str,
+                        face = status_face,
+                        line_height = line_height,
+                        fgcolor = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil,
+                        width = max_width,
+                    }
+                    wdotbar_height = wdotbar:getSize().h
+                end
+            end
 
             -- Build the right widget
 
@@ -436,6 +502,7 @@ function ListMenuItem:update()
                     text = fileinfo_str,
                     face = Font:getFace("cfont", fontsize_info),
                     fgcolor = fgcolor,
+                    padding = 0,
                 }
                 table.insert(wright_items, wfileinfo)
             end
@@ -445,6 +512,7 @@ function ListMenuItem:update()
                     text = pages_str,
                     face = Font:getFace("cfont", fontsize_info),
                     fgcolor = fgcolor,
+                    padding = 0,
                 }
                 table.insert(wright_items, wpageinfo)
             end
@@ -454,7 +522,7 @@ function ListMenuItem:update()
                     wright_width = math.max(wright_width, w:getSize().w)
                 end
                 wright = CenterContainer:new{
-                    dimen = Geom:new{ w = wright_width, h = dimen.h },
+                    dimen = Geom:new{ w = wright_width, h = dimen.h - wdotbar_height },
                     VerticalGroup:new(wright_items),
                 }
                 wright_right_padding = Screen:scaleBySize(10)
@@ -477,13 +545,6 @@ function ListMenuItem:update()
             end
 
             -- Build the middle main widget, in the space available
-            local wmain_left_padding = Screen:scaleBySize(10)
-            if self.do_cover_image then
-                -- we need less padding, as cover image, most often in
-                -- portrait mode, will provide some padding
-                wmain_left_padding = Screen:scaleBySize(5)
-            end
-            local wmain_right_padding = Screen:scaleBySize(10) -- used only for next calculation
             local wmain_width = dimen.w - wleft_width - wmain_left_padding - wmain_right_padding - wright_width - wright_right_padding
 
             local fontname_title = "cfont"
@@ -609,7 +670,7 @@ function ListMenuItem:update()
                     build_authors()
                     height = height + wauthors:getSize().h
                 end
-                if height <= dimen.h then
+                if height + wdotbar_height <= dimen.h then
                     -- We fit!
                     break
                 end
@@ -623,7 +684,7 @@ function ListMenuItem:update()
                     local authors_min_height = 2 * authors_line_height -- unscaled_size_check: ignore
                     -- Chop lines, starting with authors, until
                     -- both labels fit in the allocated space.
-                    while title_height + authors_height > dimen.h do
+                    while title_height + authors_height + wdotbar_height > dimen.h do
                         if authors_height > authors_min_height then
                             authors_height = authors_height - authors_line_height
                         elseif title_height > title_min_height then
@@ -657,19 +718,31 @@ function ListMenuItem:update()
                 -- mode cover image will be stuck to screen side thus
                 table.insert(widget, wleft)
             end
-            -- add padded main widget
-            table.insert(widget, HorizontalSpan:new{ width = wmain_left_padding })
-            table.insert(widget, VerticalGroup:new{
-                dimen = Geom:new{ w = wmain_width, h = dimen.h },
+            local container
+            if wdotbar then
+                table.insert(widget, HorizontalSpan:new{ width = wmain_left_padding })
+                container = HorizontalGroup:new{
+                    dimen = Geom:new{ w = dimen.w - wleft_width - wmain_left_padding, h = dimen.h },
+                }
+                table.insert(widget, VerticalGroup:new{
+                    dimen = Geom:new{ w = dimen.w - wleft_width, h = dimen.h - wdotbar_height },
+                    align = "left",
+                    container,
+                    wdotbar,
+                })
+            else
+                container = widget
+            end
+            table.insert(container, VerticalGroup:new{
+                dimen = Geom:new{ w = wmain_width, h = dimen.h - wdotbar_height },
                 wtitle,
                 wauthors,
             })
-            table.insert(widget, HorizontalSpan:new{ width = wmain_right_padding })
+            table.insert(container, HorizontalSpan:new{ width = wmain_right_padding })
             -- add right widget
             if wright then
-                table.insert(widget, wright)
+                table.insert(container, wright)
             end
-
         else -- bookinfo not found
             if self.init_done then
                 -- Non-initial update(), but our widget is still not found:
@@ -871,7 +944,10 @@ end
 
 -- Simple holder of methods that will replace those
 -- in the real Menu class or instance
-local ListMenu = {}
+local ListMenu = {
+  DOTBAR_DEFAULT_MODE = DOTBAR_DEFAULT_MODE,
+  DOTBAR_MODES = DOTBAR_MODES,
+}
 
 function ListMenu:_recalculateDimen()
     self.portrait_mode = Screen:getWidth() <= Screen:getHeight()
@@ -991,6 +1067,7 @@ function ListMenu:_updateItemsBuildUI()
                 do_cover_image = self._do_cover_images,
                 do_hint_opened = self._do_hint_opened,
                 do_filename_only = self._do_filename_only,
+                do_raw_text_length = self._do_raw_text_length,
             }
         table.insert(self.item_group, item_tmp)
         table.insert(self.item_group, line_widget)

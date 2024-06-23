@@ -17,9 +17,10 @@ local time = require("ui/time")
 local _ = require("gettext")
 local N_ = _.ngettext
 local T = FFIUtil.template
+local Math = require("optmath")
 
 -- Database definition
-local BOOKINFO_DB_VERSION = 20201210
+local BOOKINFO_DB_VERSION = 20230813
 local BOOKINFO_DB_SCHEMA = [[
     -- To cache book cover and metadata
     CREATE TABLE IF NOT EXISTS bookinfo (
@@ -48,6 +49,7 @@ local BOOKINFO_DB_SCHEMA = [[
 
         -- Book info
         pages               INTEGER,
+        raw_text_length     INTEGER,  -- 0 if asked for but not available
 
         -- Metadata (only these are returned by the engines)
         title               TEXT,
@@ -88,6 +90,7 @@ local BOOKINFO_COLS_SET = {
         "ignore_meta",
         "ignore_cover",
         "pages",
+        "raw_text_length",
         "title",
         "authors",
         "series",
@@ -101,6 +104,13 @@ local BOOKINFO_COLS_SET = {
         "cover_bb_stride",
         "cover_bb_data",
     }
+
+-- Convert cdata<int64_t> to lua number, see:
+-- http://scilua.org/ljsqlite3.html "SQLite Type Mappings"
+local BOOKINFO_COL_CONV = {
+    pages = tonumber,
+    raw_text_length = tonumber,
+}
 
 local bookinfo_values_sql = {} -- for "VALUES (?, ?, ?,...)" insert sql part
 for i=1, #BOOKINFO_COLS_SET do
@@ -273,11 +283,15 @@ function BookInfoManager:loadSettings(db_conn)
     end
 end
 
-function BookInfoManager:getSetting(key)
+function BookInfoManager:getSetting(key, default)
     if not self.settings then
         self:loadSettings()
     end
-    return self.settings[key]
+    local value = self.settings[key]
+    if (value == nil or value == '') and default ~= nil then
+        value = default
+    end
+    return value
 end
 
 function BookInfoManager:saveSetting(key, value, db_conn, skip_reload)
@@ -313,10 +327,37 @@ function BookInfoManager:saveSetting(key, value, db_conn, skip_reload)
     end
 end
 
-function BookInfoManager:toggleSetting(key)
-    local value = not self:getSetting(key)
+function BookInfoManager:toggleSetting(key, default)
+    local value = self:getSetting(key, default)
+    value = not value or value == ""
     self:saveSetting(key, value)
     return value
+end
+
+local function get_estimated_length(bookinfo, round)
+    local pages
+    if not bookinfo.raw_text_length or bookinfo.raw_text_length == 0 then
+        return
+    end
+    local chars_per_synthetic_page = BookInfoManager:getSetting("chars_per_synthetic_page") or 1024
+    pages = math.ceil(bookinfo.raw_text_length / chars_per_synthetic_page)
+    if not round then
+        return pages
+    end
+    if pages >= 5000 then -- 6878 => 7000
+        pages = Math.round(pages / 1000) * 1000
+    elseif pages >= 1000 then -- 1555 => 1500
+        pages = Math.round(pages / 500) * 500
+    elseif pages >= 500 then -- 879 => 900
+        pages = Math.round(pages / 100) * 100
+    elseif pages >= 100 then -- 333 => 350
+        pages = Math.round(pages / 50) * 50
+    elseif pages >= 50 then -- 66 => 70
+        pages = Math.round(pages / 10) * 10
+    elseif pages >= 10 then -- 23 => 25
+        pages = Math.round(pages / 5) * 5
+    end
+    return pages
 end
 
 -- Bookinfo management
@@ -342,6 +383,7 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
             has_cover = nil,
             ignore_meta = "Y",
             ignore_cover = "Y",
+            get_estimated_length = function () end,
             -- for CoverMenu to *not* extend the onHold dialog:
             _is_directory = is_directory,
             -- for ListMenu to show the filename *with* suffix:
@@ -361,9 +403,9 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
 
     local bookinfo = {}
     for num, col in ipairs(BOOKINFO_COLS_SET) do
-        if col == "pages" then
-            -- See http://scilua.org/ljsqlite3.html "SQLite Type Mappings"
-            bookinfo[col] = tonumber(row[num]) -- convert cdata<int64_t> to lua number
+        local conv = BOOKINFO_COL_CONV[col]
+        if conv then
+            bookinfo[col] = conv(row[num])
         else
             bookinfo[col] = row[num] -- as is
         end
@@ -398,10 +440,14 @@ function BookInfoManager:getBookInfo(filepath, get_cover)
     end
 
     self.get_stmt:clearbind():reset() -- get ready for next query
+
+    bookinfo.get_estimated_length = get_estimated_length
+
     return bookinfo
 end
 
 function BookInfoManager:extractBookInfo(filepath, cover_specs)
+    local metadata_extraction = self:getSetting("metadata_extraction")
     local directory, filename = util.splitFilePathName(filepath)
 
     -- Initialize the new row that we will INSERT
@@ -462,23 +508,23 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     if document then
         local pages
         if document.loadDocument then -- needed for crengine
-            if not document:loadDocument(false) then -- load only metadata
-                -- failed loading, calling other methods would segfault
-                loaded = false
+            local loading_mode
+            if metadata_extraction == 'raw_text_length' then
+                loading_mode = 8
+            else
+                loading_mode = 1
             end
-            -- For CreDocument, we would need to call document:render()
-            -- to get nb of pages, but the nb obtained by simply calling
-            -- here document:getPageCount() is wrong, often 2 to 3 times
-            -- the nb of pages we see when opening the document (may be
-            -- some other cre settings should be applied before calling
-            -- render() ?)
+            loaded = document:loadDocument(loading_mode)
         else
-            -- for all others than crengine, we seem to get an accurate nb of pages
             pages = document:getPageCount()
         end
         if loaded then
+            local props = document:getProps()
             dbrow.pages = pages
-            local props = FileManagerBookInfo.extendProps(document:getProps(), filepath)
+            if metadata_extraction == 'raw_text_length' then
+                dbrow.raw_text_length = props.raw_text_length
+            end
+            props = FileManagerBookInfo.extendProps(props, filepath)
             if next(props) then -- there's at least one item
                 dbrow.has_meta = 'Y'
             end
@@ -966,6 +1012,46 @@ function BookInfoManager.isCachedCoverInvalid(bookinfo, cover_specs)
             return true
         end
     end
+end
+
+function BookInfoManager:calculateCharactersPerSyntheticPage()
+    if lfs.attributes(self.db_location, "mode") ~= "file" then
+        -- no db
+        return
+    end
+    self:openDbConnection()
+    local res = self.db_conn:exec([[
+        SELECT directory, filename, raw_text_length
+        FROM bookinfo WHERE raw_text_length > 0
+        ORDER BY directory;
+    ]])
+    if not res then
+        return
+    end
+    local DocSettings = require("docsettings")
+    local filenames = res[2]
+    local raw_text_lengths = res[3]
+    local accumulator = 0.0
+    local count = 0
+    for i, directory in ipairs(res[1]) do
+        local filepath = directory..'/'..filenames[i]
+        if DocSettings:hasSidecarFile(filepath) then
+            local docinfo = DocSettings:open(filepath)
+            local pages
+            if docinfo.data.doc_pages then
+                pages = docinfo.data.doc_pages
+            elseif docinfo.data.stats and docinfo.data.stats.pages then
+                if docinfo.data.stats.pages ~= 0 then -- crengine with statistics disabled stores 0
+                    pages = docinfo.data.stats.pages
+                end
+            end
+            if pages and pages > 0 then
+                accumulator = accumulator + tonumber(raw_text_lengths[i]) / pages
+                count = count + 1
+            end
+        end
+    end
+    return Math.round(accumulator / count)
 end
 
 BookInfoManager:init()
