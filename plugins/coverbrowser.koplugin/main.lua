@@ -513,6 +513,16 @@ function CoverBrowser:addToMainMenu(menu_items)
                     BookInfoManager:toggleSetting("hide_file_info")
                     fc:updateItems(1, true)
                 end,
+            },
+            {
+                text = _("Fixed font size"),
+                checked_func = function()
+                    return BookInfoManager:getSetting("fixed_font_size")
+                end,
+                callback = function()
+                    BookInfoManager:toggleSetting("fixed_font_size")
+                    self:refreshFileManagerInstance()
+                end,
                 separator = true,
             },
             {

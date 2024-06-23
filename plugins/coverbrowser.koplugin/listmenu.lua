@@ -554,6 +554,8 @@ function ListMenuItem:update()
             local wtitle, wauthors
             local title, authors
             local series_mode = BookInfoManager:getSetting("series_mode")
+            local fixed_font_size = BookInfoManager:getSetting("fixed_font_size")
+            local reduce_font_size = fixed_font_size and series_mode == "series_in_separate_line"
 
             -- whether to use or not title and authors
             -- (We wrap each metadata text with BD.auto() to get for each of them
@@ -583,8 +585,7 @@ function ListMenuItem:update()
                     end
                     authors = table.concat(authors, "\n")
                     -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
-                    fontsize_title = _fontSize(17, 21)
-                    fontsize_authors = _fontSize(15, 19)
+                    reduce_font_size = reduce_font_size or not fixed_font_size
                 elseif authors then
                     authors = BD.auto(authors)
                 end
@@ -613,14 +614,17 @@ function ListMenuItem:update()
                     elseif series_mode == "series_in_separate_line" then
                         authors = bookinfo.series .. "\n" .. authors
                         -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
-                        fontsize_title = _fontSize(17, 21)
-                        fontsize_authors = _fontSize(15, 19)
+                        reduce_font_size = reduce_font_size or not fixed_font_size
                     end
                 end
             end
             if bookinfo.unsupported then
                 -- Let's show this fact in place of the anyway empty authors slot
                 authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
+            end
+            if reduce_font_size then
+                fontsize_title = _fontSize(17, 21)
+                fontsize_authors = _fontSize(15, 19)
             end
             -- Build title and authors texts with decreasing font size
             -- till it fits in the space available
@@ -675,7 +679,7 @@ function ListMenuItem:update()
                     break
                 end
                 -- Don't go too low, and get out of this loop.
-                if fontsize_title <= 12 or fontsize_authors <= 10 then
+                if fixed_font_size or fontsize_title <= 12 or fontsize_authors <= 10 then
                     local title_height = wtitle:getSize().h
                     local title_line_height = wtitle:getLineHeight()
                     local title_min_height = 2 * title_line_height -- unscaled_size_check: ignore
