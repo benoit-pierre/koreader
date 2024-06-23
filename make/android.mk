@@ -109,7 +109,7 @@ update: all update-git-rev
 	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
 	cp -av $(INSTALL_DIR)/koreader/sdcv $(LJL_LIBS_DIR)/$(ANDROID_ABI)/libsdcv.so
 	# Module map.
-	printf '%s\n' 'libs .' 'sdcv libsdcv.so' >$(LJL_ASSETS_DIR)/module/map.txt
+	printf '%s\n' 'libs .' >$(LJL_ASSETS_DIR)/module/map.txt
 	# Shared libraries are stored as platform libraries
 	cp -av $(INSTALL_DIR)/koreader/libs/* $(LJL_LIBS_DIR)/$(ANDROID_ABI)/
 	env \
