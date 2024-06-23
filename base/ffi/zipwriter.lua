@@ -14,7 +14,7 @@ local ffi = require "ffi"
 require "ffi/zlib_h"
 
 -- We only need to wrap 2 zlib functions to make a zip file
-local _zlib = ffi.load(ffi.os == "Windows" and "zlib1" or "z")
+local _zlib = ffi.loadlib("z")
 local function zlibCompress(data)
     local n = _zlib.compressBound(#data)
     local buf = ffi.new("uint8_t[?]", n)
