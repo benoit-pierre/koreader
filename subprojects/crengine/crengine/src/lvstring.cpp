@@ -638,7 +638,7 @@ lString32 & lString32::assign(const lChar32 * str)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
+                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
                 pchunk->size = len;
             }
         }
@@ -667,7 +667,7 @@ lString32 & lString32::assign(const lChar8 * str)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
+                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
                 pchunk->size = len;
             }
         }
@@ -696,7 +696,7 @@ lString32 & lString32::assign(const lChar32 * str, size_type count)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
+                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
                 pchunk->size = len;
             }
         }
@@ -725,7 +725,7 @@ lString32 & lString32::assign(const lChar8 * str, size_type count)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(len+1) );
+                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
                 pchunk->size = len;
             }
         }
@@ -770,7 +770,7 @@ lString32 & lString32::assign(const lString32 & str, size_type offset, size_type
                 if (pchunk->size < count)
                 {
                     // resize is necessary
-                    pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(count+1) );
+                    pchunk->buf32 = cr_realloc( pchunk->buf32, count+1 );
                     pchunk->size = count;
                 }
             }
@@ -822,7 +822,7 @@ void lString32::reserve(size_type n)
     {
         if (pchunk->size < n)
         {
-            pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(n+1) );
+            pchunk->buf32 = cr_realloc( pchunk->buf32, n+1 );
             pchunk->size = n;
         }
     }
@@ -869,7 +869,7 @@ void lString32::resize(size_type n, lChar32 e)
     lock( n );
     if (pchunk->size < n)
     {
-        pchunk->buf32 = (lChar32*) ::realloc( pchunk->buf32, sizeof(lChar32)*(n+1) );
+        pchunk->buf32 = cr_realloc( pchunk->buf32, n+1 );
         pchunk->size = n;
     }
     // fill with data if expanded
@@ -1804,7 +1804,7 @@ lString8 & lString8::assign(const lChar8 * str)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(len+1) );
+                pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
                 pchunk->size = len;
             }
         }
@@ -1833,7 +1833,7 @@ lString8 & lString8::assign(const lChar8 * str, size_type count)
             if (pchunk->size < len)
             {
                 // resize is necessary
-                pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(len+1) );
+                pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
                 pchunk->size = len;
             }
         }
@@ -1878,7 +1878,7 @@ lString8 & lString8::assign(const lString8 & str, size_type offset, size_type co
                 if (pchunk->size < count)
                 {
                     // resize is necessary
-                    pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(count+1) );
+                    pchunk->buf8 = cr_realloc( pchunk->buf8, count+1 );
                     pchunk->size = count;
                 }
             }
@@ -1930,7 +1930,7 @@ void lString8::reserve(size_type n)
     {
         if (pchunk->size < n)
         {
-            pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(n+1) );
+            pchunk->buf8 = cr_realloc( pchunk->buf8, n+1 );
             pchunk->size = n;
         }
     }
@@ -1977,7 +1977,7 @@ void lString8::resize(size_type n, lChar8 e)
     lock( n );
     if (pchunk->size < n)
     {
-        pchunk->buf8 = (lChar8*) ::realloc( pchunk->buf8, sizeof(lChar8)*(n+1) );
+        pchunk->buf8 = cr_realloc( pchunk->buf8, n+1 );
         pchunk->size = n;
     }
     // fill with data if expanded
