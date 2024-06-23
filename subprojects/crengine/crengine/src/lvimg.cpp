@@ -2922,38 +2922,6 @@ public:
     }
 };
 
-/// creates decoded memory copy of image, if it's unpacked size is less than maxSize
-LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, bool gray )
-{
-    if ( srcImage.isNull() )
-        return srcImage;
-    const int dx = srcImage->GetWidth();
-    const int dy = srcImage->GetHeight();
-    const int sz = dx*dy * (gray?1:4);
-    if ( sz>maxSize )
-        return srcImage;
-    CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
-    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, gray ? 8 : 32 );
-    CRLog::trace("Unpacking done");
-    return LVImageSourceRef( img );
-}
-
-/// creates decoded memory copy of image, if it's unpacked size is less than maxSize
-LVImageSourceRef LVCreateUnpackedImageSource( LVImageSourceRef srcImage, int maxSize, int bpp )
-{
-    if ( srcImage.isNull() )
-        return srcImage;
-    const int dx = srcImage->GetWidth();
-    const int dy = srcImage->GetHeight();
-    const int sz = dx*dy * (bpp>>3);
-    if ( sz>maxSize )
-        return srcImage;
-    CRLog::trace("Unpacking image %dx%d (%d)", dx, dy, sz);
-    LVUnpackedImgSource * img = new LVUnpackedImgSource( srcImage, bpp );
-    CRLog::trace("Unpacking done");
-    return LVImageSourceRef( img );
-}
-
 LVImageSourceRef LVCreateDrawBufImageSource( LVColorDrawBuf * buf, bool own )
 {
     return LVImageSourceRef( new LVDrawBufImgSource( buf, own ) );
