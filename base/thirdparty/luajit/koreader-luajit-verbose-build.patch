@@ -1,0 +1,19 @@
+diff --git a/src/Makefile b/src/Makefile
+index 9bc109d8..1a38d2fe 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -597,10 +597,10 @@ endif
+ endif
+ endif
+ 
+-Q= @
+-E= @echo
+-#Q=
+-#E= @:
++#Q= @
++#E= @echo
++Q=
++E= @:
+ 
+ ##############################################################################
+ # Make targets.

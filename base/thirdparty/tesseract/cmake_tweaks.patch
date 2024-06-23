@@ -1,0 +1,49 @@
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -8,7 +8,7 @@
+ #
+ # ##############################################################################
+ 
+-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
++cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+ 
+ # In-source builds are disabled.
+ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
+@@ -407,6 +407,7 @@
+   endif(NOT Leptonica_FOUND)
+   include_directories(${Leptonica_INCLUDE_DIRS})
+ 
++  if(NOT DISABLE_TIFF)
+   check_leptonica_tiff_support()
+   if ((NOT LEPT_TIFF_RESULT EQUAL 0) AND LEPT_TIFF_COMPILE_SUCCESS)
+     message(NOTICE "Leptonica was build without TIFF support! Disabling TIFF support...")
+@@ -414,6 +415,7 @@
+   elseif(NOT ${CMAKE_VERSION} VERSION_LESS "3.25")
+     message(STATUS "Leptonica was build with TIFF support.")
+   endif()
++  endif()
+ 
+   # Check for optional libraries.
+   if(DISABLE_TIFF)
+@@ -846,12 +846,7 @@ if(CURL_FOUND)
+   endif()
+ endif(CURL_FOUND)
+ 
+-set_target_properties(
+-  libtesseract PROPERTIES VERSION
+-                          ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+-set_target_properties(
+-  libtesseract PROPERTIES SOVERSION
+-                          ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
++set_target_properties(libtesseract PROPERTIES SOVERSION ${VERSION_MAJOR})
+ 
+ set_target_properties(
+   libtesseract
+@@ -885,6 +885,6 @@
+ 
+ if(ANDROID)
+-  add_definitions(-DANDROID)
++  add_definitions(-DANDROID -DHAVE_ANDROID_GETCPUFAMILY)
+   find_package(CpuFeaturesNdkCompat REQUIRED)
+   target_include_directories(
+     libtesseract

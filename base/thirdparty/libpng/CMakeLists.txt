@@ -1,0 +1,26 @@
+list(APPEND PATCH_CMD COMMAND ${KO_PATCH} ${CMAKE_CURRENT_SOURCE_DIR}/math_library.patch)
+
+list(APPEND CMAKE_ARGS
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    # Project options.
+    -DPNG_DEBUG_POSTFIX=
+    -DPNG_FRAMEWORK=FALSE
+    -DPNG_TOOLS=FALSE
+    -DPNG_STATIC=FALSE
+    -DPNG_TESTS=FALSE
+)
+
+list(APPEND BUILD_CMD COMMAND ${KO_MAKE_PROGRAM})
+
+list(APPEND INSTALL_CMD COMMAND ${CMAKE_COMMAND} --install .)
+
+append_shared_lib_install_commands(INSTALL_CMD png16 VERSION 16)
+
+external_project(
+    URL https://github.com/pnggroup/libpng/archive/refs/tags/v1.6.41.tar.gz
+    URL_MD5 ea2484c0d6845e937bd03aefe33f15eb
+    PATCH_COMMAND ${PATCH_CMD}
+    CMAKE_ARGS ${CMAKE_ARGS}
+    BUILD_COMMAND ${BUILD_CMD}
+    INSTALL_COMMAND ${INSTALL_CMD}
+)
