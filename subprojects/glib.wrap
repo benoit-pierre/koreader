@@ -1,10 +1,10 @@
 [wrap-file]
-directory = glib-2.78.0
-source_url = https://download.gnome.org/sources/glib/2.78/glib-2.78.0.tar.xz
-source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/glib_2.78.0-1/glib-2.78.0.tar.xz
-source_filename = glib-2.78.0.tar.xz
-source_hash = 44eaab8b720877ce303c5540b657b126f12dc94972d9880b52959f43fb537b30
-wrapdb_version = 2.78.0-1
+directory = glib-2.78.1
+source_url = https://download.gnome.org/sources/glib/2.78/glib-2.78.1.tar.xz
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/glib_2.78.1-1/glib-2.78.1.tar.xz
+source_filename = glib-2.78.1.tar.xz
+source_hash = 915bc3d0f8507d650ead3832e2f8fb670fce59aac4d7754a7dab6f1e6fed78b2
+wrapdb_version = 2.78.1-1
 diff_files = 
 	glib/libglib-only.patch,
 	glib/android.patch
