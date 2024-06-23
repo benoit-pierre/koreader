@@ -1,0 +1,9 @@
+[wrap-git]
+directory = libk2pdfopt
+url = https://github.com/benoit-pierre/libk2pdfopt.git
+revision = 6ec29e1d9217421488d9544e06b59f6836c47a49
+depth = 1
+patch_directory = libk2pdfopt/overlay
+
+[provide]
+dependency_names = k2pdfopt
