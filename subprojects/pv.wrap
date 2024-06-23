@@ -1,13 +1,13 @@
 [wrap-file]
-directory = pv-1.8.9
-source_url = https://codeberg.org/a-j-wood/pv/releases/download/v1.8.9/pv-1.8.9.tar.gz
-source_hash = a0789d8f8c5a08faf370b5a07d1d936aeff9504a4f49da76d4164797ac4606e6
-source_filename = pv-1.8.9.tar.gz
-patch_filename = pv_1.8.9-1_patch.zip
-patch_url = https://wrapdb.mesonbuild.com/v2/pv_1.8.9-1/get_patch
-patch_hash = d9488818336a4fd4740432be450cf28afd39e9ccbba59917a711ce009ec9468a
-source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/pv_1.8.9-1/pv-1.8.9.tar.gz
-wrapdb_version = 1.8.9-1
+directory = pv-1.8.10
+source_url = https://codeberg.org/a-j-wood/pv/releases/download/v1.8.10/pv-1.8.10.tar.gz
+source_hash = d4c90c17cfcd44aa96b98237731e4f811e071d4c2052a689d2d81e6671f571b1
+source_filename = pv-1.8.10.tar.gz
+patch_filename = pv_1.8.10-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/pv_1.8.10-1/get_patch
+patch_hash = 7c352b14dadbc4e12ed15b838e8cc8ffe96d1fe66b9bec9b750be561cf7a762c
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/pv_1.8.10-1/pv-1.8.10.tar.gz
+wrapdb_version = 1.8.10-1
 
 [provide]
 program_names = 
