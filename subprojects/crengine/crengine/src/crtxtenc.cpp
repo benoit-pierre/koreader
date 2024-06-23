@@ -2070,7 +2070,7 @@ void MakeStatsForFile( const char * fname, const char * cp_name, const char * la
    if (!in)
       return;
    fseek( in, 0, SEEK_END );
-   int buf_size = ftell(in);
+   size_t buf_size = ftell(in);
    fseek( in, 0, SEEK_SET );
    unsigned char * buf = new unsigned char[buf_size];
    if ( fread(buf, 1, buf_size, in) != buf_size ) {
