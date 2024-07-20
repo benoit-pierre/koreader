@@ -35,8 +35,15 @@ jobs:
       - name: XCode version
         run: xcode-select -p
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          # Note: Python 3.12 removal of `distutils` breaks GLib's build.
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
+          python3 -m pip --disable-pip-version-check  install 'meson==1.4.1'
           wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/a669e3644cf22b29cbece31dbed2cfbf34e5f48e.zip
           unzip -j ninjatracing.zip '*/ninjatracing'
           install -m755 ninjatracing /usr/local/bin/
