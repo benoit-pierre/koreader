@@ -13,7 +13,7 @@ COVERAGE_REPORT = luacov.report.out
 $(INSTALL_DIR)/koreader/.luacov:
 	$(SYMLINK) .luacov $@
 
-coverage: $(INSTALL_DIR)/koreader/.luacov
+coverage: all test-data $(INSTALL_DIR)/koreader/.luacov
 	rm -f $(addprefix $(INSTALL_DIR)/koreader/,$(COVERAGE_STATS) $(COVERAGE_REPORT))
 	# Run tests.
 	$(RUNTESTS) $(INSTALL_DIR)/koreader front --coverage --exclude-tags=nocov $T
