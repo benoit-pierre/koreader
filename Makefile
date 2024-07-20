@@ -1,4 +1,4 @@
-PHONY = all android-ndk android-sdk base clean coverage distclean doc fetchthirdparty po pot re static-check test testbase testfront
+PHONY = all android-ndk android-sdk base clean coverage distclean doc fetchthirdparty po pot re static-check test test%
 SOUND = $(INSTALL_DIR)/%
 
 # koreader-base directory
@@ -97,31 +97,32 @@ endif
 
 base: base-all
 
-$(INSTALL_DIR)/koreader/.busted: .busted
-	$(SYMLINK) .busted $@
+test%: all test-data
+	$(RUNTESTS) $(INSTALL_DIR)/koreader $* $T
+
+test: testall
+
+COVERAGE_STATS = luacov.stats.out
+COVERAGE_REPORT = luacov.report.out
 
 $(INSTALL_DIR)/koreader/.luacov:
 	$(SYMLINK) .luacov $@
 
-testbase: base-test
-
-testfront: all test-data $(INSTALL_DIR)/koreader/.busted
-	# sdr files may have unexpected impact on unit testing
-	-rm -rf spec/unit/data/*.sdr
-	cd $(INSTALL_DIR)/koreader && $(BUSTED_LUAJIT) $(BUSTED_OVERRIDES) $(BUSTED_SPEC_FILE)
-
-test: testbase testfront
-
 coverage: $(INSTALL_DIR)/koreader/.luacov
-	-rm -rf $(INSTALL_DIR)/koreader/luacov.*.out
+	rm -f $(addprefix $(INSTALL_DIR)/koreader/,$(COVERAGE_STATS) $(COVERAGE_REPORT))
+	# Run tests.
+	$(RUNTESTS) $(INSTALL_DIR)/koreader front --coverage --exclude-tags=nocov $T
+	# Aggregate statistics.
 	cd $(INSTALL_DIR)/koreader && \
-		./luajit $(shell which busted) --output=gtest \
-			--sort-files \
-			--coverage --exclude-tags=nocov
-	# coverage report summary
-	cd $(INSTALL_DIR)/koreader && tail -n \
-		+$$(($$(grep -nm1 -e "^Summary$$" luacov.report.out|cut -d: -f1)-1)) \
-		luacov.report.out
+	    eval "$$($(LUAROCKS_BINARY) path)" && \
+	    test -r $(COVERAGE_STATS) || \
+	    ./luajit tools/merge_luacov_stats.lua $(COVERAGE_STATS) spec/.run/*/$(COVERAGE_STATS)
+	# Generate report.
+	cd $(INSTALL_DIR)/koreader && \
+	    eval "$$($(LUAROCKS_BINARY) path)" && \
+	    ./luajit -e 'r = require "luacov.runner"; r.run_report(r.configuration)' /dev/null
+	# Show a summary.
+	sed -n -e '/^Summary$$/{h;n;p;H;g;:_loop;p;n;b_loop}' $(INSTALL_DIR)/koreader/$(COVERAGE_REPORT)
 
 ifeq (,$(wildcard $(KOR_BASE)/Makefile))
 $(KOR_BASE)/Makefile: fetchthirdparty
