@@ -1,4 +1,4 @@
-PHONY = all android-ndk android-sdk base clean coverage distclean doc fetchthirdparty po pot re static-check test test%
+PHONY = all android-ndk android-sdk base clean distclean doc fetchthirdparty po pot re static-check
 SOUND = $(INSTALL_DIR)/%
 
 # koreader-base directory
@@ -97,33 +97,6 @@ endif
 
 base: base-all
 
-test%: all test-data
-	$(RUNTESTS) $(INSTALL_DIR)/koreader $* $T
-
-test: testall
-
-COVERAGE_STATS = luacov.stats.out
-COVERAGE_REPORT = luacov.report.out
-
-$(INSTALL_DIR)/koreader/.luacov:
-	$(SYMLINK) .luacov $@
-
-coverage: $(INSTALL_DIR)/koreader/.luacov
-	rm -f $(addprefix $(INSTALL_DIR)/koreader/,$(COVERAGE_STATS) $(COVERAGE_REPORT))
-	# Run tests.
-	$(RUNTESTS) $(INSTALL_DIR)/koreader front --coverage --exclude-tags=nocov $T
-	# Aggregate statistics.
-	cd $(INSTALL_DIR)/koreader && \
-	    eval "$$($(LUAROCKS_BINARY) path)" && \
-	    test -r $(COVERAGE_STATS) || \
-	    ./luajit tools/merge_luacov_stats.lua $(COVERAGE_STATS) spec/.run/*/$(COVERAGE_STATS)
-	# Generate report.
-	cd $(INSTALL_DIR)/koreader && \
-	    eval "$$($(LUAROCKS_BINARY) path)" && \
-	    ./luajit -e 'r = require "luacov.runner"; r.run_report(r.configuration)' /dev/null
-	# Show a summary.
-	sed -n -e '/^Summary$$/{h;n;p;H;g;:_loop;p;n;b_loop}' $(INSTALL_DIR)/koreader/$(COVERAGE_REPORT)
-
 ifeq (,$(wildcard $(KOR_BASE)/Makefile))
 $(KOR_BASE)/Makefile: fetchthirdparty
 endif
@@ -159,6 +132,11 @@ distclean: clean base-distclean
 
 re: clean
 	$(MAKE) all
+
+# Include emulator specific rules.
+ifneq (,$(EMULATE_READER))
+  include make/emulator.mk
+endif
 
 # Include target specific rules.
 ifneq (,$(wildcard make/$(TARGET).mk))
