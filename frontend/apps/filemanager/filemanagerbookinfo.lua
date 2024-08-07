@@ -269,6 +269,13 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
         end
     end
 
+    if book_props and not book_props.pages and book_props.get_estimated_length then
+        local length = book_props:get_estimated_length(true)
+        if length then
+            book_props.pages = '~' .. length
+        end
+    end
+
     return BookInfo.extendProps(book_props, file)
 end
 
