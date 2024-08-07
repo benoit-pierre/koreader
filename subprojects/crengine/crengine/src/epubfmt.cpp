@@ -1604,45 +1604,28 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // Return possibly multiple <dc:creator> (authors) and <dc:subject> (keywords)
         // as a single doc_props string with values separated by \n.
         // (these \n can be replaced on the lua side for the most appropriate display)
-        bool authors_set = false;
-        lString32 authors;
+        lString32Collection authors;
         // Iterate all package/metadata/creator
         lUInt16 creator_id = doc->getElementNameIndex(U"creator");
         for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != creator_id )
                 continue;
-            lString32 author = item->getText().trim();
-            if (authors_set) {
-                authors << "\n" << author;
-            }
-            else {
-                authors << author;
-                authors_set = true;
-            }
+            authors.add(item->getText().trim());
         }
-        m_doc_props->setString(DOC_PROP_AUTHORS, authors);
+        m_doc_props->setString(DOC_PROP_AUTHORS, authors.join('\n'));
 
         // There may be multiple <dc:subject> tags, which are usually used for keywords, categories
-        bool subjects_set = false;
-        lString32 subjects;
+        lString32Collection subjects;
         // Iterate all package/metadata/subject
         lUInt16 subject_id = doc->getElementNameIndex(U"subject");
         for (int i=0; i<nb_metadata_items; i++) {
             ldomNode * item = metadata->getChildNode(i);
             if ( item->getNodeId() != subject_id )
                 continue;
-            lString32 subject = item->getText().trim();
-            if (subjects_set) {
-                subjects << "\n" << subject;
-            }
-            else {
-                subjects << subject;
-                subjects_set = true;
-            }
+            subjects.add(item->getText().trim());
         }
-        m_doc_props->setString(DOC_PROP_KEYWORDS, subjects);
-        CRLog::info("Authors: %s Title: %s", LCSTR(authors), LCSTR(title));
+        m_doc_props->setString(DOC_PROP_KEYWORDS, subjects.join('\n'));
 
         // Return possibly multiple <dc:identifier> (identifiers)
         // as a single doc_props string with values in a key-value format (scheme:identifier) separated by ;
