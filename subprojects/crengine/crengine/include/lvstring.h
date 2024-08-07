@@ -13,9 +13,13 @@
 #ifndef __LV_STRING_H_INCLUDED__
 #define __LV_STRING_H_INCLUDED__
 
+#include <assert.h>
+#include <cinttypes>
+#include <math.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 #include "lvtypes.h"
 #include "lvplatform.h"
 #include "lvmemman.h"
@@ -1165,6 +1169,84 @@ inline lString8 operator + (const lString8 &s1, fmt::decimal v)
 inline lString8 operator + (const lString8 &s1, fmt::hex v)
     { lString8 s(s1); s.appendHex(v.get()); return s; }
 
+inline int lStr_len(const lString8 & str) {
+    return str.length();
+}
+inline int lStr_len(const lString32 & str) {
+    return str.length();
+}
+
+inline int _concat_len(const char c) {
+    return 1;
+}
+inline int _concat_len(const lChar32 c) {
+    return 1;
+}
+inline int _concat_len(const fmt::decimal &d) {
+    lInt64 v = d.get();
+    if (!v)
+        return 1;
+    int l = 0;
+    if (v < 0) {
+        l = 1;
+        v = -v;
+    }
+    return l + ceil(log10(v + 1));
+}
+template<typename T>
+inline int _concat_len(const T &s) {
+    return lStr_len(s);
+}
+// Character.
+inline void _concat_cpy(lChar32 *p, int *count, const lChar8 c) {
+    assert(*count == 1);
+    *p = c;
+}
+inline void _concat_cpy(lChar32 *p, int *count, const lChar32 c) {
+    assert(*count == 1);
+    *p = c;
+}
+// Raw string.
+inline void _concat_cpy(lChar32 *p, int *size, const lChar8 *s) {
+    lStr_memcpy(p, s, *size);
+}
+inline void _concat_cpy(lChar32 *p, int *size, const lChar32 *s) {
+    lStr_memcpy(p, s, *size);
+}
+// String.
+inline void _concat_cpy(lChar32 *p, int *size, const lString8 &s) {
+    lStr_memcpy(p, s.c_str(), *size);
+}
+inline void _concat_cpy(lChar32 *p, int *size, const lString32 &s) {
+    lStr_memcpy(p, s.c_str(), *size);
+}
+// Misc.
+inline void _concat_cpy(lChar32 *p, int *size, const fmt::decimal &d) {
+    lChar8 buf[*size + 1];
+    int c = snprintf(buf, sizeof (buf), "%" PRId64, d.get());
+    assert(c == *size);
+    lStr_memcpy(p, buf, c);
+}
+template<typename T, typename... Args>
+inline void _concat(lChar32 *p, int * size, const T &t) {
+    _concat_cpy(p, size, t);
+}
+template<typename T, typename... Args>
+inline void _concat(lChar32 *p, int * size, const T &t, const Args &... args) {
+    _concat_cpy(p, size, t);
+    _concat(p + *size, size + 1, args...);
+}
+// concat32("foo", 'b', …, "ar") → "foob…ar"
+template<typename... Args> inline lString32 concat32(Args... args) {
+    const int count = sizeof...(args);
+    int sizes[count] = {_concat_len(args)...};
+    int total_size = 0;
+    for (int n = 0; n < count; ++n)
+        total_size += sizes[n];
+    lString32 str(total_size, total_size);
+    _concat(str.modify(), sizes, args...);
+    return str;
+}
 
 /// fast 32-bit string character appender
 template <int BUFSIZE> class lStringBuf32 {
