@@ -53,37 +53,61 @@
 /// strlen for lChar32
 int lStr_len(const lChar32 * str);
 /// strlen for lChar8
-int lStr_len(const lChar8 * str);
+inline int lStr_len(const lChar8 * str) {
+    return strlen(str);
+}
 /// strnlen for lChar32
 int lStr_nlen(const lChar32 * str, int maxcount);
 /// strnlen for lChar8
-int lStr_nlen(const lChar8 * str, int maxcount);
+inline int lStr_nlen(const lChar8 * str, int maxcount) {
+    return strnlen(str, maxcount);
+}
 /// strcpy for lChar32
-int lStr_cpy(lChar32 * dst, const lChar32 * src);
+void lStr_cpy(lChar32 *__restrict__ dst, const lChar32 * __restrict__ src);
 /// strcpy for lChar32 -> lChar8
-int lStr_cpy(lChar32 * dst, const lChar8 * src);
+void lStr_cpy(lChar32 *__restrict__ dst, const lChar8 * __restrict__ src);
 /// strcpy for lChar8
-int lStr_cpy(lChar8 * dst, const lChar8 * src);
+inline void lStr_cpy(lChar8 *__restrict__ dst, const lChar8 * __restrict__ src) {
+    strcpy(dst, src);
+}
 /// strncpy for lChar32
-int lStr_ncpy(lChar32 * dst, const lChar32 * src, int maxcount);
+void lStr_ncpy(lChar32 * __restrict__ dst, const lChar32 * __restrict__ src, int maxcount);
+/// strncpy for lChar32 -> lChar8
+void lStr_ncpy(lChar32 * __restrict__ dst, const lChar8 * __restrict__ src, int maxcount);
 /// strncpy for lChar8
-int lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount);
+inline void lStr_ncpy(lChar8 * __restrict__ dst, const lChar8 * __restrict__ src, int maxcount) {
+    if (!memccpy(dst, src, '\0', maxcount))
+        dst[maxcount] = '\0';
+}
 /// memcpy for lChar32
-void   lStr_memcpy(lChar32 * dst, const lChar32 * src, int count);
+void lStr_memcpy(lChar32 * __restrict__ dst, const lChar32 * __restrict__ src, int count);
+void lStr_memcpy(lChar32 * __restrict__ dst, const lChar8 * __restrict__ src, int count);
 /// memcpy for lChar8
-void   lStr_memcpy(lChar8 * dst, const lChar8 * src, int count);
+inline void lStr_memcpy(lChar8 * __restrict__ dst, const lChar8 * __restrict__ src, int count) {
+    memcpy(dst, src, count);
+}
+/// memmove for lChar32
+void lStr_memmove(lChar32 * dst, const lChar32 * src, int count);
+/// memmove for lChar8
+inline void lStr_memmove(lChar8 * dst, const lChar8 * src, int count) {
+    memmove(dst, src, count);
+}
 /// memset for lChar32
-void   lStr_memset(lChar32 * dst, lChar32 value, int count);
+void lStr_memset(lChar32 * dst, lChar32 value, int count);
 /// memset for lChar8
-void   lStr_memset(lChar8 * dst, lChar8 value, int count);
+inline void lStr_memset(lChar8 * dst, lChar8 value, int count) {
+    memset(dst, value, count);
+}
 /// strcmp for lChar32
-int    lStr_cmp(const lChar32 * str1, const lChar32 * str2);
+int lStr_cmp(const lChar32 * str1, const lChar32 * str2);
 /// strcmp for lChar32 <> lChar8
-int    lStr_cmp(const lChar32 * str1, const lChar8 * str2);
+int lStr_cmp(const lChar32 * str1, const lChar8 * str2);
 /// strcmp for lChar8 <> lChar32
-int    lStr_cmp(const lChar8 * str1, const lChar32 * str2);
+int lStr_cmp(const lChar8 * str1, const lChar32 * str2);
 /// strcmp for lChar8
-int    lStr_cmp(const lChar8 * str1, const lChar8 * str2);
+inline int lStr_cmp(const lChar8 * str1, const lChar8 * str2) {
+    return strcmp(str1, str2);
+}
 /// convert string to uppercase
 void lStr_uppercase( lChar8 * str, int len );
 /// convert string to lowercase
