@@ -213,8 +213,8 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 
     if (!noDefaultDocument)
         // NOLINTNEXTLINE: Call to virtual function during construction
-        createDefaultDocument(cs32("No document"), lString32(
-                    U"Welcome to CoolReader! Please select file to open"));
+        createDefaultDocument(U"No document",
+                    U"Welcome to CoolReader! Please select file to open");
 
     m_font_size = scaleFontSizeForDPI(m_requested_font_size);
     m_font = fontMan->GetFont(m_font_size, 400, false, DEFAULT_FONT_FAMILY,
@@ -527,7 +527,7 @@ void LVDocView::updateDocStyleSheet() {
 void LVDocView::gatherStylesheetsMatchingRulesets( lUInt32 nodeDataIndex, lString8Collection & matches, bool with_m_stylesheet ) {
     matches.clear();
     if ( with_m_stylesheet )
-        matches.add(cs8("/* --- in main stylesheet and tweaks: --- */"));
+        matches.add("/* --- in main stylesheet and tweaks: --- */");
     ldomNode * node = m_doc->getTinyNode( nodeDataIndex );
     if ( node && node->isElement() ) {
         // Provide our useragent stylesheet, that we have (here only) as plain text
@@ -1088,12 +1088,13 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 	else
 		base_font_size = 24;
 	//CRLog::trace("drawCoverTo() - loading fonts...");
+	lString8 tmr("Times New Roman");
 	LVFontRef author_fnt(fontMan->GetFont(base_font_size, 700, false,
-            css_ff_serif, cs8("Times New Roman")));
+            css_ff_serif, tmr));
 	LVFontRef title_fnt(fontMan->GetFont(base_font_size + 4, 700, false,
-            css_ff_serif, cs8("Times New Roman")));
+            css_ff_serif, tmr));
 	LVFontRef series_fnt(fontMan->GetFont(base_font_size - 3, 400, true,
-            css_ff_serif, cs8("Times New Roman")));
+            css_ff_serif, tmr));
 	lString32 authors = getAltAuthorsOrAuthors();
 	lString32 title = getAltTitleOrTitle();
 	lString32 series = getAltSeriesOrSeries();
@@ -1415,11 +1416,11 @@ LVArray<int> & LVDocView::getSectionBounds( bool for_external_update ) {
 	m_section_bounds.clear();
 	m_section_bounds.add(0);
     // Get sections from FB2 books
-    ldomNode * body = m_doc->nodeFromXPath(cs32("/FictionBook/body[1]"));
+    ldomNode * body = m_doc->nodeFromXPath(U"/FictionBook/body[1]");
 	lUInt16 section_id = m_doc->getElementNameIndex(U"section");
     if (body == NULL) {
         // Get sections from EPUB books
-        body = m_doc->nodeFromXPath(cs32("/body[1]"));
+        body = m_doc->nodeFromXPath(U"/body[1]");
         section_id = m_doc->getElementNameIndex(U"DocFragment");
     }
 	int fh = GetFullHeight();
@@ -3259,7 +3260,7 @@ bool LVDocView::goLink(lString32 link, bool savePos) {
             m_doc_props->setHex(DOC_PROP_FILE_CRC32, stream->getcrc32());
 			// TODO: load document from stream properly
 			if (!LoadDocument(stream)) {
-                createDefaultDocument(cs32("Load error"), lString32(
+                createDefaultDocument(U"Load error", lString32(
                         "Cannot open file ") + filename);
 				return false;
 			}
@@ -4268,9 +4269,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportPDBDocument( m_stream, m_doc, m_callback, this, contentFormat );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading PDB format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading PDB format", U"Cannot open document" );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading PDB document") );
+                    m_callback->OnLoadFileError( U"Error reading PDB document" );
                 }
                 return false;
             } else {
@@ -4301,9 +4302,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportEpubDocument( m_stream, m_doc, m_callback, this, metadataOnly, fb2_elem_table, fb2_attr_table, fb2_ns_table );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading EPUB format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading EPUB format", U"Cannot open document" );
 				if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading EPUB document") );
+                    m_callback->OnLoadFileError( U"Error reading EPUB document" );
 				}
 				return false;
 			} else {
@@ -4339,9 +4340,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportFb3Document( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading FB3 format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading FB3 format", U"Cannot open document" );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading FB3 document") );
+                    m_callback->OnLoadFileError( U"Error reading FB3 document" );
                 }
                 return false;
             } else {
@@ -4371,9 +4372,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportDocXDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading DOCX format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading DOCX format", U"Cannot open document" );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading DOCX document") );
+                    m_callback->OnLoadFileError( U"Error reading DOCX document" );
                 }
                 return false;
             } else {
@@ -4403,9 +4404,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportOpenDocument(m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading DOCX format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading DOCX format", U"Cannot open document" );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading DOCX document") );
+                    m_callback->OnLoadFileError( U"Error reading DOCX document" );
                 }
                 return false;
             } else {
@@ -4437,9 +4438,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportCHMDocument( m_stream, m_doc, m_callback, this );
 			if ( !res ) {
 				setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading CHM format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading CHM format", U"Cannot open document" );
 				if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading CHM document") );
+                    m_callback->OnLoadFileError( U"Error reading CHM document" );
 				}
 				return false;
 			} else {
@@ -4470,9 +4471,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
             bool res = ImportWordDocument( m_stream, m_doc, m_callback, this );
             if ( !res ) {
                 setDocFormat( doc_format_none );
-                createDefaultDocument( cs32("ERROR: Error reading DOC format"), cs32("Cannot open document") );
+                createDefaultDocument( U"ERROR: Error reading DOC format", U"Cannot open document" );
                 if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("Error reading DOC document") );
+                    m_callback->OnLoadFileError( U"Error reading DOC document" );
                 }
                 return false;
             } else {
@@ -4575,7 +4576,7 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
 			{
 				Clear();
 				if ( m_callback ) {
-                    m_callback->OnLoadFileError( cs32("File with supported extension not found in archive.") );
+                    m_callback->OnLoadFileError( U"File with supported extension not found in archive." );
 				}
 				return false;
 			}
@@ -4920,11 +4921,11 @@ bool LVDocView::ParseDocument() {
         // unknown format (never reached)
         if (!parser) {
             setDocFormat( doc_format_none);
-            createDefaultDocument(cs32("ERROR: Unknown document format"),
-                    cs32("Cannot open document"));
+            createDefaultDocument(U"ERROR: Unknown document format",
+                    U"Cannot open document");
             if (m_callback) {
                 m_callback->OnLoadFileError(
-                        cs32("Unknown document format"));
+                        U"Unknown document format");
             }
             return false;
         }
@@ -4945,10 +4946,10 @@ bool LVDocView::ParseDocument() {
 		if (!parser->Parse()) {
 			delete parser;
 			if (m_callback) {
-                m_callback->OnLoadFileError(cs32("Bad document format"));
+                m_callback->OnLoadFileError(U"Bad document format");
 			}
-            createDefaultDocument(cs32("ERROR: Bad document format"),
-                    cs32("Cannot open document"));
+            createDefaultDocument(U"ERROR: Bad document format",
+                    U"Cannot open document");
 			return false;
 		}
 		delete parser;
@@ -5054,7 +5055,7 @@ bool LVDocView::ParseDocument() {
 	}
 #endif
 #if 0// test swap to disk
-    lString32 cacheFile = cs32("/tmp/cr3swap.bin");
+    lString32 cacheFile("/tmp/cr3swap.bin");
 	bool res = m_doc->swapToCacheFile( cacheFile );
 	if ( !res ) {
 		CRLog::error( "Failed to swap to disk" );
@@ -6629,7 +6630,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             int antialiasingMode = props->getIntDef(PROP_FONT_ANTIALIASING, 2);
             fontMan->SetAntialiasMode(antialiasingMode);
             REQUEST_RENDER("propsApply - font antialiasing")
-        } else if (name.startsWith(cs8("styles."))) {
+        } else if (name.startsWith("styles.")) {
             REQUEST_RENDER("propsApply - styles.*")
         } else if (name == PROP_FONT_GAMMA) {
             double gamma = 1.0;

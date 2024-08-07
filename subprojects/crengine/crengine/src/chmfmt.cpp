@@ -764,7 +764,7 @@ class CHMSystem {
         }
         if ( _enc_table==NULL ) {
             _enc_table = GetCharsetByte2UnicodeTable( 1252 );
-            _enc_name = cs32("windows-1252");
+            _enc_name = "windows-1252";
         }
         _urlTable = CHMUrlTable::open(_container);
         return !err;
@@ -1198,7 +1198,7 @@ bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallbac
     //ldomDocumentWriter writer(doc);
     writer.OnStart(NULL);
     writer.OnTagOpenNoAttr(U"", U"body");
-    ldomDocumentFragmentWriter appender(&writer, cs32("body"), cs32("DocFragment"), lString32::empty_str );
+    ldomDocumentFragmentWriter appender(&writer, U"body", U"DocFragment", lString32::empty_str );
     CHMTOCReader tocReader(cont, doc, &appender);
     if ( !tocReader.init(cont, tocFileName, defEncodingName, urlList, mainPageName) )
         return false;
