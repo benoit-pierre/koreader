@@ -6225,11 +6225,11 @@ lString32 LVReadTextFile( LVStreamRef stream )
 {
 	if ( stream.isNull() )
         return lString32::empty_str;
-    lString32 buf;
     LVTextParser reader( stream, NULL, true );
     if ( !reader.AutodetectEncoding() )
-        return buf;
+        return lString32::empty_str;
     lUInt32 flags;
+    lString32 buf(reader.getStream()->GetSize());
     while ( !reader.Eof() ) {
         lString32 line = reader.ReadLine( 4096, flags );
         if ( !buf.empty() )
