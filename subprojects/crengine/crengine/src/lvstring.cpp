@@ -506,6 +506,28 @@ lString32::lString32(const lString32 & str, size_type offset, size_type count)
     }
 }
 
+template<typename T>
+void lString32::_assign(const T * str, size_type len)
+{
+    if (pchunk->nref == 1)
+    {
+        if (pchunk->size < len)
+        {
+            // resize is necessary
+            pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
+            pchunk->size = len;
+        }
+    }
+    else
+    {
+        release();
+        alloc(len);
+    }
+    lStr_memcpy( pchunk->buf32, str, len );
+    pchunk->buf32[len] = '\0';
+    pchunk->len = len;
+}
+
 lString32 & lString32::assign(const lChar32 * str)
 {
     if (!str || !(*str))
@@ -514,23 +536,7 @@ lString32 & lString32::assign(const lChar32 * str)
     }
     else
     {
-        size_type len = lStr_len(str);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_cpy( pchunk->buf32, str );
-        pchunk->len = len;
+        _assign(str, lStr_len(str));
     }
     return *this;
 }
@@ -543,23 +549,7 @@ lString32 & lString32::assign(const lChar8 * str)
     }
     else
     {
-        size_type len = lStr_len(str);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_cpy( pchunk->buf32, str );
-        pchunk->len = len;
+        _assign(str, lStr_len(str));
     }
     return *this;
 }
@@ -572,23 +562,7 @@ lString32 & lString32::assign(const lChar32 * str, size_type count)
     }
     else
     {
-        size_type len = lStr_nlen(str, count);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_ncpy( pchunk->buf32, str, count );
-        pchunk->len = len;
+        _assign(str, lStr_nlen(str, count));
     }
     return *this;
 }
@@ -601,23 +575,7 @@ lString32 & lString32::assign(const lChar8 * str, size_type count)
     }
     else
     {
-        size_type len = lStr_nlen(str, count);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_ncpy( pchunk->buf32, str, count );
-        pchunk->len = len;
+        _assign(str, lStr_nlen(str, count));
     }
     return *this;
 }
@@ -1611,6 +1569,27 @@ lString8::lString8(const lString8 & str, size_type offset, size_type count)
     }
 }
 
+void lString8::_assign(const lChar8 * str, size_type len)
+{
+    if (pchunk->nref == 1)
+    {
+        if (pchunk->size < len)
+        {
+            // resize is necessary
+            pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
+            pchunk->size = len;
+        }
+    }
+    else
+    {
+        release();
+        alloc(len);
+    }
+    lStr_memcpy( pchunk->buf8, str, len );
+    pchunk->buf8[len] = '\0';
+    pchunk->len = len;
+}
+
 lString8 & lString8::assign(const lChar8 * str)
 {
     if (!str || !(*str))
@@ -1619,23 +1598,7 @@ lString8 & lString8::assign(const lChar8 * str)
     }
     else
     {
-        size_type len = lStr_len(str);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_cpy( pchunk->buf8, str );
-        pchunk->len = len;
+        _assign(str, lStr_len(str));
     }
     return *this;
 }
@@ -1648,23 +1611,7 @@ lString8 & lString8::assign(const lChar8 * str, size_type count)
     }
     else
     {
-        size_type len = lStr_nlen(str, count);
-        if (pchunk->nref==1)
-        {
-            if (pchunk->size < len)
-            {
-                // resize is necessary
-                pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
-                pchunk->size = len;
-            }
-        }
-        else
-        {
-            release();
-            alloc(len);
-        }
-        lStr_ncpy( pchunk->buf8, str, count );
-        pchunk->len = len;
+        _assign(str, lStr_nlen(str, count));
     }
     return *this;
 }
