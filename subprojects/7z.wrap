@@ -1,0 +1,13 @@
+# Note: use a git checkout so the subproject directory stays constant.
+[wrap-git]
+url = https://github.com/kornelski/7z.git
+# 19.00
+revision = 4a960640a340a848a2d2c27f19b339c2c3d3f734
+depth = 1
+patch_directory = 7z/overlay
+diff_files = 
+	7z/zstd-support.patch,
+	7z/visibility.patch
+
+[provide]
+dependency_names = lib7z

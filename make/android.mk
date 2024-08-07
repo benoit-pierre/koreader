@@ -1,81 +1,139 @@
-# Use the git commit count as the (integer) Android version code
-ANDROID_VERSION ?= $(shell git rev-list --count HEAD)
-ANDROID_NAME ?= $(VERSION)
-ANDROID_DIR = $(PLATFORM_DIR)/android
-ANDROID_LAUNCHER_DIR = $(ANDROID_DIR)/luajit-launcher
-ANDROID_ASSETS = $(ANDROID_LAUNCHER_DIR)/assets/module
-ANDROID_LIBS_ROOT = $(ANDROID_LAUNCHER_DIR)/libs
-ANDROID_LIBS_ABI = $(ANDROID_LIBS_ROOT)/$(ANDROID_ABI)
-
-ifeq ($(ANDROID_ARCH), arm64)
+ANDROID_ARCH = $(TARGET:android-%=%)
+ifeq ($(ANDROID_ARCH), arm)
+  ANDROID_ABI ?= armeabi-v7a
+else ifeq ($(ANDROID_ARCH), arm64)
   ANDROID_ABI ?= arm64-v8a
 else ifeq ($(ANDROID_ARCH), x86)
   ANDROID_ABI ?= $(ANDROID_ARCH)
 else ifeq ($(ANDROID_ARCH), x86_64)
   ANDROID_ABI ?= $(ANDROID_ARCH)
 else
-  ANDROID_ARCH ?= arm
-  ANDROID_ABI ?= armeabi-v7a
+  $(warning unsupported android architecture: $(ANDROID_ARCH))
+  ANDROID_ABI ?= $(ANDROID_ARCH)
 endif
 
-androiddev: update
-	$(MAKE) -C $(ANDROID_LAUNCHER_DIR) dev
+ANDROID_ASSETS_COMPRESSION ?=
 
-update: all
+ifneq (,$(wildcard meson/android.ini))
+  $(eval $(shell sed -n -e 's/^\(ANDROID_\w\+\) = '"'"'\?\([^'"'"']*\)'"'"'\?$$/$$(eval \1 := \2)/p' meson/android.ini))
+endif
+ANDROID_7Z_LZMA2 := $(or $(ANDROID_7Z_LZMA2),true)
+ANDROID_7Z_ZSTD := $(or $(ANDROID_7Z_ZSTD),disabled)
+ANDROID_NDK_ROOT := $(or $(ANDROID_NDK_ROOT),$(ANDROID_NDK_HOME),/opt/android-ndk)
+ANDROID_SDK_ROOT := $(or $(ANDROID_SDK_ROOT),$(ANDROID_SDK_HOME),/opt/android-sdk)
+ifeq (,$(wildcard $(ANDROID_NDK_ROOT)))
+  $(error ANDROID_NDK_ROOT does not exist: $(ANDROID_NDK_ROOT))
+endif
+ifeq (,$(wildcard $(ANDROID_SDK_ROOT)))
+  $(error ANDROID_SDK_ROOT does not exist: $(ANDROID_SDK_ROOT))
+endif
+undefine ANDROID_NDK_HOME
+undefine ANDROID_SDK_HOME
+export ANDROID_NDK_ROOT
+export ANDROID_SDK_ROOT
+
+# Tools
+APKANALYZER ?= $(word 1,$(wildcard $(shell which apkanalyzer) $(ANDROID_SDK_ROOT)/tools/bin/apkanalyzer))
+
+# Use the git commit count as the (integer) Android version code
+ANDROID_VERSION ?= $(shell git rev-list --count HEAD)
+ANDROID_NAME ?= $(VERSION)
+ANDROID_LAUNCHER_DIR = $(BUILD_DIR)/subprojects/luajit-launcher/outputs/apk/$(ANDROID_ARCH)Rocks/$(if $(KODEBUG),debug,release)
+ANDROID_APK ?= koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(ANDROID_NAME).apk
+
+meson/android.ini:
+	printf '%s\n' \
+		'[constants]' \
+		"ANDROID_7Z_LZMA2 = $(ANDROID_7Z_LZMA2)" \
+		"ANDROID_7Z_ZSTD = '$(ANDROID_7Z_ZSTD)'" \
+		"ANDROID_NDK_ROOT = '$(ANDROID_NDK_ROOT)'" \
+		"ANDROID_SDK_ROOT = '$(ANDROID_SDK_ROOT)'" \
+		"ANDROID_TOOLCHAIN = ANDROID_NDK_ROOT / 'toolchains/llvm/prebuilt/linux-x86_64/bin'" \
+		>$@
+
+LJL_SRC_DIR = $(CURDIR)/subprojects/luajit-launcher
+LJL_BUILD_DIR = $(abspath $(patsubst $(CURDIR)/%,$(BUILD_DIR)/%,$(LJL_SRC_DIR)))
+LJL_ASSETS_DIR = $(LJL_BUILD_DIR)/assets
+LJL_LIBS_DIR = $(LJL_BUILD_DIR)/libs
+
+ifeq (enabled,$(ANDROID_7Z_ZSTD))
+  LJL_ASSETS_COMPRESSION = -m0=zstd -mx=16
+else ifeq (true,$(ANDROID_7Z_LZMA2))
+  LJL_ASSETS_COMPRESSION = -m0=lzma2 -mx=9
+endif
+
+update: all update-git-rev
 	# Note: do not remove the module directory so there's no need
 	# for `mk7z.sh` to always recreate `assets.7z` from scratch.
-	rm -rfv $(ANDROID_LIBS_ROOT)
-	mkdir -p $(ANDROID_ASSETS) $(ANDROID_LIBS_ABI)
-	# APK version
-	echo $(VERSION) > $(ANDROID_ASSETS)/version.txt
-	# shared libraries are stored as raw assets
-	cp -pLR $(INSTALL_DIR)/koreader/libs $(ANDROID_LAUNCHER_DIR)/assets
-	# in runtime luajit-launcher's libluajit.so will be loaded
-	rm -vf $(ANDROID_LAUNCHER_DIR)/assets/libs/libluajit.so
-	# binaries are stored as shared libraries to prevent W^X exception on Android 10+
-	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
-	cp -pLR $(INSTALL_DIR)/koreader/sdcv $(ANDROID_LIBS_ABI)/libsdcv.so
-	echo "sdcv libsdcv.so" > $(ANDROID_ASSETS)/map.txt
-	# assets are compressed manually and stored inside the APK.
+	rm -rfv $(LJL_LIBS_DIR)
+	mkdir -p $(LJL_ASSETS_DIR)/module $(LJL_LIBS_DIR)/$(ANDROID_ABI)
+	# Assets are compressed manually and stored inside the APK.
 	cd $(INSTALL_DIR)/koreader && \
-		./tools/mk7z.sh \
-		../../$(ANDROID_ASSETS)/koreader.7z \
-		"$$(git show -s --format='%ci')" \
-		-m0=lzma2 -mx=9 \
-		-- . \
-		'-x!cache' \
-		'-x!clipboard' \
-		'-x!data/dict' \
-		'-x!data/tessdata' \
-		'-x!history' \
-		'-x!l10n/templates' \
-		'-x!libs' \
-		'-x!ota' \
-		'-x!resources/fonts*' \
-		'-x!resources/icons/src*' \
-		'-x!rocks/bin' \
-		'-x!rocks/lib/luarocks' \
-		'-x!screenshots' \
-		'-x!sdcv' \
-		'-x!spec' \
-		'-x!tools' \
-		'-xr!.*' \
-		'-xr!COPYING' \
-		'-xr!NOTES.txt' \
-		'-xr!NOTICE' \
-		'-xr!README.md' \
-		;
-	# make the android APK
-	# Note: filter out the `--debug=…` make flag
-	# so the old crummy version provided by the
-	# NDK does not blow a gasket.
-	MAKEFLAGS='$(filter-out --debug=%,$(MAKEFLAGS))' \
-		$(MAKE) -C $(ANDROID_LAUNCHER_DIR) $(if $(KODEBUG), debug, release) \
-		ANDROID_APPNAME=KOReader \
-		ANDROID_VERSION=$(ANDROID_VERSION) \
-		ANDROID_NAME=$(ANDROID_NAME) \
-		ANDROID_FLAVOR=$(ANDROID_FLAVOR)
-	cp $(ANDROID_LAUNCHER_DIR)/bin/NativeActivity.apk \
-		koreader-android-$(ANDROID_ARCH)$(KODEDUG_SUFFIX)-$(VERSION).apk
+	  '$(CURDIR)/tools/mkarchive.sh' \
+	  --epoch="$$(stat --format=%y git-rev)" \
+	  --options='$(LJL_ASSETS_COMPRESSION)' \
+	  '$(LJL_ASSETS_DIR)/module/koreader.7z' \
+	  '-x!cache' \
+	  '-x!clipboard' \
+	  '-x!data/dict' \
+	  '-x!data/tessdata' \
+	  '-x!history' \
+	  '-x!l10n/templates' \
+	  '-x!libs' \
+	  '-x!ota' \
+	  '-x!resources/fonts*' \
+	  '-x!resources/icons/src*' \
+	  '-x!runtests' \
+	  '-x!screenshots' \
+	  '-x!sdcv' \
+	  '-x!spec' \
+	  '-x!testrunner' \
+	  '-x!tools' \
+	  '-xr!COPYING' \
+	  '-xr!NOTES.txt' \
+	  '-xr!NOTICE' \
+	  '-xr!README.md' \
+	  ;
+	# APK version
+	echo $(VERSION) >$(LJL_ASSETS_DIR)/module/version.txt
+	# Binaries are stored as shared libraries to prevent W^X exception on Android 10+
+	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
+	cp -av $(INSTALL_DIR)/koreader/sdcv $(LJL_LIBS_DIR)/$(ANDROID_ABI)/libsdcv.so
+	# Module map.
+	printf '%s\n' 'libs .' 'sdcv libsdcv.so' >$(LJL_ASSETS_DIR)/module/map.txt
+	# Shared libraries are stored as platform libraries
+	cp -av $(INSTALL_DIR)/koreader/libs/* $(LJL_LIBS_DIR)/$(ANDROID_ABI)/
+	env \
+		ANDROID_ARCH='$(ANDROID_ARCH)' \
+		ANDROID_ABI='$(ANDROID_ABI)' \
+		ANDROID_FULL_ARCH='$(ANDROID_ABI)' \
+		NDK=$(ANDROID_NDK_ROOT) \
+		SDK=$(ANDROID_SDK_ROOT) \
+		'$(LJL_SRC_DIR)/gradlew' \
+		--project-dir='$(LJL_SRC_DIR)' \
+		--project-cache-dir='$(LJL_BUILD_DIR)/.gradle' \
+		-PversName='$(ANDROID_NAME)' \
+		-PversCode='$(ANDROID_VERSION)' \
+		-PprojectName='KOReader' \
+		-PndkCustomPath='$(ANDROID_NDK_ROOT)' \
+		-PbuildDir='$(LJL_BUILD_DIR)' \
+		-PassetsPath='$(LJL_ASSETS_DIR)' \
+		-PlibsPath='$(LJL_LIBS_DIR)' \
+		'app:assemble$(ANDROID_ARCH)Rocks$(if $(KODEBUG),Debug,Release)'
+	cp $(ANDROID_LAUNCHER_DIR)/NativeActivity.apk $(ANDROID_APK)
 
-PHONY += androiddev update
+run: update
+	# get android app id
+	exit $(eval ANDROID_APP_ID := $(shell $(APKANALYZER) manifest application-id $(ANDROID_APK)))$(.SHELLSTATUS)
+	# clear logcat to get rid of useless cruft
+	adb logcat -c
+	# uninstall existing package to make sure *everything* is gone from memory
+	-adb uninstall $(ANDROID_APP_ID)
+	# wake up target
+	-adb shell input keyevent KEYCODE_WAKEUP '&'
+	# install
+	adb install $(ADB_INSTALL_FLAGS) "$(ANDROID_APK)"
+	# there's no adb run so we do this…
+	adb shell monkey -p $(ANDROID_APP_ID) -c android.intent.category.LAUNCHER 1
+	# monitor logs
+	adb logcat KOReader:V k2pdfopt:V luajit-launcher:V dlopen:V "*:E"

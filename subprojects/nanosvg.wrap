@@ -1,0 +1,6 @@
+[wrap-file]
+directory = nanosvg-93ce879dc4c04a3ef1758428ec80083c38610b1f
+source_url = https://github.com/memononen/nanosvg/archive/93ce879dc4c04a3ef1758428ec80083c38610b1f.tar.gz
+source_hash = 259f5236843a2245fdfd92fddffcaf292ac1f46d24f94f38fa3a9b690501e7d2
+source_filename = nanosvg-93ce879dc4c04a3ef1758428ec80083c38610b1f.tar.gz
+patch_directory = nanosvg/overlay

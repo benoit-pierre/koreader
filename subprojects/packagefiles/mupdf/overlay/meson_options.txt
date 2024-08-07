@@ -1,0 +1,3 @@
+option('icc', type: 'feature')
+option('js', type: 'feature')
+option('webp', type: 'feature')

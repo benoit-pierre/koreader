@@ -1,0 +1,59 @@
+diff --git a/include/meson.build b/include/meson.build
+--- a/include/meson.build
++++ b/include/meson.build
+@@ -1,9 +1,13 @@
++incdir = get_option('includedir') / 'SDL2'
+ 
+ c_sources += configure_file(
+     input: 'SDL_config.h.cmake',
+     output: 'SDL_config.h',
+     format: 'cmake@',
+-    configuration: cdata
++    configuration: cdata,
++    install: true,
++    install_dir: incdir,
++    install_tag: 'devel',
+ )
+ 
+ headers = [
+@@ -88,9 +92,11 @@ headers = [
+ ]
+ 
+ foreach header : headers
+-    c_sources += configure_file(
+-        input : header,
+-        output : header,
+-        copy : true,
+-    )
++  c_sources += fs.copyfile(
++    header,
++    header,
++    install: true,
++    install_dir: incdir,
++    install_tag: 'devel',
++  )
+ endforeach
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -1,10 +1,12 @@
+ project('sdl2', 'c',
+     version : '2.30.3',
+     license : 'zlib',
+-    meson_version : '>=0.60',
++    meson_version : '>=0.64.0',
+     default_options : ['c_std=none'],
+ )
+ 
++fs = import('fs')
++
+ cc = meson.get_compiler('c')
+ 
+ if get_option('default_library') == 'both' and cc.get_argument_syntax() == 'msvc'
+@@ -1256,3 +1258,6 @@ meson.override_dependency('sdl2_test', sdl2_test_dep)
+ if get_option('test')
+     subdir('test')
+ endif
++
++pkg = import('pkgconfig')
++pkg.generate(sdl2, subdirs: 'SDL2')

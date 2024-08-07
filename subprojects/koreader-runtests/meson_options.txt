@@ -1,0 +1,1 @@
+option('install_symlinks', type: 'boolean', value: false, yield: true)

@@ -1,0 +1,35 @@
+diff --git a/source/fitz/writer.c b/source/fitz/writer.c
+--- a/source/fitz/writer.c
++++ b/source/fitz/writer.c
+@@ -213,6 +213,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
+ 		if (is_extension(format, "jpeg") || is_extension(format, "jpg"))
+ 			return fz_new_jpeg_pixmap_writer(ctx, path, options);
+ 
++#if 0
+ 		if (is_extension(format, "pcl"))
+ 			return fz_new_pcl_writer(ctx, path, options);
+ 		if (is_extension(format, "pclm"))
+@@ -232,6 +233,7 @@ fz_new_document_writer(fz_context *ctx, const char *path, const char *explicit_f
+ 			return fz_new_text_writer(ctx, "stext.xml", path, options);
+ 		if (is_extension(format, "stext.json"))
+ 			return fz_new_text_writer(ctx, "stext.json", path, options);
++#endif
+ 
+ #if FZ_ENABLE_ODT_OUTPUT
+ 		if (is_extension(format, "odt"))
+@@ -261,6 +263,7 @@ fz_new_document_writer_with_output(fz_context *ctx, fz_output *out, const char *
+ 		return fz_new_pdf_writer_with_output(ctx, out, options);
+ #endif
+ 
++#if 0
+ 	if (is_extension(format, "cbz"))
+ 		return fz_new_cbz_writer_with_output(ctx, out, options);
+ 
+@@ -286,6 +289,7 @@ fz_new_document_writer_with_output(fz_context *ctx, fz_output *out, const char *
+ 		return fz_new_text_writer_with_output(ctx, "stext.xml", out, options);
+ 	if (is_extension(format, "stext.json"))
+ 		return fz_new_text_writer_with_output(ctx, "stext.json", out, options);
++#endif
+ 
+ #if FZ_ENABLE_ODT_OUTPUT
+ 	if (is_extension(format, "odt"))

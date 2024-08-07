@@ -1,0 +1,7 @@
+[wrap-git]
+directory = openlipclua
+url = https://github.com/notmarek/openlipclua.git
+revision = 93b6b6f4a24bc2e8d10fb41e3239b6d5736fca23
+depth = 1
+clone-recursive = true
+patch_directory = openlipclua/overlay

@@ -1,0 +1,2 @@
+option('poller', type: 'combo', choices: ['auto', 'kqueue', 'epoll', 'devpoll', 'poll', 'select'], value: 'auto')
+option('eventfd', type: 'feature', value: 'auto')

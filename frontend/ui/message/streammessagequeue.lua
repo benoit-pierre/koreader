@@ -3,8 +3,8 @@ local logger = require("logger")
 local MessageQueue = require("ui/message/messagequeue")
 
 local _ = require("ffi/zeromq_h")
-local zmq = ffi.load("libs/libzmq.so.4")
-local czmq = ffi.load("libs/libczmq.so.1")
+local zmq = ffi.loadlib("zmq", 4)
+local czmq = ffi.loadlib("czmq", 1)
 local C = ffi.C
 
 local StreamMessageQueue = MessageQueue:extend{

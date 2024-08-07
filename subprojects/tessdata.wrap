@@ -1,0 +1,7 @@
+[wrap-file]
+directory = tessdata
+source_url = https://www.nuget.org/api/v2/package/Tesseract.Data.English/4.0.0
+source_filename = tesseract-data-eng-4.0.0.zip
+source_hash = b577fda7f1105d49d1f0207bc02f07c94e70010538eb440504e7a57f1b374781
+lead_directory_missing = true
+patch_directory = tessdata/overlay

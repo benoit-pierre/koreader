@@ -1,0 +1,14 @@
+[wrap-file]
+directory = luasocket-e3ca4a767a68d127df548d82669aba3689bd84f4
+source_url = https://github.com/lunarmodules/luasocket/archive/v3.1.0-36-ge3ca4a7.tar.gz
+source_hash = 21abc8bb0d646ad6cc8a38c31e5b7898e016457d18f54e1f72b6422b37996fc0
+source_filename = luasocket-v3.1.0-36-ge3ca4a7.tar.gz
+patch_directory = luasocket/overlay
+diff_files = 
+	luasocket/namespace.patch,
+	luasocket/luajit-compat.patch,
+	luasocket/enforce-cloexec.patch,
+	luasocket/export-api-for-luasec.patch
+
+[provide]
+dependency_names = libluasocket

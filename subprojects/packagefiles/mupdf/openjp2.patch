@@ -1,0 +1,21 @@
+diff --git a/source/fitz/load-jpx.c b/source/fitz/load-jpx.c
+--- a/source/fitz/load-jpx.c
++++ b/source/fitz/load-jpx.c
+@@ -510,6 +510,8 @@ void opj_unlock(fz_context *ctx)
+ 	fz_unlock(ctx, FZ_LOCK_FREETYPE);
+ }
+ 
++#if 0
++
+ void *opj_malloc(size_t size)
+ {
+ 	fz_context *ctx = get_opj_context();
+@@ -574,6 +576,8 @@ void opj_aligned_free(void* ptr_)
+ 	opj_free((void *)(((unsigned char *)ptr) - off));
+ }
+ 
++#endif
++
+ #if 0
+ /* UNUSED currently, and moderately tricky, so deferred until required */
+ void * opj_aligned_realloc(void *ptr, size_t size)

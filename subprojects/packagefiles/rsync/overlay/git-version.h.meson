@@ -1,0 +1,3 @@
+#define RSYNC_GITVER "@VCS_TAG@"
+
+// vim: ft=c

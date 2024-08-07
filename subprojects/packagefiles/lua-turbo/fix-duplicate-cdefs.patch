@@ -1,0 +1,116 @@
+diff --git a/turbo/cdef.lua b/turbo/cdef.lua
+--- a/turbo/cdef.lua
++++ b/turbo/cdef.lua
+@@ -58,15 +58,18 @@ end
+ 
+ if not S then
+     ffi.cdef [[
++        /*
+         struct sockaddr{
+             unsigned short sa_family;
+             char sa_data[14];
+         };
++        */
+         struct sockaddr_storage{
+             unsigned short int ss_family;
+             unsigned long int __ss_align;
+             char __ss_padding[128 - (2 *sizeof(unsigned long int))];
+         };
++        /*
+         struct in_addr{
+             unsigned long s_addr;
+         };
+@@ -86,6 +89,7 @@ if not S then
+             struct in6_addr sin6_addr;
+             unsigned int sin6_scope_id;
+         };
++        */
+         typedef unsigned short  sa_family_t;
+         struct sockaddr_un {
+             sa_family_t sun_family;
+@@ -222,7 +222,7 @@ end
+     end
+     ffi.cdef(string.format([[
+         typedef void(*sighandler_t)(int);
+-        sighandler_t signal(int signum, sighandler_t handler);
++        sighandler_t sysv_signal(int signum, sighandler_t handler);
+         int kill(pid_t pid, int sig);
+         typedef struct {
+             unsigned long int __val[%d];
+@@ -243,6 +243,7 @@ end
+         ffi.cdef[[
+             typedef long suseconds_t;
+             typedef long time_t;
++            /*
+             struct timeval{
+                 time_t tv_sec;
+                 suseconds_t tv_usec;
+@@ -251,6 +252,7 @@ end
+                 int tz_minuteswest;
+                 int tz_dsttime;
+             };
++            */
+         ]]
+     end
+     ffi.cdef([[
+@@ -292,19 +294,23 @@ if platform.__UNIX__ then
+     --- ******* RealTime (for Monotonic time) *******
+     if not S then
+         ffi.cdef[[
++            /*
+             struct timespec
+             {
+                 time_t tv_sec;
+                 long tv_nsec;
+             };
++            */
+         ]]
+     end
+     ffi.cdef[[
+         typedef unsigned int clockid_t;
++        /*
+         enum clock_ids{
+             CLOCK_REALTIME,
+             CLOCK_MONOTONIC
+         };
++        */
+ 
+         int clock_gettime(clockid_t clk_id, struct timespec *tp);
+     ]]
+@@ -396,6 +402,7 @@ if platform.__LINUX__ then
+ 
+     -- stat structure is architecture dependent in Linux
+     if not S then
++    --[=====[
+         if platform.__X86__ then
+             ffi.cdef[[
+               struct stat {
+@@ -534,6 +541,7 @@ if platform.__LINUX__ then
+               };
+             ]]
+         end
++    --]=====]
+     end
+ 
+ 
+diff --git a/turbo/signal.lua b/turbo/signal.lua
+--- a/turbo/signal.lua
++++ b/turbo/signal.lua
+@@ -26,7 +26,7 @@ local platform = require "turbo.platform"
+ 
+ if ffi.arch == "mipsel" or ffi.arch == "mips" then
+ return {
+-	signal = ffi.C.signal
++	signal = ffi.C.sysv_signal
+     -- For sigprocmask(2)
+     , SIG_BLOCK   = 1
+     , SIG_UNBLOCK = 2
+@@ -75,7 +75,7 @@ return {
+ 	}
+ else
+ return {
+-        signal = ffi.C.signal
++        signal = ffi.C.sysv_signal
+         -- For sigprocmask(2)
+         , SIG_BLOCK   = 0
+         , SIG_UNBLOCK = 1

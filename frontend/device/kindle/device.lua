@@ -735,7 +735,7 @@ end
 
 -- We add --no-same-permissions --no-same-owner to make the userstore fuse proxy happy...
 function Kindle:untar(archive, extract_to)
-    return os.execute(("./tar --no-same-permissions --no-same-owner -xf %q -C %q"):format(archive, extract_to))
+    return os.execute(("./bsdtar --no-same-permissions --no-same-owner -xf %q -C %q"):format(archive, extract_to))
 end
 
 function Kindle:UIManagerReady(uimgr)

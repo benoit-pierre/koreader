@@ -1,0 +1,21 @@
+diff --git a/lodepng.h b/lodepng.h
+--- a/lodepng.h
++++ b/lodepng.h
+@@ -28,6 +28,8 @@ freely, subject to the following restrictions:
+ 
+ #include <string.h> /*for size_t*/
+ 
++#pragma GCC visibility push(default)
++
+ extern const char* LODEPNG_VERSION_STRING;
+ 
+ /*
+@@ -1166,6 +1168,8 @@ unsigned compress(std::vector<unsigned char>& out, const std::vector<unsigned ch
+ } /* namespace lodepng */
+ #endif /*LODEPNG_COMPILE_CPP*/
+ 
++#pragma GCC visibility pop
++
+ /*
+ TODO:
+ [.] test if there are no memory leaks or security exploits - done a lot but needs to be checked often

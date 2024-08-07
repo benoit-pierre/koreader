@@ -1,0 +1,11 @@
+diff --git a/simd/meson.build b/simd/meson.build
+--- a/simd/meson.build
++++ b/simd/meson.build
+@@ -197,7 +197,6 @@ elif host_cpu in ['arm', 'aarch64']
+       endif
+       f = configure_file(
+         command: [python, '-c', 'import sys; print(sys.argv[1])', '@0@'.format(gastest)],
+-        input: 'CMakeLists.txt',
+         output: 'gastest.S',
+         capture: true,
+       )

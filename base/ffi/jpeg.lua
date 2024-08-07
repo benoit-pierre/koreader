@@ -17,9 +17,9 @@ local turbojpeg
 if ffi.os == "Windows" then
     turbojpeg = ffi.load("libs/libturbojpeg.dll")
 elseif ffi.os == "OSX" then
-    turbojpeg = ffi.load("libs/libturbojpeg.dylib")
+    turbojpeg = ffi.load("libs/libturbojpeg.0.3.0.dylib")
 else
-    turbojpeg = ffi.load("libs/libturbojpeg.so")
+    turbojpeg = ffi.load("libs/libturbojpeg.so.0.3.0")
 end
 
 local Jpeg = {}

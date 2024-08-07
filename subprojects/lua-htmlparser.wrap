@@ -1,0 +1,6 @@
+[wrap-file]
+directory = lua-htmlparser-5ce9a775a345cf458c0388d7288e246bb1b82bff
+source_url = https://github.com/msva/lua-htmlparser/archive/v0.3.9-3-g5ce9a77.tar.gz
+source_hash = 36fafde6dccc67d2545a32aa8dcfc5f1ffd68fe6abe220af578dc56c5c9b240d
+source_filename = lua-htmlparser-v0.3.9-3-g5ce9a77.tar.gz
+patch_directory = lua-htmlparser/overlay

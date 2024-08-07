@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+BINDIR="${0%/*}"
+
+export FBINK_NAMED_PIPE="/tmp/koreader.fbink"
+if ! [ -p "${FBINK_NAMED_PIPE}" ]; then
+    rm -f "${FBINK_NAMED_PIPE}"
+    FBINK_PID="$("${BINDIR}/fbink" --daemon 1 %KOREADER% -mpq -y -6 -F scientifica)"
+    # shellcheck disable=2064
+    trap "kill -TERM ${FBINK_PID}" EXIT
+fi
+eval "$("${BINDIR}/fbink" -e -F scientifica)"
+"${BINDIR}/pv" --force --wait --width="$((MAXCOLS - 4))" "$@" 2>"${FBINK_NAMED_PIPE}"
+
+# vim: sw=4

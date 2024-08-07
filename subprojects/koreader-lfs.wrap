@@ -1,0 +1,10 @@
+[wrap-git]
+directory = koreader-lfs
+url = https://github.com/lunarmodules/luafilesystem.git
+# v1_8_0-10-gff2cbc2
+revision = ff2cbc21f1a2fd34d30c0840ff2abb0121d46131
+depth = 1
+patch_directory = koreader-lfs/overlay
+diff_files = 
+	koreader-lfs/pushnumber-for-wide-types.patch,
+	koreader-lfs/visibility.patch

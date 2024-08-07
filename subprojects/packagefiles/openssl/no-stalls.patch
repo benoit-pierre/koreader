@@ -1,0 +1,19 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -333,6 +333,15 @@ endforeach
+ 
+ c_args += openssl_cflags
+ 
++# NOTE: Disable https://github.com/openssl/openssl/pull/9595 as it's causing
++# stalls long after the early boot on devices without the getrandom() syscall,
++# which is pretty much all of them, because it's a Linux 3.17+ & glibc 2.25+
++# feature.  This is most easily reproduced with scp transfers that will block
++# on the initial select on /dev/random. Since those devices are low-power, UP,
++# and mostly idle, it can take a fairly noticeable amount of time for entropy
++# to be generated...
++c_args += '-DOPENSSL_RAND_SEED_DEVRANDOM_SHM_ID=-1'
++
+ include_directories += openssl_include_directories
+ 
+ libcrypto_lib = library(

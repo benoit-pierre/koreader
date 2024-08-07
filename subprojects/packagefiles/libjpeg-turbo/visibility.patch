@@ -1,0 +1,55 @@
+diff --git a/jmorecfg.h b/jmorecfg.h
+--- a/jmorecfg.h
++++ b/jmorecfg.h
+@@ -171,7 +171,7 @@ typedef unsigned int JDIMENSION;
+ /* a function referenced thru EXTERNs: */
+ #define GLOBAL(type)            type
+ /* a reference to a GLOBAL function: */
+-#define EXTERN(type)            extern type
++#define EXTERN(type)            extern __attribute__ ((visibility("default"))) type
+ 
+ 
+ /* Originally, this macro was used as a way of defining function prototypes
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -172,6 +172,7 @@ jpeg16 = static_library('jpeg16', jpeg16_sources,
+   pic: get_option('default_library') != 'static',
+ )
+ jpeg = library('jpeg', sources,
++  gnu_symbol_visibility: 'hidden',
+   link_with: [jpeg12, jpeg16, simd],
+   soversion: so_version,
+   vs_module_defs: vs_defs,
+@@ -216,6 +217,7 @@ if get_option('jpeg-turbo').allowed()
+       'wrppm.c',
+     ],
+     c_args: ['-DBMP_SUPPORTED', '-DPPM_SUPPORTED'],
++    gnu_symbol_visibility: 'hidden',
+     install: true,
+     link_with: [jpeg12, jpeg16, simd, turbojpeg12, turbojpeg16],
+     soversion: '0.3.0',
+diff --git a/simd/meson.build b/simd/meson.build
+--- a/simd/meson.build
++++ b/simd/meson.build
+@@ -85,7 +85,7 @@ if host_cpu in ['x86', 'x86_64']
+ 
+   have_simd = true
+   simd = static_library('simd', dir / 'jsimd.c',
+-    simd_src, include_directories: incdir)
++    simd_src, gnu_symbol_visibility: 'hidden', include_directories: incdir)
+ elif simd_opt.enabled()
+   error('SIMD enabled, but CPU family not supported')
+ endif
+diff --git a/turbojpeg.h b/turbojpeg.h
+--- a/turbojpeg.h
++++ b/turbojpeg.h
+@@ -35,7 +35,7 @@
+ #if defined(_WIN32) && defined(DLLDEFINE)
+ #define DLLEXPORT  __declspec(dllexport)
+ #else
+-#define DLLEXPORT
++#define DLLEXPORT  __attribute__ ((visibility("default")))
+ #endif
+ #define DLLCALL
+ 

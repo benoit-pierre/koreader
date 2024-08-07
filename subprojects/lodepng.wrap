@@ -1,0 +1,8 @@
+[wrap-file]
+directory = lodepng-d398e0f10d152a5d17fa30463474dc9f56523f9c
+source_url = https://github.com/lvandeve/lodepng/archive/d398e0f10d152a5d17fa30463474dc9f56523f9c.tar.gz
+source_hash = 52cc82678d9fd6750d7962fd56bd3d987b302b7ee554c1ac42f5abada7afd6bc
+source_filename = lodepng-d398e0f10d152a5d17fa30463474dc9f56523f9c.tar.gz
+patch_directory = lodepng/overlay
+diff_files = 
+	lodepng/visibility.patch

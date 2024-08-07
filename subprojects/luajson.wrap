@@ -1,0 +1,6 @@
+[wrap-file]
+directory = luajson-6ecaf9bea8b121a9ffca5a470a2080298557b55d
+source_url = https://github.com/harningt/luajson/archive/v1.3.4-7-g6ecaf9b.tar.gz
+source_hash = a66ab1067ad60ee5c3c7f6b1d4b47e500e13259961187354017e078099d510c3
+source_filename = luajson-v1.3.4-7-g6ecaf9b.tar.gz
+patch_directory = luajson/overlay

@@ -1,0 +1,17 @@
+[wrap-file]
+directory = mupdf-1.24.8
+source_url = https://github.com/ArtifexSoftware/mupdf/archive/refs/tags/1.24.8.tar.gz
+source_hash = 76508fef19c53d04154d2c708d22cfbedafd216b6c23e22df96e6d226c49c82e
+source_filename = mupdf-1.24.8.tar.gz
+patch_directory = mupdf/overlay
+diff_files = 
+	mupdf/fix-share-jpeg-build.patch,
+	mupdf/external-fonts.patch,
+	mupdf/encrypted-zip.patch,
+	mupdf/webp-upstream-697749.patch,
+	mupdf/disable-some-output-formats.patch,
+	mupdf/free-html-doc-fonts-on-close.patch,
+	mupdf/visibility.patch
+
+[provide]
+dependency_names = libmupdf

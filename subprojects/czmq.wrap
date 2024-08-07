@@ -1,0 +1,14 @@
+[wrap-file]
+directory = czmq-2a0ddbc4b2dde623220d7f4980ddd60e910cfa78
+source_url = https://github.com/zeromq/czmq/archive/v2.2.0-221-g2a0ddbc4.tar.gz
+source_hash = 67139de94e28155875222b38773f4422877554b262d9670c91c85d210d043005
+source_filename = czmq-2.2.0-221-g2a0ddbc4.tar.gz
+patch_directory = czmq/overlay
+diff_files = 
+	czmq/default-source-define.patch,
+	czmq/zbeacon.patch,
+	czmq/android.patch,
+	czmq/visibility.patch
+
+[provide]
+dependency_names = libczmq

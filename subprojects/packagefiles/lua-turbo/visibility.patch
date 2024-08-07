@@ -1,0 +1,39 @@
+diff --git a/deps/http-parser/http_parser.h b/deps/http-parser/http_parser.h
+--- a/deps/http-parser/http_parser.h
++++ b/deps/http-parser/http_parser.h
+@@ -368,6 +368,8 @@ struct http_parser_url {
+ };
+ 
+ 
++#pragma GCC visibility push(default)
++
+ /* Returns the library version. Bits 16-23 contain the major version number,
+  * bits 8-15 the minor version number and bits 0-7 the patch level.
+  * Usage example:
+@@ -427,6 +429,8 @@ void http_parser_pause(http_parser *parser, int paused);
+ /* Checks if this is the final chunk of the body. */
+ int http_body_is_final(const http_parser *parser);
+ 
++#pragma GCC visibility pop
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/deps/turbo_ffi_wrap.h b/deps/turbo_ffi_wrap.h
+--- a/deps/turbo_ffi_wrap.h
++++ b/deps/turbo_ffi_wrap.h
+@@ -57,6 +57,8 @@ struct turbo_parser_wrapper{
+     struct http_parser_url url;
+ };
+ 
++#pragma GCC visibility push(default)
++
+ struct turbo_parser_wrapper *turbo_parser_wrapper_init(
+         const char* data,
+         size_t len,
+@@ -94,3 +96,5 @@ uint64_t turbo_bswap_u64(uint64_t swap);
+ /** Validate a X509 cert against provided hostname. */
+ int32_t validate_hostname(const char *hostname, const SSL *server);
+ #endif
++
++#pragma GCC visibility pop

@@ -1,0 +1,9 @@
+[wrap-file]
+directory = popen-noshell-e715396a4951ee91c40a98d2824a130f158268bb
+source_url = https://github.com/famzah/popen-noshell/archive/e715396a4951ee91c40a98d2824a130f158268bb.tar.gz
+source_hash = fd70807ff557e4e4693b533018940179356dc202a063fa715411ac02c532d4d9
+source_filename = popen-noshell-e715396a4951ee91c40a98d2824a130f158268bb.tar.gz
+patch_directory = popen-noshell/overlay
+
+[provide]
+dependency_names = libpopen_noshell

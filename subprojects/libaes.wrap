@@ -1,0 +1,11 @@
+[wrap-git]
+directory = libaes-0b46a2b4ca317b80bc53594688883f7188ac4d08
+url = https://github.com/nmoinvaz/minizip.git
+revision = 0b46a2b4ca317b80bc53594688883f7188ac4d08
+depth = 1
+patch_directory = libaes/overlay
+diff_files = 
+	libaes/crypt.patch
+
+[provide]
+dependency_names = libaes

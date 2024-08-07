@@ -1,0 +1,6 @@
+[wrap-file]
+directory = python-certifi-2024.07.04
+source_url = https://github.com/certifi/python-certifi/archive/refs/tags/2024.07.04.tar.gz
+source_hash = 72c602546773d75e1f7aa9cc03f58d43265393d6cc07aa90580fe3608c4b00be
+source_filename = python-certifi-2024.07.04.tar.gz
+patch_directory = ca-certificates/overlay

@@ -319,21 +319,15 @@ function OTAManager:_buildLocalPackage()
             end
             zsync:close()
         end
-        -- Next, we need to compute the amount of tar blocks that'll take, knowing that tar's default blocksize is 20 * 512 bytes.
-        -- c.f., https://superuser.com/questions/168749 & http://www.noah.org/wiki/tar_notes
-        -- Defaults to a sane-ish value as-of now, in case shit happens...
-        local blocks = 6405
-        if tarball_size then
-            blocks = tarball_size * (1/(512 * 20))
+        if not tarball_size then
+            tarball_size = 0
         end
-        -- And since we want a percentage, devise the exact value we need for tar to spit out exactly 100 checkpoints ;).
-        local cpoints = blocks * (1/100)
         return os.execute(string.format(
-            "./tar --no-recursion -cf %s -C .. -T %s --checkpoint=%d --checkpoint-action=exec='./fbink -q -y -6 -P $(($TAR_CHECKPOINT/%d))'",
-            self.installed_package, self.package_indexfile, cpoints, cpoints))
+            "./bsdtar --no-recursion -c -C .. -T %s | ./pvink --bytes --eta --interval=1 --progress --rate --size=%u - >%s",
+            self.package_indexfile, tarball_size, self.installed_package))
     else
         return os.execute(string.format(
-            "./tar --no-recursion -cf %s -C .. -T %s",
+            "./bsdtar --no-recursion -cf %s -C .. -T %s",
             self.installed_package, self.package_indexfile))
     end
 end

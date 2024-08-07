@@ -1,0 +1,6 @@
+[wrap-file]
+directory = lunajson-1.2.3
+source_url = https://github.com/grafi-tt/lunajson/archive/refs/tags/1.2.3.tar.gz
+source_hash = 4a4207806864d4a21eb24ddeb026e28efba179440d7c0043482568a7a191ba66
+source_filename = lunajson-1.2.3.tar.gz
+patch_directory = lua-lunajson/overlay

@@ -1,0 +1,6 @@
+[wrap-file]
+directory = luassert-1.9.0
+source_url = https://github.com/lunarmodules/luassert/archive/refs/tags/v1.9.0.tar.gz
+source_hash = 1db0fabf1bd87392860375b89a8a37d17b687325c988be0df8c42e7e96e7ed73
+source_filename = luassert-1.9.0.tar.gz
+patch_directory = luassert/overlay

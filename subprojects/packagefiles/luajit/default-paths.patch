@@ -1,0 +1,59 @@
+diff --git a/meson_options.txt b/meson_options.txt
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -4,6 +4,8 @@ option('install_lmod', type: 'string')
+ option('jitdir', type: 'string', description: 'Install directory for the Lua JIT code')
+ option('luajit', type: 'boolean', value: true, description: 'Build and install the luajit executable')
+ option('lua52compat', type: 'boolean', value: false, description: 'Enable additional backward incompatible Lua 5.2 features')
++option('lua_path', type: 'string', value: '', description: 'Default LUA_PATH')
++option('lua_cpath', type: 'string', value: '', description: 'Default LUA_CPATH')
+ option('mcode_reserve_hack', type: 'boolean', value: false, description: 'Enable mcode reserve hack')
+ option('sysmalloc', type: 'boolean', value: false, description: 'Use the system memory allocator instead of the bundled one')
+ option('valgrind', type: 'boolean', value: false, description: 'Build for running under Valgrind, implies `sysmalloc`')
+diff --git a/src/luaconf.h b/src/luaconf.h
+--- a/src/luaconf.h
++++ b/src/luaconf.h
+@@ -20,10 +20,14 @@
+ */
+ #define LUA_LDIR	"!\\lua\\"
+ #define LUA_CDIR	"!\\"
++#if !defined(LUA_PATH_DEFAULT)
+ #define LUA_PATH_DEFAULT \
+   ".\\?.lua;" LUA_LDIR"?.lua;" LUA_LDIR"?\\init.lua;"
++#endif
++#if !defined(LUA_CPATH_DEFAULT)
+ #define LUA_CPATH_DEFAULT \
+   ".\\?.dll;" LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
++#endif
+ #else
+ /*
+ ** Note to distribution maintainers: do NOT patch the following lines!
+@@ -58,9 +62,13 @@
+ #define LUA_LCPATH1	";" LUA_LCDIR "?.so"
+ #define LUA_LCPATH2	";" LUA_LCDIR "loadall.so"
+ 
++#if !defined(LUA_PATH_DEFAULT)
+ #define LUA_PATH_DEFAULT	"./?.lua" LUA_JPATH LUA_LLPATH LUA_RLPATH
++#endif
++#if !defined(LUA_CPATH_DEFAULT)
+ #define LUA_CPATH_DEFAULT	"./?.so" LUA_LCPATH1 LUA_RCPATH LUA_LCPATH2
+ #endif
++#endif
+ 
+ /* Environment variable names for path overrides and initialization code. */
+ #define LUA_PATH	"LUA_PATH"
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -97,6 +97,11 @@ luajit_lib_flags = [
+   '-D_LARGEFILE_SOURCE',
+   '-U_FORTIFY_SOURCE',
+ ]
++foreach _path : ['lua_path', 'lua_cpath']
++  if get_option(_path) != ''
++    luajit_lib_flags += '-D@0@_DEFAULT="@1@"'.format(_path.to_upper(), get_option(_path))
++  endif
++endforeach
+ 
+ luajit_lib_src = [buildvm_headers, lj_vm, luajit_h]
+ if get_option('amalgam')

@@ -1,0 +1,23 @@
+diff --git a/gen.tab/meson.build b/gen.tab/meson.build
+--- a/gen.tab/meson.build
++++ b/gen.tab/meson.build
+@@ -34,7 +34,8 @@ gen_unicode_version = executable('gen-unicode-version',
+   include_directories: incs,
+   c_args: native_args,
+   install: false,
+-  native: true)
++  native: true,
++  override_options: 'b_lto=false')
+ 
+ fribidi_unicode_version_h = custom_target('fribidi-unicode-version.h',
+   input: files('unidata/ReadMe.txt', 'unidata/BidiMirroring.txt'),
+@@ -70,7 +71,8 @@ foreach tab : tabs
+     include_directories: incs,
+     c_args: native_args,
+     install: false,
+-    native: true)
++    native: true,
++    override_options: 'b_lto=false')
+ 
+   tab_inc_file = custom_target(gen_prog_name,
+     input: gen_prog_inputs,

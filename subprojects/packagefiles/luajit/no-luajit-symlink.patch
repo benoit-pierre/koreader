@@ -1,0 +1,29 @@
+diff --git a/src/meson.build b/src/meson.build
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -265,7 +265,7 @@ if get_option('luajit')
+   endif
+ 
+   luajit_exe = executable(
+-    'luajit-' + meson.project_version(),
++    'luajit',
+     [luajit_h, 'luajit.c'],
+     export_dynamic: luajit_exe_export_dynamic,
+     install: get_option('luajit'),
+@@ -273,16 +273,6 @@ if get_option('luajit')
+   )
+   meson.override_find_program('luajit', luajit_exe)
+ 
+-  luajit_exe_basename = fs.name(luajit_exe.full_path())
+-  luajit_exe_extension = luajit_exe_basename.split(luajit_exe.name())[1]
+-
+-  install_symlink(
+-    'luajit' + luajit_exe_extension,
+-    pointing_to: luajit_exe_basename,
+-    install_dir: get_option('bindir'),
+-    install_tag: 'runtime',
+-  )
+-
+ endif
+ 
+ licensedir = (

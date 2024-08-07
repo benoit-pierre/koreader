@@ -1,0 +1,6 @@
+[wrap-file]
+directory = openssh-portable-V_8_6_P1
+source_url = https://github.com/openssh/openssh-portable/archive/refs/tags/V_8_6_P1.tar.gz
+source_hash = b641e88a61b58d60f87b1c0e38805eb5b1206810cab71b1f2966faa87938593b
+source_filename = openssh-8.6p1.tar.gz
+patch_directory = openssh-portable/overlay

@@ -1,0 +1,10 @@
+[wrap-file]
+directory = tesseract-5.3.4
+source_url = https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.3.4.tar.gz
+source_hash = 141afc12b34a14bb691a939b4b122db0d51bd38feda7f41696822bacea7710c7
+source_filename = tesseract-5.3.4.tar.gz
+patch_directory = tesseract/overlay
+diff_files = 
+	tesseract/k2pdfopt.patch,
+	tesseract/kindle.patch,
+	tesseract/no_debug_fonts.patch

@@ -1,0 +1,10 @@
+[wrap-file]
+directory = thirdparty-lcms2-ab4547bd04a13590a6e72833f9928fc1c31da12e
+source_url = https://github.com/ArtifexSoftware/thirdparty-lcms2/archive/lcms2.14rc1-60-gab4547b.tar.gz
+source_filename = lcms2.14rc1-60-gab4547b.tar.gz
+source_hash = 8ff6a427e9862518fb0e297fc6e99eff56b0df0b3c87dfbc12f49384fda99926
+diff_files = 
+	lcms2mt/mt-tag.patch
+
+[provide]
+lcms2mt = liblcms2_dep
