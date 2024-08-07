@@ -16,8 +16,8 @@ require("ffi/posix_h") -- for malloc
 
 local BlitBuffer = require("ffi/blitbuffer")
 
-local W = ffi.load("libs/libwrap-mupdf.so")
-local M = W
+local M = ffi.loadlib("mupdf")
+local W = ffi.loadlib("wrap-mupdf")
 
 --- @fixme: Don't make cache_size too low, at least not until we bump MµPDF,
 ---         as there's a pernicious issue that corrupts its store cache on overcommit on old versions.
