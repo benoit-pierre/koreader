@@ -188,6 +188,7 @@ function S.setWindowFullscreen(full_screen)
 end
 
 function S.destroyTexture(texture)
+    ffi.gc(texture, nil)
     SDL.SDL_DestroyTexture(texture)
 end
 
