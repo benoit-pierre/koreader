@@ -14548,7 +14548,7 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
 
     // resolve relative links
     lString32 p, id; // path, id
-    if ( !href.split2("#", p, id) )
+    if ( !href.split2(U'#', p, id) )
         p = href;
     if ( p.empty() ) {
         //CRLog::trace("codebase = %s -> href = %s", LCSTR(codeBase), LCSTR(href));
