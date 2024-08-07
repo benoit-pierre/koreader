@@ -829,6 +829,11 @@ public:
         return getSeries();
     }
 
+    /// returns book raw text size (size of all the XML/HTML files, unparsed)
+    int getRawTextSize() { return m_doc_props->getIntDef(DOC_PROP_RAW_TEXT_SIZE); }
+    /// returns book raw text length (accumlated length of all the text elements for all the XML/HTML files)
+    int getRawTextLength() { return m_doc_props->getIntDef(DOC_PROP_RAW_TEXT_LENGTH); }
+
     /// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
     /// path relative to document directory for non-container documents like HTML)
     LVStreamRef getDocumentFileStream( lString32 filePath );
@@ -941,11 +946,11 @@ public:
     /// clear view
     void Clear();
     /// load document from file
-    bool LoadDocument( const char * fname, bool metadataOnly = false );
+    bool LoadDocument( const char * fname, int metadataOnly = 0 );
     /// load document from file
-    bool LoadDocument( const lChar32 * fname, bool metadataOnly = false );
+    bool LoadDocument( const lChar32 * fname, int metadataOnly = 0 );
     /// load document from stream
-    bool LoadDocument( LVStreamRef stream, bool metadataOnly = false );
+    bool LoadDocument( LVStreamRef stream, int metadataOnly = 0 );
 
     /// save last file position
     void savePosition();

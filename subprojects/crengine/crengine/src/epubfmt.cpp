@@ -1277,8 +1277,188 @@ public:
     }
 };
 
+class RawTextLengthCalculator : public LVXMLParserCallback {
+    private:
+        bool     in_body = false;
+        lvsize_t text_length = 0;
+    public:
+        RawTextLengthCalculator() {}
+        ~RawTextLengthCalculator() {}
+        lUInt32 getFlags() { return TXTFLG_CASE_SENSITIVE_TAGS_ATTRS; }
+        lvsize_t getTextLength() {
+            return text_length;
+        }
+        void OnStop() {
+            in_body = false;
+        }
+        ldomNode * OnTagOpen( const lChar32 * nsname, const lChar32 * tagname ) {
+            if ( !in_body && !lStr_cmp( tagname, U"body" ) )
+                in_body = true;
+            return NULL;
+        }
+        void OnTagBody() {}
+        void OnTagClose( const lChar32 * nsname, const lChar32 * tagname, bool self_closing_tag=false ) {
+        }
+        void OnAttribute( const lChar32 * nsname, const lChar32 * attrname, const lChar32 * attrvalue ) {}
+        void OnText( const lChar32 * text, int len, lUInt32 flags ) {
+            if ( in_body )
+                text_length += len;
+        }
+        bool OnBlob( lString32 name, const lUInt8 * data, int size ) {
+            return false;
+        }
+};
+
+lvsize_t static calculate_raw_text_length(LVStreamRef stream) {
+    const int max_lookup_size = 6; /* "<!--", "-->", "<body>" or a 4 bytes
+                                      UTF-8 encoded Unicode character */
+    lvsize_t chunk_size = 16 * 1024;
+    lvsize_t text_length = 0;
+    lUInt8 * buffer;
+    lvsize_t size;
+    const lUInt8 * p;
+    const lUInt8 * end;
+
+    size = stream->GetSize();
+    /* chunk_size = size; */
+    if (size < chunk_size)
+        chunk_size = size;
+    buffer = new lUInt8[max_lookup_size + chunk_size];
+
+#define FILL_BUFFER() \
+    \
+    if (p >= end) { \
+        lvsize_t left = max_lookup_size - (p - end); \
+        /* Yes, we might miss a couple characters if we were on */ \
+        /* the last chunk and the XML document was malformed... */ \
+        if ((size + left) < max_lookup_size) \
+            goto _end; \
+        if (left) \
+            memcpy(buffer, p, left); \
+        if (size < chunk_size) \
+            chunk_size = size; \
+        lvsize_t nb_read = 0; \
+        if (LVERR_OK != stream->Read(buffer + left, chunk_size, &nb_read)) { \
+            fprintf(stderr, "read error\n"); \
+            goto _end; \
+        } \
+        if (nb_read < chunk_size) { \
+            fprintf(stderr, "short read: %u/%u\n", nb_read, chunk_size); \
+            if ((chunk_size + left) < max_lookup_size) \
+                goto _end; \
+            size = chunk_size = nb_read; \
+        } \
+        end = buffer + chunk_size + left - max_lookup_size; \
+        size -= chunk_size; \
+        p = buffer; \
+    }
+
+    p = buffer + max_lookup_size;
+    end = buffer;
+    FILL_BUFFER();
+
+    // Check for UTF-16 BOM.
+    if ((p[0] == 0xfe && p[1] == 0xff) ||
+        (p[0] == 0xff && p[1] == 0xfe)) {
+        fprintf(stderr, "UTF-16 (%s-endian)\n", p[0] == 0xfe ? "little" : "big");
+        goto _end;
+    }
+
+    // Skip to body.
+    for (;;) {
+        if (p[0] == '<' && p[1] == 'b' && p[2] == 'o' && p[3] == 'd' && p[4] == 'y' &&
+            (p[5] == '>' || p[5] == ' ' || p[5] == '\n' || p[5] == '\r' || p[5] == '\t')) {
+            p += 5;
+            break;
+        }
+        ++p;
+        FILL_BUFFER();
+    }
+    if (p == end)
+        goto _end;
+    for (;;) {
+        FILL_BUFFER();
+        if (*p++ == '>')
+            break;
+    }
+
+    for (;;) {
+        FILL_BUFFER();
+        switch (*p) {
+        case '<':
+            // Tag or comment.
+            ++p;
+            if (p[0] == '!' && p[1] == '-' && p[2] == '-') {
+                // Comment.
+                p += 3;
+                for (;;) {
+                    FILL_BUFFER();
+                    if (p[0] == '-' && p[1] == '-' && p[2] == '>')
+                        break;
+                    ++p;
+                }
+                p += 3;
+            }
+            else {
+                // Tag.
+                for (;;) {
+                    FILL_BUFFER();
+                    if (*p++ == '>')
+                        break;
+                }
+            }
+            break;
+        case '&':
+            // Entity.
+            ++text_length;
+            ++p;
+            for (;;) {
+                FILL_BUFFER();
+                if (*p++ == ';')
+                    break;
+            }
+            break;
+        case ' ':
+        case '\n':
+        case '\r':
+        case '\t':
+            // Whitespace.
+            ++text_length;
+            for (;;) {
+                ++p;
+                FILL_BUFFER();
+                if (*p != ' '  && *p != '\n' && *p != '\r' && *p != '\t')
+                    break;
+            }
+            break;
+        default:
+            // Text.
+            ++text_length;
+            if ((*p & 0x80) == 0) {
+                p += 1;
+            } else if ((*p & 0xE0) == 0xC0) {
+                p += 2;
+            } else if ((*p & 0xF0) == 0xE0) {
+                p += 3;
+            } else if ((*p & 0xF8) == 0xF0) {
+                p += 4;
+            } else {
+                // Invalid UTF-8 sequence...
+                p += 1;
+            }
+            break;
+        }
+    }
+
+#undef FILL_BUFFER
+
+_end:
+    delete[] buffer;
+    return text_length;
+}
+
 bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCallback * progressCallback,
-            CacheLoadingCallback * formatCallback, bool metadataOnly,
+            CacheLoadingCallback * formatCallback, int metadataOnly,
             const elem_def_t * node_scheme, const attr_def_t * attr_scheme, const ns_def_t * ns_scheme )
 {
     LVContainerRef arc = LVOpenArchieve( stream );
@@ -1650,7 +1830,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         // Iterate all package/manifest/item
         lUInt16 item_id = doc->getElementNameIndex(U"item");
         for (int i=0; i<nb_manifest_items; i++) {
-            if ( metadataOnly && !look_for_coverid && !look_for_epub3_cover && !look_for_coverxhtml_id) {
+            if ( metadataOnly == 1 && !look_for_coverid && !look_for_epub3_cover && !look_for_coverxhtml_id) {
                 // No more stuff to find, stop iterating
                 break;
             }
@@ -1705,7 +1885,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
                     cover_xhtml_href = href;
                     look_for_coverxhtml_id = false;
                 }
-                if (metadataOnly) {
+                if (metadataOnly == 1) {
                     continue;
                 }
                 EpubItem * epubItem = new EpubItem;
@@ -1780,7 +1960,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
 
         // Gather EpubItems from <package><spine>, which specify which EpubItems,
         // and in which order, make out the book content
-        if ( !metadataOnly && epubItems.length()>0 ) {
+        if ( metadataOnly != 1 && epubItems.length()>0 ) {
             CRLog::debug("opf: reading spine");
             if ( spine ) {
                 // Some attributes specify that some EpubItems have a specific purpose
@@ -1808,6 +1988,55 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
         }
         delete doc;
         CRLog::debug("opf: closed");
+    }
+
+    if (metadataOnly & 2) {
+        lvsize_t total_raw_text_size = 0;
+        size_t spineItemsNb = spineItems.length();
+        for ( size_t i=0; i<spineItemsNb; i++ ) {
+            if (!spineItems[i]->is_xhtml)
+                continue;
+            lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
+            lvsize_t raw_text_size = m_arc->GetObjectInfo(name)->GetSize();
+            /* printf("Cre: \"%s\" raw size: %u\n", LCSTR(name), raw_text_size); */
+            total_raw_text_size += raw_text_size;
+        }
+        m_doc->getProps()->setInt(DOC_PROP_RAW_TEXT_SIZE, total_raw_text_size);
+    }
+
+    if (metadataOnly & 4) {
+        RawTextLengthCalculator raw_text_length_calculator;
+        const size_t spineItemsNb = spineItems.length();
+        for (size_t i = 0; i < spineItemsNb; ++i) {
+            if (!spineItems[i]->is_xhtml)
+                continue;
+            lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
+            LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
+            if (!stream.isNull()) {
+                LVHTMLParser parser(stream, &raw_text_length_calculator);
+                if (!parser.CheckFormat() || !parser.Parse())
+                    CRLog::error("Document type is not XML/XHTML for fragment %s", LCSTR(name));
+            }
+        }
+        lvsize_t raw_text_length = raw_text_length_calculator.getTextLength();
+        m_doc->getProps()->setInt(DOC_PROP_RAW_TEXT_LENGTH, raw_text_length);
+    }
+
+    if (metadataOnly & 8) {
+        lvsize_t raw_text_length = 0;
+        const size_t spineItemsNb = spineItems.length();
+        for (size_t i = 0; i < spineItemsNb; ++i) {
+            if (!spineItems[i]->is_xhtml)
+                continue;
+            lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
+            LVStreamRef stream = m_arc->OpenStream(name.c_str(), LVOM_READ);
+            if (!stream) {
+                fprintf(stderr, "OpenStream failed: %s\n", LCSTR(name));
+                continue;
+            }
+            raw_text_length += calculate_raw_text_length(stream);
+        }
+        m_doc->getProps()->setInt(DOC_PROP_RAW_TEXT_LENGTH, raw_text_length);
     }
 
     if ( metadataOnly ) {
