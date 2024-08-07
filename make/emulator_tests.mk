@@ -1,4 +1,4 @@
-TESTSUITES := all base front
+TESTSUITES := all base bench front
 
 COVERAGE_STATS = luacov.stats.out
 COVERAGE_REPORT = luacov.report.out
