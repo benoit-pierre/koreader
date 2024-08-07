@@ -50,6 +50,7 @@ executable(
     '-DHAVE_CONFIG_H',
     '-DVERSION="@0@"'.format(meson.project_version()),
   ],
+  link_args: host_machine.system() == 'android' ? '-static-libstdc++' : [],
   dependencies: [glib_dep, zlib_dep],
   install: true,
 )

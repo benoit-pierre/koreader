@@ -32,6 +32,8 @@ local T = ffiUtil.template
 local available_ifos = nil
 local lookup_history = nil
 
+local sdcv_binary = Device:isAndroid() and require("android").nativeLibraryDir .. "/libsdcv.so" or "./sdcv"
+
 local function getIfosInDir(path)
     -- Get all the .ifo under directory path.
     -- Don't walk into "res/" subdirectories, as per Stardict specs, they
@@ -777,7 +779,7 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
             break -- don't do any more lookup on additional dict_dirs
         end
 
-        local args = {"./sdcv", "--utf8-input", "--utf8-output", "--json-output", "--non-interactive", "--data-dir", dict_dir}
+        local args = {sdcv_binary, "--utf8-input", "--utf8-output", "--json-output", "--non-interactive", "--data-dir", dict_dir}
         if not fuzzy_search then
             table.insert(args, "--exact-search")
         end
@@ -810,16 +812,7 @@ function ReaderDictionary:rawSdcv(words, dict_names, fuzzy_search, lookup_progre
         -- definition found, sdcv will output some message on stderr, and
         -- let stdout empty) by appending an "echo":
         cmd = cmd .. "; echo"
-        -- NOTE: Bionic doesn't support rpath, but does honor LD_LIBRARY_PATH...
-        --       Give it a shove so it can actually find the STL.
-        if Device:isAndroid() then
-            C.setenv("LD_LIBRARY_PATH", "./libs", 1)
-        end
         local completed, results_str = Trapper:dismissablePopen(cmd, lookup_progress_msg)
-        if Device:isAndroid() then
-            -- NOTE: It's unset by default, so this is perfectly fine.
-            C.unsetenv("LD_LIBRARY_PATH")
-        end
         lookup_cancelled = not completed
         if results_str and results_str ~= "\n" then -- \n is when lookup was cancelled
             -- sdcv can return multiple results if we passed multiple words to
