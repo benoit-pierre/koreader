@@ -382,6 +382,9 @@ public:
     formatted_text_fragment_t * m_pbuffer;
     int       m_length;
     int       m_size;
+#if (USE_FRIBIDI==1)
+    int       m_fribi_size;
+#endif
     #if (USE_LIBUNIBREAK==1)
     static bool      m_libunibreak_init_done;
     #endif
@@ -433,7 +436,11 @@ public:
 #define PAD_CHAR_INDEX        ((lUInt16)0xFFFC)
 
     LVFormatter(formatted_text_fragment_t * pbuffer)
-    : m_pbuffer(pbuffer), m_length(0), m_size(0), m_y(0)
+    : m_pbuffer(pbuffer), m_length(0), m_size(0),
+#if (USE_FRIBIDI==1)
+    m_fribi_size(0),
+#endif
+    m_y(0)
     {
         #if (USE_LIBUNIBREAK==1)
         if (!m_libunibreak_init_done) {
@@ -939,19 +946,12 @@ public:
         if ( m_length+1 > m_size ) {
             // realloc
             m_size = m_length+ITEMS_RESERVED;
+            /* fprintf(stderr, "%s: %p realloc(%d)\n", __PRETTY_FUNCTION__, this, m_size); */
             m_text = cr_realloc(m_text, m_size, false);
             m_flags = cr_realloc(m_flags, m_size, false);
             m_charindex = cr_realloc(m_charindex, m_size, false);
             m_srcs = cr_realloc(m_srcs, m_size, false);
             m_widths = cr_realloc(m_widths, m_size, false);
-#if (USE_FRIBIDI==1)
-            // Note: we could here check for RTL chars (and have a flag
-            // to then not do it in copyText()) so we don't need to allocate
-            // the following ones if we won't be using them.
-            m_bidi_ctypes = cr_realloc(m_bidi_ctypes, m_size, false);
-            m_bidi_btypes = cr_realloc(m_bidi_btypes, m_size, false);
-            m_bidi_levels = cr_realloc(m_bidi_levels, m_size, false);
-#endif
         }
 
         memset( m_flags, 0, sizeof(lUInt16)*m_length ); // start with all flags set to zero
@@ -964,11 +964,6 @@ public:
         m_charindex[m_length] = 0;
         m_srcs[m_length] = NULL;
         m_widths[m_length] = 0;
-#if (USE_FRIBIDI==1)
-        m_bidi_ctypes[m_length] = 0;
-        m_bidi_btypes[m_length] = 0;
-        m_bidi_levels[m_length] = 0;
-#endif
     }
 
     /// copy text of current paragraph to buffers
@@ -1556,6 +1551,17 @@ public:
             else { // REND_DIRECTION_UNSET
                 m_para_bidi_type = FRIBIDI_PAR_WLTR; // Weak LTR (= auto with a bias toward LTR)
             }
+
+            if ( m_length+1 > m_fribi_size ) {
+                // realloc
+                m_fribi_size = m_length+ITEMS_RESERVED;
+                m_bidi_ctypes = cr_realloc(m_bidi_ctypes, m_fribi_size, false);
+                m_bidi_btypes = cr_realloc(m_bidi_btypes, m_fribi_size, false);
+                m_bidi_levels = cr_realloc(m_bidi_levels, m_fribi_size, false);
+            }
+            m_bidi_ctypes[m_length] = 0;
+            m_bidi_btypes[m_length] = 0;
+            m_bidi_levels[m_length] = 0;
 
             // Compute bidi levels
             fribidi_get_bidi_types( (const FriBidiChar*)m_text, m_length, m_bidi_ctypes);
