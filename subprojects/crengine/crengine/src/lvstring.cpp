@@ -141,6 +141,18 @@ const lString32 & cs32(const lChar32 * str) {
     return lString32::empty_str;
 }
 
+void clear_cs() {
+    for (unsigned n = 0; n < CONST_STRING_BUFFER_SIZE; ++n) {
+        if (const_ptrs_8[n]) {
+            values_8[n].release();
+            const_ptrs_8[n] = NULL;
+        }
+        if (const_ptrs_32[n]) {
+            values_32[n].release();
+            const_ptrs_32[n] = NULL;
+        }
+    }
+}
 
 
 //================================================================================
