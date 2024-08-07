@@ -946,14 +946,8 @@ inline lUInt32 getHash( const lString8 & s )
     return s.getHash();
 }
 
-/// get reference to atomic constant string for string literal e.g. cs8("abc") -- fast and memory effective replacement of lString8("abc")
-const lString8 & cs8(const char * str);
-/// get reference to atomic constant wide string for string literal e.g. cs32("abc") -- fast and memory effective replacement of lString32("abc")
-const lString32 & cs32(const char * str);
-/// get reference to atomic constant wide string for string literal e.g. cs32(U"abc") -- fast and memory effective replacement of lString32(U"abc")
-const lString32 & cs32(const lChar32 * str);
-/// clear all constant strings
-void clear_cs();
+template<typename T> inline lString8 cs8(const T &str) { return lString8(str); };
+template<typename T> inline lString32 cs32(const T &str) { return lString32(str); };
 
 /// collection of wide strings
 class lString32Collection

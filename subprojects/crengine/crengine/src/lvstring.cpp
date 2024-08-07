@@ -42,12 +42,6 @@ extern "C" {
 
 #define LS_DEBUG_CHECK
 
-//================================================================================
-// atomic string storages for string literals
-//================================================================================
-
-// set to 1 to enable debugging
-#define DEBUG_STATIC_STRING_ALLOC 0
 
 static lChar8 empty_str_8[] = {0};
 static lstring_chunk_t empty_chunk_8(empty_str_8);
@@ -56,100 +50,6 @@ lstring_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
 static lChar32 empty_str_32[] = {0};
 static lstring_chunk_t empty_chunk_32(empty_str_32);
 lstring_chunk_t * lString32::EMPTY_STR_32 = &empty_chunk_32;
-
-template <typename T> struct cs_val_t {
-    cs_val_t(const char *cstr, cs_val_t<T> *next) : cstr(cstr), hits(0), str(cstr), next(next) { }
-    cs_val_t(const lChar32 *cstr, cs_val_t<lString32> *next) : cstr(cstr), hits(0), str(cstr), next(next) { }
-    const void *cstr;
-    unsigned hits;
-    T str;
-    cs_val_t<T> *next;
-};
-
-#if DEBUG_STATIC_STRING_ALLOC == 1
-
-static void alloc_cs_dbg(const lString8 &s) {
-    fprintf(stderr, "allocated static cs8 string “%s”\n", s.c_str());
-}
-
-static void alloc_cs_dbg(const lString32 &s) {
-    fprintf(stderr, "allocated static cs32 string “%s”\n", LCSTR(s));
-}
-
-#endif
-
-template <typename T1, typename T2>
-static const T1 & alloc_cs(cs_val_t<T1> **bucketlist, const T2 * cstr) {
-    ptrdiff_t bucket = ((ptrdiff_t)cstr * CONST_STRING_BUFFER_HASH_MULT) & CONST_STRING_BUFFER_MASK;
-    for (cs_val_t<T1> *p = bucketlist[bucket]; p; p = p->next)
-        if (p->cstr == cstr) {
-            ++p->hits;
-            return p->str;
-        }
-    bucketlist[bucket] = new cs_val_t<T1>(cstr, bucketlist[bucket]);
-#if DEBUG_STATIC_STRING_ALLOC == 1
-    alloc_cs_dbg(bucketlist[bucket]->str);
-#endif
-    return bucketlist[bucket]->str;
-}
-
-static cs_val_t<lString8> *values_8[CONST_STRING_BUFFER_SIZE];
-
-const lString8 & cs8(const char * cstr) {
-    return alloc_cs(values_8, cstr);
-}
-
-static cs_val_t<lString32> *values_32[CONST_STRING_BUFFER_SIZE];
-
-const lString32 & cs32(const char * cstr) {
-    return alloc_cs(values_32, cstr);
-}
-
-const lString32 & cs32(const lChar32 * cstr) {
-    return alloc_cs(values_32, cstr);
-}
-
-void clear_cs() {
-    unsigned count, hits, total;
-    for (unsigned n = hits = total = 0; n < CONST_STRING_BUFFER_SIZE; ++n) {
-        count = 0;
-        for (cs_val_t<lString8> *p; (p = values_8[n]); ++count) {
-#if DEBUG_STATIC_STRING_ALLOC == 1
-            fprintf(stderr, "cs8 bucket %u: “%s” (%u hits)\n", n, p->str.c_str(), p->hits);
-#endif
-            values_8[n] = p->next;
-            hits += p->hits;
-            delete p;
-        }
-#if DEBUG_STATIC_STRING_ALLOC == 1
-        if (count)
-            fprintf(stderr, "cs8 bucket %u: %u strings\n", n, count);
-#endif
-        total += count;
-    }
-#if DEBUG_STATIC_STRING_ALLOC == 1
-    fprintf(stderr, "cs8: %u strings (%u hits)\n", total, hits);
-#endif
-    for (unsigned n = hits = total = 0; n < CONST_STRING_BUFFER_SIZE; ++n) {
-        count = 0;
-        for (cs_val_t<lString32> *p; (p = values_32[n]); ++count) {
-#if DEBUG_STATIC_STRING_ALLOC == 1
-            fprintf(stderr, "cs32 bucket %u: “%s” (%u hits)\n", n, LCSTR(p->str), p->hits);
-#endif
-            values_32[n] = p->next;
-            hits += p->hits;
-            delete p;
-        }
-#if DEBUG_STATIC_STRING_ALLOC == 1
-        if (count)
-            fprintf(stderr, "cs32 bucket %u: %u strings\n", n, count);
-#endif
-        total += count;
-    }
-#if DEBUG_STATIC_STRING_ALLOC == 1
-    fprintf(stderr, "cs32: %u strings (%u hits)\n", total, hits);
-#endif
-}
 
 
 //================================================================================
