@@ -6187,12 +6187,7 @@ public:
     // todo: parse it and pass it here, and set it on the non-instantiated font (instead of -1)
     virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString32 name, lString8 faceName, bool bold, bool italic) {
         FONT_MAN_GUARD
-        lString8 name8 = UnicodeToUtf8(name);
-        CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
-        if (_cache.findDocumentFontDuplicate(documentId, name8)) {
-            return false;
-        }
-        name.trim(); // Remove any " " appended to avoid url override with duplicates
+        CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, LCSTR(name));
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
         if (stream.isNull())
             return false;
@@ -6245,7 +6240,7 @@ public:
             bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
             LVFontDef def(
-                name8,
+                UnicodeToUtf8(name),
                 -1, // height==-1 for scalable fonts
                 weight,
                 italicFlag,
