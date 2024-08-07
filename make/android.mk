@@ -62,6 +62,15 @@ else ifeq (true,$(ANDROID_7Z_LZMA2))
   LJL_ASSETS_COMPRESSION = -m0=lzma2 -mx=9
 endif
 
+ifeq (true,$(CI))
+  GRADLE_FLAGS ?= \
+		  --console=plain \
+		  --no-daemon \
+		  -x lintVital$(ANDROID_ARCH)RocksRelease
+else
+  GRADLE_FLAGS ?=
+endif
+
 update: all update-git-rev
 	# Note: do not remove the module directory so there's no need
 	# for `mk7z.sh` to always recreate `assets.7z` from scratch.
@@ -119,6 +128,7 @@ update: all update-git-rev
 		-PbuildDir='$(LJL_BUILD_DIR)' \
 		-PassetsPath='$(LJL_ASSETS_DIR)' \
 		-PlibsPath='$(LJL_LIBS_DIR)' \
+		$(GRADLE_FLAGS) \
 		'app:assemble$(ANDROID_ARCH)Rocks$(if $(KODEBUG),Debug,Release)'
 	cp $(ANDROID_LAUNCHER_DIR)/NativeActivity.apk $(ANDROID_APK)
 
