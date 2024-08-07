@@ -1028,14 +1028,6 @@ static int getCurrentPos(lua_State *L) {
 	return 1;
 }
 
-static int getCurrentPercent(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	lua_pushinteger(L, doc->text_view->getPosPercent());
-
-	return 1;
-}
-
 static int getXPointer(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 
@@ -1891,22 +1883,6 @@ static int getHeaderHeight(lua_State *L) {
 
 	lua_pushinteger(L, doc->text_view->getPageHeaderHeight());
 	return 1;
-}
-
-static int setEmbeddedStyleSheet(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	doc->text_view->doCommand(DCMD_SET_INTERNAL_STYLES, luaL_checkint(L, 2));
-
-	return 0;
-}
-
-static int setEmbeddedFonts(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	doc->text_view->doCommand(DCMD_SET_DOC_FONTS, luaL_checkint(L, 2));
-
-	return 0;
 }
 
 /*
@@ -4227,7 +4203,6 @@ static const struct luaL_Reg credocument_meth[] = {
     {"getPageFromXPointer", getPageFromXPointer},
     {"getPosFromXPointer", getPosFromXPointer},
     {"getCurrentPos", getCurrentPos},
-    {"getCurrentPercent", getCurrentPercent},
     {"getXPointer", getXPointer},
     {"getPageXPointer", getPageXPointer},
     {"getPageOffsetX", getPageOffsetX},
@@ -4263,8 +4238,6 @@ static const struct luaL_Reg credocument_meth[] = {
     {"setFontSize", setFontSize},
     {"setDefaultInterlineSpace", setDefaultInterlineSpace},
     {"setStyleSheet", setStyleSheet},
-    {"setEmbeddedStyleSheet", setEmbeddedStyleSheet},
-    {"setEmbeddedFonts", setEmbeddedFonts},
     {"setBackgroundColor", setBackgroundColor},
     {"setBackgroundImage", setBackgroundImage},
     {"setPageMargins", setPageMargins},
