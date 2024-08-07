@@ -3278,12 +3278,10 @@ public:
         \return width of specified string
     */
     virtual lUInt32 getTextWidth( const lChar32 * text, int len, TextLangCfg * lang_cfg=NULL) {
-        static lUInt16 widths[MAX_LINE_CHARS+1];
-        static lUInt8 flags[MAX_LINE_CHARS+1];
-        if ( len>MAX_LINE_CHARS )
-            len = MAX_LINE_CHARS;
         if ( len<=0 )
             return 0;
+        lUInt16 *widths = new lUInt16[len];
+        lUInt8 *flags = new lUInt8[len];
         lUInt16 res = measureText(
                         text, len,
                         widths,
@@ -3292,9 +3290,14 @@ public:
                         U' ',  // def_char
                         lang_cfg
                      );
+        lUInt32 text_width;
         if ( res>0 && res<MAX_LINE_CHARS )
-            return widths[res-1];
-        return 0;
+            text_width = widths[res-1];
+        else
+            text_width = 0;
+        delete[] widths;
+        delete[] flags;
+        return text_width;
     }
 
     void updateTransform() { // called, but no-op
