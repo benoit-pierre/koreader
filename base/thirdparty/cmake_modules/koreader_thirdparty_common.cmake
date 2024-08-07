@@ -1,0 +1,167 @@
+include_guard(GLOBAL)
+
+if(APPLE)
+    set(STRIP_CMD ${CMAKE_STRIP} -x)
+else()
+    set(STRIP_CMD ${CMAKE_STRIP} --strip-unneeded)
+endif()
+
+if(CMAKE_HOST_APPLE)
+    # Note: can't use `sed -i "" -e`, because cmake "helpfully"
+    # filter-out the empty argument during command invocation…
+    set(ISED sh -c "sed -i '' -e \"$@\"" --)
+else()
+    set(ISED sed -i -e)
+endif()
+
+macro(assert_var_defined varName)
+    if(NOT DEFINED ${varName})
+        message(FATAL_ERROR "${varName} variable not defined!")
+    endif()
+endmacro()
+
+if(ANDROID)
+    set(ANDROID_LIBTOOL_FIX_CMD ${ISED} $<SEMICOLON>
+        -e "s|version_type=none|version_type=linux|"
+        -e "s|need_lib_prefix=no|need_lib_prefix=yes|"
+        -e "s|need_version=no|need_version=yes|"
+        -e "s|library_names_spec=.*|library_names_spec=\"\\\\$libname\\\\$release\\\\$shared_ext\\\\$versuffix \\\\$libname\\\\$release\\\\$shared_ext\\\\$major \\\\$libname\\\\$shared_ext\"|"
+        -e "s|soname_spec=.*|soname_spec=\"\\\\$libname\\\\$release\\\\$shared_ext\\\\$major\"|"
+        libtool)
+endif()
+
+# Append autotools variables ("VAR=value") to `list`.
+function(append_autotools_vars list)
+    foreach(var CC CFLAGS CPPFLAGS CXX CXXFLAGS LD LDFLAGS LIBS AR NM RANLIB RC STRIP)
+        if(DEFINED ${var})
+            string(STRIP "${${var}}" value)
+            list(APPEND ${list} "${var}=${value}")
+        endif()
+    endforeach()
+    set(${list} ${${list}} PARENT_SCOPE)
+endfunction()
+
+function(set_libname VAR NAME)
+    cmake_parse_arguments("" "" "EXT;VERSION" "" ${ARGN})
+    if(NOT DEFINED _EXT)
+        set(_EXT ${LIB_EXT})
+    endif()
+    set(NAME lib${NAME} ${_EXT})
+    if(DEFINED _VERSION)
+        if(APPLE)
+            list(INSERT NAME 1 .${_VERSION})
+        elseif(WIN32)
+            list(INSERT NAME 1 -${_VERSION})
+        else()
+            list(APPEND NAME .${_VERSION})
+        endif()
+    endif()
+    string(CONCAT NAME ${NAME})
+    set(${VAR} ${NAME} PARENT_SCOPE)
+endfunction()
+
+function(append_install_commands CMD_LIST)
+    cmake_parse_arguments("" "" "DESTINATION" "" ${ARGN})
+    if(DEFINED _DESTINATION)
+        get_filename_component(_DESTINATION ${_DESTINATION} ABSOLUTE BASE_DIR ${OUTPUT_DIR})
+    else()
+        set(_DESTINATION ${OUTPUT_DIR})
+    endif()
+    list(APPEND ${CMD_LIST} COMMAND ${CMAKE_COMMAND} -E make_directory ${_DESTINATION})
+    list(APPEND ${CMD_LIST} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_UNPARSED_ARGUMENTS} ${_DESTINATION}/)
+    set(${CMD_LIST} ${${CMD_LIST}} PARENT_SCOPE)
+endfunction()
+
+function(append_binary_install_command CMD_LIST)
+    cmake_parse_arguments("" "" "DESTINATION" "" ${ARGN})
+    if(DEFINED _DESTINATION)
+        get_filename_component(_DESTINATION ${_DESTINATION} ABSOLUTE BASE_DIR ${OUTPUT_DIR})
+    else()
+        set(_DESTINATION ${OUTPUT_DIR})
+    endif()
+    list(APPEND ${CMD_LIST} COMMAND ${CMAKE_COMMAND} -E make_directory ${_DESTINATION})
+    foreach(SRC IN LISTS _UNPARSED_ARGUMENTS)
+        get_filename_component(DST ${SRC} NAME)
+        set(DST ${_DESTINATION}/${DST})
+        if(DO_STRIP)
+            list(APPEND ${CMD_LIST} COMMAND ${STRIP_CMD} -o ${DST} ${SRC})
+        else()
+            list(APPEND ${CMD_LIST} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SRC} ${DST})
+        endif()
+        list(APPEND ${CMD_LIST} COMMAND chmod +x ${DST})
+    endforeach()
+    set(${CMD_LIST} ${${CMD_LIST}} PARENT_SCOPE)
+endfunction()
+
+function(append_shared_lib_install_commands CMD_LIST)
+    set_libname(LIB ${ARGN})
+    append_binary_install_command(${CMD_LIST} ${STAGING_DIR}/lib/${LIB} DESTINATION ${OUTPUT_DIR}/libs)
+    set(${CMD_LIST} ${${CMD_LIST}} PARENT_SCOPE)
+endfunction()
+
+if(APPLE)
+    function(append_shared_lib_fix_commands CMD_LIST)
+        cmake_parse_arguments("" "ID;RPATH" "" "" ${ARGN})
+        set_libname(LIB ${_UNPARSED_ARGUMENTS})
+        list(APPEND ${CMD_LIST} COMMAND install_name_tool)
+        if(_ID)
+            list(APPEND ${CMD_LIST} -id @rpath/${LIB})
+        endif()
+        if(_RPATH)
+            list(APPEND ${CMD_LIST} -add_rpath @executable_path/libs -add_rpath @executable_path/../koreader/libs)
+        endif()
+        list(APPEND ${CMD_LIST} ${STAGING_DIR}/lib/${LIB})
+        set(${CMD_LIST} ${${CMD_LIST}} PARENT_SCOPE)
+    endfunction()
+endif()
+
+function(append_tree_install_commands CMD_LIST SRC DST)
+    get_filename_component(DST ${DST} ABSOLUTE BASE_DIR ${OUTPUT_DIR})
+    list(APPEND ${CMD_LIST} COMMAND ${CMAKE_COMMAND} -E)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.26")
+        list(APPEND ${CMD_LIST} copy_directory_if_different)
+    else()
+        list(APPEND ${CMD_LIST} copy_directory)
+    endif()
+    set(${CMD_LIST} ${${CMD_LIST}} ${SRC} ${DST} PARENT_SCOPE)
+endfunction()
+
+function(target_exports TARGET)
+    cmake_parse_arguments("" "" "FILELIST_VAR;WRITE_TO_FILE" "CDECLS" ${ARGN})
+    if(NOT _CDECLS)
+        message(FATAL_ERROR "missing CDECLS argument")
+    endif()
+    set(FILELIST)
+    foreach(F IN LISTS _CDECLS)
+        set(F ${BASE_DIR}/ffi-cdecl/${F}.c)
+        if(NOT EXISTS ${F})
+            message(FATAL_ERROR "no such FFI cdecl file: ${F}")
+        endif()
+        list(APPEND FILELIST ${F})
+    endforeach()
+    if(DEFINED _FILELIST_VAR)
+        set(${_FILELIST_VAR} ${FILELIST} PARENT_SCOPE)
+    endif()
+    if(DEFINED _WRITE_TO_FILE)
+        set(FNAME ${_WRITE_TO_FILE})
+    else()
+        set(FNAME ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_exports.cmake)
+    endif()
+    set(LINES
+        "add_custom_command("
+        "    COMMAND ${BASE_DIR}/utils/gen_linker_exports.sh ${LD} ${TARGET}.link_args ${TARGET}.link_exports ${FILELIST}"
+        "    OUTPUT ${TARGET}.link_args ${TARGET}.link_exports"
+        "    DEPENDS ${BASE_DIR}/utils/gen_linker_exports.sh ${FILELIST}"
+        "    VERBATIM"
+        ")"
+        "add_custom_target(${TARGET}-link-deps DEPENDS ${TARGET}.link_args ${TARGET}.link_exports)"
+        "target_link_options(${TARGET} PRIVATE -Wl,@${TARGET}.link_args)"
+        "add_dependencies(${TARGET} ${TARGET}-link-deps)"
+        "set_target_properties(${TARGET} PROPERTIES LINK_DEPENDS \"${TARGET}.link_args$<SEMICOLON>${TARGET}.link_exports\")"
+    )
+    list(JOIN LINES "\n" LINES)
+    file(WRITE ${FNAME} "${LINES}\n")
+    if(NOT DEFINED _WRITE_TO_FILE)
+        include(${FNAME})
+    endif()
+endfunction()
