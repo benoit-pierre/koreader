@@ -1121,6 +1121,28 @@ void lString32Collection::reserve(int space)
     }
 }
 
+lString32 lString32Collection::join(lChar32 separator)
+{
+    if (!count)
+        return lString32::empty_str;
+    int offset = 0;
+    for (int n = 0; n < count; ++n) {
+        if (offset)
+            offset += 1;
+        offset += chunks[n]->len;
+    }
+    lString32 res(offset, offset);
+    lChar32 *p = res.modify();
+    offset = 0;
+    for (int n = 0; n < count; ++n) {
+        if (offset)
+            p[offset++] = separator;
+        lStr_memcpy(p + offset, chunks[n]->buf32, chunks[n]->len);
+        offset += chunks[n]->len;
+    }
+    return res;
+}
+
 static int (str32_comparator)(const void * n1, const void * n2)
 {
     lstring_chunk_t ** s1 = (lstring_chunk_t **)n1;

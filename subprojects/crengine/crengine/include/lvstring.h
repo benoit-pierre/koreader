@@ -377,6 +377,7 @@ inline bool lStr_isRTL( lChar32 c ) {
 struct lstring_chunk_t {
     friend class lString8;
     friend class lString32;
+    friend class lString32Collection;
     friend struct lstring_chunk_slice_t;
 public:
     lstring_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0), nref(1) {}
@@ -1001,6 +1002,7 @@ public:
                 return true;
         return false;
     }
+    lString32 join(lChar32 separator = ' ');
     void sort();
     void sort(int(comparator)(lString32 & s1, lString32 & s2));
     ~lString32Collection()
@@ -1038,7 +1040,7 @@ public:
     /// split string by delimiters, and add all substrings to collection
     void split(const lString8 & str, const lString8 & delimiter);
     void erase(int offset, int count);
-    const lString8 & at(int index)
+    const lString8 & at(int index) const
     {
         return ((lString8 *)chunks)[index];
     }
