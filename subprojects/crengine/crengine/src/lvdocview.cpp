@@ -21,7 +21,6 @@
 #include "../include/lvstsheet.h"
 #include "../include/textlang.h"
 
-// #include "../include/wolutil.h"
 #include "../include/crtxtenc.h"
 #include "../include/crtrace.h"
 #include "../include/epubfmt.h"
@@ -799,24 +798,6 @@ void LVDocView::cachePageImage( int delta )
 }
 #endif
 
-#if 0 // unused
-
-bool LVDocView::exportWolFile(const char * fname, bool flgGray, int levels) {
-	LVStreamRef stream = LVOpenFileStream(fname, LVOM_WRITE);
-	if (!stream)
-		return false;
-	return exportWolFile(stream.get(), flgGray, levels);
-}
-
-bool LVDocView::exportWolFile(const lChar32 * fname, bool flgGray, int levels) {
-	LVStreamRef stream = LVOpenFileStream(fname, LVOM_WRITE);
-	if (!stream)
-		return false;
-	return exportWolFile(stream.get(), flgGray, levels);
-}
-
-#endif
-
 void dumpSection(ldomNode * elem) {
 	lvRect rc;
 	elem->getAbsRect(rc);
@@ -1202,147 +1183,6 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
 				+ rc.top - h) / 2, NULL);
 	//CRLog::trace("drawCoverTo() - done");
 }
-
-#if 0 // unused
-
-/// export to WOL format
-bool LVDocView::exportWolFile(LVStream * stream, bool flgGray, int levels) {
-	checkRender();
-	int save_m_dx = m_dx;
-	int save_m_dy = m_dy;
-	int old_flags = m_pageHeaderInfo;
-	int save_pos = _pos;
-	int save_page = _pos;
-	bool showCover = getShowCover();
-	m_pageHeaderInfo &= ~(PGHDR_CLOCK | PGHDR_BATTERY);
-	int dx = 600; // - m_pageMargins.left - m_pageMargins.right;
-	int dy = 800; // - m_pageMargins.top - m_pageMargins.bottom;
-	Resize(dx, dy);
-
-	LVRendPageList &pages = m_pages;
-
-	//Render(dx, dy, &pages);
-
-	const lChar8 * * table = GetCharsetUnicode2ByteTable(U"windows-1251");
-
-	//ldomXPointer bm = getBookmark();
-	{
-		WOLWriter wol(stream);
-		lString8 authors = UnicodeTo8Bit(getAuthors(), table);
-		lString8 name = UnicodeTo8Bit(getTitle(), table);
-        wol.addTitle(name, cs8("-"), authors, cs8("-"), //adapter
-                cs8("-"), //translator
-                cs8("-"), //publisher
-                cs8("-"), //2006-11-01
-                cs8("-"), //This is introduction.
-                cs8("") //ISBN
-		);
-
-		LVGrayDrawBuf cover(600, 800);
-		lvRect coverRc(0, 0, 600, 800);
-		cover.Clear(m_backgroundColor);
-		drawCoverTo(&cover, coverRc);
-		wol.addCoverImage(cover);
-
-		int lastPercent = 0;
-		for (int i = showCover ? 1 : 0; i < pages.length(); i
-				+= getVisiblePageCount()) {
-			int percent = i * 100 / pages.length();
-			percent -= percent % 5;
-			if (percent != lastPercent) {
-				lastPercent = percent;
-				if (m_callback != NULL)
-					m_callback->OnExportProgress(percent);
-			}
-			LVGrayDrawBuf drawbuf(600, 800, flgGray ? 2 : 1); //flgGray ? 2 : 1);
-			//drawbuf.SetBackgroundColor(0xFFFFFF);
-			//drawbuf.SetTextColor(0x000000);
-			drawbuf.Clear(m_backgroundColor);
-			drawPageTo(&drawbuf, *pages[i], NULL, pages.length(), 0);
-			_pos = pages[i]->start;
-			_page = i;
-			Draw(drawbuf, -1, _page, true);
-			if (!flgGray) {
-				drawbuf.ConvertToBitmap(false);
-				drawbuf.Invert();
-			} else {
-				//drawbuf.Invert();
-			}
-			wol.addImage(drawbuf);
-		}
-
-		// add TOC
-		ldomNode * body = m_doc->nodeFromXPath(lString32(
-                "/FictionBook/body[1]"));
-		lUInt16 section_id = m_doc->getElementNameIndex(U"section");
-
-		if (body) {
-			int l1n = 0;
-			for (int l1 = 0; l1 < 1000; l1++) {
-				ldomNode * l1section = body->findChildElement(LXML_NS_ANY,
-						section_id, l1);
-				if (!l1section)
-					break;
-				lString8 title = UnicodeTo8Bit(getSectionHeader(l1section),
-						table);
-				int page = getSectionPage(l1section, pages);
-				if (!showCover)
-					page++;
-				if (!title.empty() && page >= 0) {
-					wol.addTocItem(++l1n, 0, 0, page, title);
-					int l2n = 0;
-					if (levels < 2)
-						continue;
-					for (int l2 = 0; l2 < 1000; l2++) {
-						ldomNode * l2section = l1section->findChildElement(
-								LXML_NS_ANY, section_id, l2);
-						if (!l2section)
-							break;
-						lString8 title = UnicodeTo8Bit(getSectionHeader(
-								l2section), table);
-						int page = getSectionPage(l2section, pages);
-						if (!title.empty() && page >= 0) {
-							wol.addTocItem(l1n, ++l2n, 0, page, title);
-							int l3n = 0;
-							if (levels < 3)
-								continue;
-							for (int l3 = 0; l3 < 1000; l3++) {
-								ldomNode * l3section =
-										l2section->findChildElement(
-												LXML_NS_ANY, section_id, l3);
-								if (!l3section)
-									break;
-								lString8 title = UnicodeTo8Bit(
-										getSectionHeader(l3section), table);
-								int page = getSectionPage(l3section, pages);
-								if (!title.empty() && page >= 0) {
-									wol.addTocItem(l1n, l2n, ++l3n, page, title);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	m_pageHeaderInfo = old_flags;
-	_pos = save_pos;
-	_page = save_page;
-	bool rotated =
-#if CR_INTERNAL_PAGE_ORIENTATION==1
-			(GetRotateAngle()&1);
-#else
-			false;
-#endif
-	int ndx = rotated ? save_m_dy : save_m_dx;
-	int ndy = rotated ? save_m_dx : save_m_dy;
-	Resize(ndx, ndy);
-	clearImageCache();
-
-	return true;
-}
-
-#endif
 
 int LVDocView::GetFullHeight() {
 	LVLock lock(getMutex());

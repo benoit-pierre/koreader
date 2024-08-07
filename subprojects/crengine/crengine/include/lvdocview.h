@@ -829,15 +829,6 @@ public:
         return getSeries();
     }
 
-#if 0 // unused
-    /// export to WOL format
-    bool exportWolFile( const char * fname, bool flgGray, int levels );
-    /// export to WOL format
-    bool exportWolFile( const lChar32 * fname, bool flgGray, int levels );
-    /// export to WOL format
-    bool exportWolFile( LVStream * stream, bool flgGray, int levels );
-#endif
-
     /// get a stream for reading to document internal file (path inside the ZIP for EPUBs,
     /// path relative to document directory for non-container documents like HTML)
     LVStreamRef getDocumentFileStream( lString32 filePath );
