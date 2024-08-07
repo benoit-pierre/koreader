@@ -200,14 +200,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
         free( pbuffer->floats );
     }
     if (pbuffer->inlineboxes_links)
-    {
-        LVHashTable<lUInt32, lString32Collection*>::iterator it = pbuffer->inlineboxes_links->forwardIterator();
-        LVHashTable<lUInt32, lString32Collection*>::pair* pair;
-        while ( (pair = it.next()) ) {
-            delete pair->value;
-        }
         delete pbuffer->inlineboxes_links;
-    }
     free(pbuffer);
 }
 
@@ -2224,7 +2217,7 @@ public:
                             lString32Collection * link_ids = alt_context.getLinkIds();
                             if (link_ids->length() > 0) {
                                 if ( m_pbuffer->inlineboxes_links == NULL ) {
-                                    m_pbuffer->inlineboxes_links = new LVHashTable<lUInt32, lString32Collection*>(16);
+                                    m_pbuffer->inlineboxes_links = new LVHashTable<lUInt32, lString32Collection*, true>(16);
                                 }
                                 lString32Collection * links;
                                 lUInt32 key = node->getDataIndex();
@@ -5564,14 +5557,7 @@ static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
 
     // Also clear inlinebox links containers
     if (m_pbuffer->inlineboxes_links)
-    {
-        LVHashTable<lUInt32, lString32Collection*>::iterator it = m_pbuffer->inlineboxes_links->forwardIterator();
-        LVHashTable<lUInt32, lString32Collection*>::pair* pair;
-        while ( (pair = it.next()) ) {
-            delete pair->value;
-        }
         free( m_pbuffer->inlineboxes_links );
-    }
     m_pbuffer->inlineboxes_links = NULL;
 }
 
