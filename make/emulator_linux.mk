@@ -1,6 +1,6 @@
 APPIMAGE_DIR = $(PLATFORM_DIR)/appimage
 APPIMAGETOOL = appimagetool-x86_64.AppImage
-APPIMAGETOOL_URL = https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+APPIMAGETOOL_URL = https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
 
 appimageupdate: all update-git-rev
 	# remove old package if any
