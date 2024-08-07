@@ -98,6 +98,14 @@ void lStr_memset(lChar32 * dst, lChar32 value, int count);
 inline void lStr_memset(lChar8 * dst, lChar8 value, int count) {
     memset(dst, value, count);
 }
+/// memcmp for lChar32
+int  lStr_memcmp(const lChar32 * str1, const lChar32 * str2, int count);
+/// memcmp for lChar32 <> lChar8
+int  lStr_memcmp(const lChar32 * str1, const lChar8 * str2, int count);
+/// memcmp for lChar8
+inline int lStr_memcmp(const lChar8 * str1, const lChar8 * str2, int count) {
+    return memcmp(str1, str2, count);
+}
 /// strcmp for lChar32
 int lStr_cmp(const lChar32 * str1, const lChar32 * str2);
 /// strcmp for lChar32 <> lChar8
@@ -1086,36 +1094,6 @@ public:
     int find( const lChar32 * s );
 };
 
-/// returns true if two wide strings are equal
-inline bool operator == (const lString32& s1, const lString32& s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lChar32 * s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lChar8 * s2 )
-    { return s1.compare(s2)==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lChar32 * s1, const lString32& s2 )
-    { return s2.compare(s1)==0; }
-
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString32& s1, const lString8& s2 )
-    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
-/// returns true if wide strings is equal to wide c-string
-inline bool operator == (const lString8& s1, const lString32& s2 )
-    { return lStr_cmp(s2.c_str(), s1.c_str())==0; }
-
-inline bool operator != (const lString32& s1, const lString32& s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lString32& s1, const lChar32 * s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lString32& s1, const lChar8 * s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lChar32 * s1, const lString32& s2 )
-    { return s2.compare(s1)!=0; }
-inline bool operator != (const lChar8 * s1, const lString32& s2 )
-    { return s2.compare(s1)!=0; }
 inline lString32 operator + (const lString32 &s1, const lString32 &s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar32 * s2) { lString32 s(s1); s.append(s2); return s; }
 inline lString32 operator + (const lString32 &s1, const lChar8 * s2) { lString32 s(s1); s.append(s2); return s; }
@@ -1124,18 +1102,60 @@ inline lString32 operator + (const lChar8 * s1,  const lString32 &s2) { lString3
 inline lString32 operator + (const lString32 &s1, fmt::decimal v) { lString32 s(s1); s.appendDecimal(v.get()); return s; }
 inline lString32 operator + (const lString32 &s1, fmt::hex v) { lString32 s(s1); s.appendHex(v.get()); return s; }
 
-inline bool operator == (const lString8& s1, const lString8& s2 )
-    { return s1.compare(s2)==0; }
-inline bool operator == (const lString8& s1, const lChar8 * s2 )
-    { return s1.compare(s2)==0; }
-inline bool operator == (const lChar8 * s1, const lString8& s2 )
-    { return s2.compare(s1)==0; }
-inline bool operator != (const lString8& s1, const lString8& s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lString8& s1, const lChar8 * s2 )
-    { return s1.compare(s2)!=0; }
-inline bool operator != (const lChar8 * s1, const lString8& s2 )
-    { return s2.compare(s1)!=0; }
+// lString32 ==
+inline bool operator == (const lString32 &s1, const lString32 &s2) {
+    return s1.length() == s2.length() && !lStr_memcmp(s1.c_str(), s2.c_str(), s1.length());
+}
+inline bool operator == (const lString32 &s1, const lString8 &s2) {
+    return s1.length() == s2.length() && !lStr_memcmp(s1.c_str(), s2.c_str(), s1.length());
+}
+inline bool operator == (const lString32 &s1, const lChar32 *s2) {
+    return !lStr_cmp(s1.c_str(), s2);
+}
+inline bool operator == (const lString32 &s1, const lChar8 *s2) {
+    return !lStr_cmp(s1.c_str(), s2);
+}
+// lString32 !=
+inline bool operator != (const lString32 &s1, const lString32 &s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString32 &s1, const lString8 &s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString32 &s1, const lChar32 *s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString32 &s1, const lChar8 *s2) {
+    return !(s1 == s2);
+}
+
+// lString8 ==
+inline bool operator == (const lString8 &s1, const lString32 &s2) {
+    return s2 == s1;
+}
+inline bool operator == (const lString8 &s1, const lString8 &s2) {
+    return s1.length() == s2.length() && !lStr_memcmp(s1.c_str(), s2.c_str(), s1.length());
+}
+inline bool operator == (const lString8 &s1, const lChar32 *s2) {
+    return !lStr_cmp(s1.c_str(), s2);
+}
+inline bool operator == (const lString8 &s1, const lChar8 *s2) {
+    return !lStr_cmp(s1.c_str(), s2);
+}
+// lString8 !=
+inline bool operator != (const lString8 &s1, const lString32 &s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString8 &s1, const lString8 &s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString8 &s1, const lChar32 *s2) {
+    return !(s1 == s2);
+}
+inline bool operator != (const lString8 &s1, const lChar8 *s2) {
+    return !(s1 == s2);
+}
+
 inline lString8 operator + (const lString8 &s1, const lString8 &s2)
     { lString8 s(s1); s.append(s2); return s; }
 inline lString8 operator + (const lString8 &s1, const lChar8 * s2)
