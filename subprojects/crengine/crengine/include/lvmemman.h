@@ -38,13 +38,23 @@ inline void crFatalError() { crFatalError( -1, "Unknown fatal error" ); }
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
 /// typed realloc with result check (size is counted in T), fatal error if failed
-template <typename T> inline T * cr_realloc( T * ptr, size_t newSize ) {
-    T * newptr = reinterpret_cast<T*>(realloc(ptr, sizeof(T)*newSize));
-    if ( newptr || !newSize )
-        return newptr;
-    free(ptr);
-    crFatalError(-2, "realloc failed");
-    return NULL;
+template <typename T> inline T * cr_realloc( T * ptr, size_t newSize, bool preserve=true ) {
+    T * newptr;
+    if ( preserve ) {
+        newptr = reinterpret_cast<T*>(realloc(ptr, sizeof(T)*newSize));
+        if ( !newptr && newSize )
+            free(ptr);
+    } else {
+        free(ptr);
+        if ( !newSize )
+            return NULL;
+        newptr = reinterpret_cast<T*>(malloc(sizeof(T)*newSize));
+    }
+    if ( !newptr ) {
+        crFatalError(-2, "realloc failed");
+        return NULL;
+    }
+    return newptr;
 }
 
 
