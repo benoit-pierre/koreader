@@ -10669,7 +10669,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     if ( doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
         lString32 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
         if ( !nodeStyle.empty() ) {
-            nodeStyle = cs32("{") + nodeStyle + "}";
+            nodeStyle = concat32('{', nodeStyle, '}');
             LVCssDeclaration decl;
             lString8 s8 = UnicodeToUtf8(nodeStyle);
             const char * s = s8.c_str();

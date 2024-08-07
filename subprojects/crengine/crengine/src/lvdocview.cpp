@@ -3273,7 +3273,7 @@ bool LVDocView::goLink(lString32 link, bool savePos) {
 			// TODO: setup properties
 			// go to anchor
 			if (!id.empty())
-                goLink(cs32("#") + id);
+                goLink(concat32('#', id));
 			clearImageCache();
 			requestRender();
 			return true;
@@ -3323,7 +3323,7 @@ lString32 LVDocView::getNavigationPath() {
 	LVAppendPathDelimiter(fpath);
 	lString32 s = fpath + fname;
 	if (!m_arc.isNull())
-        s = cs32("/") + s;
+        s = concat32('/', s);
 	return s;
 }
 

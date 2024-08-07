@@ -2101,7 +2101,7 @@ bool ImportEpubDocument( LVStreamRef stream, ldomDocument * m_doc, LVDocViewCall
             // ldomDocumentFragmentWriter will get all id=, href=, src=... prefixed
             // with _doc_fragment_n, so they are unique in this single DOM.
             lString32 name = LVCombinePaths(codeBase, spineItems[i]->href);
-            lString32 subst = cs32("_doc_fragment_") + fmt::decimal(i);
+            lString32 subst = concat32("_doc_fragment_", fmt::decimal(i));
             appender.addPathSubstitution( name, subst );
             //CRLog::trace("subst: %s => %s", LCSTR(name), LCSTR(subst));
         }
