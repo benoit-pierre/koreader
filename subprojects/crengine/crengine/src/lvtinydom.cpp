@@ -4071,6 +4071,67 @@ static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
     }
 }
 
+static lString32 & escape_xml_special_characters(lString32 & s) {
+    // Escape XML special characters: assume those are rare, and do it in
+    // place by scanning the string a first time to calculate the final
+    // length, and then escaping from end to start.
+    int old_len = s.length();
+    int new_len = 0;
+    const lChar32 *rp = s.c_str();
+    while (*rp) {
+        switch (*rp) {
+        case U'&':
+            new_len += 5;
+            break;
+        case U'<':
+        case U'>':
+            new_len += 4;
+            break;
+        default:
+            new_len += 1;
+            break;
+        }
+        ++rp;
+    }
+    if (new_len == old_len) {
+        // Same length: nothing to replace.
+        return s;
+    }
+    s.append(new_len - old_len, U' ');
+    lChar32 *wp = s.modify() + new_len - 1;
+    rp = s.c_str() + old_len;
+    // In the condition below; if the 2 pointers have the same value,
+    // it means `wp` as "caught-up" to `sp`, just before the first
+    // escaped character, and we can stop.
+    while (wp != --rp) {
+        switch (*rp) {
+        case U'&':
+            *wp-- = ';';
+            *wp-- = 'p';
+            *wp-- = 'm';
+            *wp-- = 'a';
+            *wp-- = '&';
+            break;
+        case U'<':
+            *wp-- = ';';
+            *wp-- = 't';
+            *wp-- = 'l';
+            *wp-- = '&';
+            break;
+        case U'>':
+            *wp-- = ';';
+            *wp-- = 't';
+            *wp-- = 'g';
+            *wp-- = '&';
+            break;
+        default:
+            *wp-- = *rp;
+            break;
+        }
+    }
+    return s;
+}
+
 // Similar to previous one (with more tweaks), to serialize back <svg> to string
 static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_style=true, bool is_top_node=true )
 {
@@ -4078,15 +4139,7 @@ static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_
         // When parsing <svg>, as with xml and html, we have decoded html entities.
         // We need to re-encode "&<>" to get proper SVG XML.
         lString32 txt = node->getText();
-        // Use a temporary char we're not likely to find in the DOM
-        // (see https://en.wikipedia.org/wiki/Specials_(Unicode_block) )
-        // for 2-steps '&' replacement (to avoid infinite loop or the
-        // need for more complicated code)
-        while ( txt.replace( cs32("&"), cs32(U"\xFFFF") ) ) ;
-        while ( txt.replace( cs32(U"\xFFFF"), cs32("&amp;") ) ) ;
-        while ( txt.replace( cs32("<"), cs32("&lt;") ) ) ;
-        while ( txt.replace( cs32(">"), cs32("&gt;") ) ) ;
-        *stream << UnicodeToUtf8(txt);
+        *stream << UnicodeToUtf8(escape_xml_special_characters(txt));
     }
     else if (  node->isElement() ) {
         // When parsing <svg>, we made sure to NOT lowercase elements and attributes names:
@@ -4475,14 +4528,7 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
             for ( int i=indentBaseLevel; i<level; i++ )
                 *stream << "  ";
         if ( ! WNEFLAG(TEXT_UNESCAPED) ) {
-            // Use a temporary char we're not likely to find in the DOM
-            // (see https://en.wikipedia.org/wiki/Specials_(Unicode_block) )
-            // for 2-steps '&' replacement (to avoid infinite loop or the
-            // need for more complicated code)
-            while ( txt.replace( cs32("&"), cs32(U"\xFFFF") ) ) ;
-            while ( txt.replace( cs32(U"\xFFFF"), cs32("&amp;") ) ) ;
-            while ( txt.replace( cs32("<"), cs32("&lt;") ) ) ;
-            while ( txt.replace( cs32(">"), cs32("&gt;") ) ) ;
+            escape_xml_special_characters(txt);
         }
         #define HYPH_MIN_WORD_LEN_TO_HYPHENATE 4
         #define HYPH_MAX_WORD_SIZE 64
