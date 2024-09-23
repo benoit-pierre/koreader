@@ -10,6 +10,7 @@ pushd install/koreader && {
 } && popd || exit
 
 echo "BUSTED_SPEC_FILE: ${BUSTED_SPEC_FILE}"
-make testfront --assume-old=all BUSTED_SPEC_FILE="${BUSTED_SPEC_FILE}"
+make --version
+make -d testfront --assume-old=all BUSTED_SPEC_FILE="${BUSTED_SPEC_FILE}"
 
 # vim: sw=4
