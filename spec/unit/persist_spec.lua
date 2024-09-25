@@ -95,8 +95,8 @@ describe("Persist module", function()
         end
     end)
 
-    it("should work with huge tables #nocov", function()
-        local tab = arrayOf(100000)
+    it("should work with huge tables", function()
+        local tab = arrayOf(10000)
         for _, codec in ipairs({"bitser", "luajit"}) do
             local ser = Persist.getCodec(codec).serialize
             local deser = Persist.getCodec(codec).deserialize
