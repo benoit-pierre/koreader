@@ -105,7 +105,7 @@ jobs:
           command: .ci/test.sh
       # Docs, coverage, and test timing (can we use two outputs at once?); master branch only.
       - run:
-          name: Coverage
+          name: Uploading coverage
           command: .ci/after_success.sh
       # By storing the test results CircleCI automatically distributes tests based on execution time.
       - store_test_results:
