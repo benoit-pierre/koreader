@@ -194,10 +194,13 @@ jobs:
 
       # }}}
 
+      - name: Test
+        run: ./base/utils/fake_tty.py make --assume-old=base testfront
+
       # Generate / upload artifact. {{{
 
       - name: Generate artifact
-        run: make update --assume-old=base
+        run: make update --assume-old=all
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
