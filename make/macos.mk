@@ -28,7 +28,7 @@ update: all
 	     -path './spec' -o \
 	     -path './tools' -o \
 	     -name '.*' \
-	  ')' -prune -o -type f -print0 | cpio -Ldpm0 --quiet ../bundle/Contents/
+	  ')' -prune -o -type f -print0 | cpio -Ldpm0 --quiet ../bundle/Contents/koreader/
 	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	ibtool --compile $(INSTALL_DIR)/bundle/Contents/Resources/Base.lproj/MainMenu.nib $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	rm -vf $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
