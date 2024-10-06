@@ -7,26 +7,26 @@ update: all
 	cp -pv $(MACOS_DIR)/koreader.icns $(INSTALL_DIR)/bundle/Contents/Resources/icon.icns
 	cd $(INSTALL_DIR)/koreader && find -L * \
 	  '(' \
-	     -path './cache' -o \
-	     -path './clipboard' -o \
-	     -path './data/dict' -o \
-	     -path './data/tessdata' -o \
-	     -path './history' -o \
-	     -path './l10n/LICENSE' -o \
-	     -path './l10n/Makefile' -o \
-	     -path './l10n/README.md' -o \
-	     -path './l10n/templates' -o \
-	     -path './luajit' -o \
-	     -path './ota' -o \
-	     -path './plugins/SSH.koplugin' -o \
-	     -path './plugins/autofrontlight.koplugin' -o \
-	     -path './plugins/hello.koplugin' -o \
-	     -path './plugins/timesync.koplugin' -o \
-	     -path './resources/fonts' -o \
-	     -path './resources/icons/src' -o \
-	     -path './screenshots' -o \
-	     -path './spec' -o \
-	     -path './tools' -o \
+	     -path 'cache' -o \
+	     -path 'clipboard' -o \
+	     -path 'data/dict' -o \
+	     -path 'data/tessdata' -o \
+	     -path 'history' -o \
+	     -path 'l10n/LICENSE' -o \
+	     -path 'l10n/Makefile' -o \
+	     -path 'l10n/README.md' -o \
+	     -path 'l10n/templates' -o \
+	     -path 'luajit' -o \
+	     -path 'ota' -o \
+	     -path 'plugins/SSH.koplugin' -o \
+	     -path 'plugins/autofrontlight.koplugin' -o \
+	     -path 'plugins/hello.koplugin' -o \
+	     -path 'plugins/timesync.koplugin' -o \
+	     -path 'resources/fonts' -o \
+	     -path 'resources/icons/src' -o \
+	     -path 'screenshots' -o \
+	     -path 'spec' -o \
+	     -path 'tools' -o \
 	     -name '.*' \
 	  ')' -prune -o -type f -print0 | cpio -Ldpm0 --quiet ../bundle/Contents/koreader/
 	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
