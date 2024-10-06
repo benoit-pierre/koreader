@@ -19,15 +19,15 @@ update: all
 	     -path './l10n/templates' \
 	     -path './luajit' -o \
 	     -path './ota' -o \
-	     -path './plugins/SSH.koplugin' \
-	     -path './plugins/autofrontlight.koplugin' \
-	     -path './plugins/hello.koplugin' \
-	     -path './plugins/timesync.koplugin' \
-	     -path './resources/fonts' \
-	     -path './resources/icons/src'
-	     -path './screenshots' \
-	     -path './spec' \
-	     -path './tools' \
+	     -path './plugins/SSH.koplugin' -o \
+	     -path './plugins/autofrontlight.koplugin' -o \
+	     -path './plugins/hello.koplugin' -o \
+	     -path './plugins/timesync.koplugin' -o \
+	     -path './resources/fonts' -o \
+	     -path './resources/icons/src' -o \
+	     -path './screenshots' -o \
+	     -path './spec' -o \
+	     -path './tools' -o \
 	  ')' -prune -o -type f -print0 | cpio -Ldpm0 --quiet ../bundle/Contents/
 	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	ibtool --compile $(INSTALL_DIR)/bundle/Contents/Resources/Base.lproj/MainMenu.nib $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
