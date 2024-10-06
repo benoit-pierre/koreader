@@ -5,13 +5,30 @@ update: all
 		$(INSTALL_DIR)/bundle/Contents/MacOS \
 		$(INSTALL_DIR)/bundle/Contents/Resources
 	cp -pv $(MACOS_DIR)/koreader.icns $(INSTALL_DIR)/bundle/Contents/Resources/icon.icns
-	cd $(INSTALL_DIR) && find -L koreader \
-	    '(' \
-		-path './koreader/data/dict' -o \
-		-path './koreader/data/tessdata' -o \
-		-path './koreader/luajit' -o \
-		-path './spec' \
-	    ')' -prune -o -type f -print0 | cpio -Ldpm0 bundle/Contents/
+	cd $(INSTALL_DIR)/koreader && find -L * \
+	  '(' \
+	     -name '.*' -o \
+	     -path './cache' -o \
+	     -path './clipboard' -o \
+	     -path './data/dict' -o \
+	     -path './data/tessdata' -o \
+	     -path './history' -o \
+	     -path './l10n/LICENSE' \
+	     -path './l10n/Makefile' \
+	     -path './l10n/README.md' \
+	     -path './l10n/templates' \
+	     -path './luajit' -o \
+	     -path './ota' -o \
+	     -path './plugins/SSH.koplugin' \
+	     -path './plugins/autofrontlight.koplugin' \
+	     -path './plugins/hello.koplugin' \
+	     -path './plugins/timesync.koplugin' \
+	     -path './resources/fonts' \
+	     -path './resources/icons/src'
+	     -path './screenshots' \
+	     -path './spec' \
+	     -path './tools' \
+	  ')' -prune -o -type f -print0 | cpio -Ldpm0 --quiet ../bundle/Contents/
 	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	ibtool --compile $(INSTALL_DIR)/bundle/Contents/Resources/Base.lproj/MainMenu.nib $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	rm -vf $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
