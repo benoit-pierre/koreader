@@ -54,7 +54,9 @@ define CR3GUI_DATADIR_EXCLUDES
 %/cr3skin-format.txt
 %/desktop
 %/devices
+%/dict
 %/manual
+%/tessdata
 endef
 CR3GUI_DATADIR_FILES = $(filter-out $(CR3GUI_DATADIR_EXCLUDES),$(wildcard $(CR3GUI_DATADIR)/*))
 
@@ -112,10 +114,6 @@ endif
 	! test -L $(INSTALL_DIR)/koreader/data || rm $(INSTALL_DIR)/koreader/data
 	install -d $(INSTALL_DIR)/koreader/data
 	$(SYMLINK) $(strip $(DATADIR_FILES)) $(INSTALL_DIR)/koreader/data/
-ifneq (,$(IS_RELEASE))
-	@echo "[*] Clean up, remove unused files for releases"
-	rm -rf $(INSTALL_DIR)/koreader/data/{cr3.ini,desktop,devices,dict,manual,tessdata}
-endif
 
 base: base-all
 

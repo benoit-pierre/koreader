@@ -102,6 +102,8 @@ jobs:
       - name: Fetch
         run: make fetchthirdparty
 
+      - run: echo '.SECONDARY:' >>base/Makefile.defs
+
       # }}}
 
       # Restore / setup caches. {{{
@@ -195,7 +197,7 @@ jobs:
       # }}}
 
       - name: Test
-        run: ./base/utils/fake_tty.py make --assume-old=base testfront
+        run: ./base/utils/fake_tty.py make --trace --assume-old=base testfront
 
       # Generate / upload artifact. {{{
 
