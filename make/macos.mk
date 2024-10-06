@@ -5,8 +5,13 @@ update: all
 		$(INSTALL_DIR)/bundle/Contents/MacOS \
 		$(INSTALL_DIR)/bundle/Contents/Resources
 	cp -pv $(MACOS_DIR)/koreader.icns $(INSTALL_DIR)/bundle/Contents/Resources/icon.icns
-	cp -LR $(INSTALL_DIR)/koreader $(INSTALL_DIR)/bundle/Contents
-	rm -vf $(INSTALL_DIR)/bundle/Contents/koreader/luajit
+	cd $(INSTALL_DIR) && find -L koreader \
+	    '(' \
+		-path './koreader/data/dict' -o \
+		-path './koreader/data/tessdata' -o \
+		-path './koreader/luajit' -o \
+		-path './spec' \
+	    ')' -prune -o -type f -print0 | cpio -Ldpm0 bundle/Contents/
 	cp -pRv $(MACOS_DIR)/menu.xml $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	ibtool --compile $(INSTALL_DIR)/bundle/Contents/Resources/Base.lproj/MainMenu.nib $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
 	rm -vf $(INSTALL_DIR)/bundle/Contents/MainMenu.xib
