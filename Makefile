@@ -168,8 +168,6 @@ endif
 	install -d $(INSTALL_DIR)/koreader/data
 	$(SYMLINK) $(strip $(DATADIR_FILES)) $(INSTALL_DIR)/koreader/data/
 
-base: base-all
-
 ifeq (,$(wildcard $(KOR_BASE)/Makefile $(KOR_BASE)/Makefile.defs))
 $(KOR_BASE)/Makefile $(KOR_BASE)/Makefile.defs: fetchthirdparty
 	# Need a recipe, even if empty, or make won't know how to remake `base-all`.
