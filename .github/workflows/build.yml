@@ -1,4 +1,4 @@
-name: macos
+name: Build
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -6,207 +6,75 @@ concurrency:
 
 on: [push, pull_request]
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
 
-  macos:
-
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ['arm64', 'x86_64']
-
-    runs-on: ${{ matrix.platform == 'arm64' && 'macos-14' || 'macos-13' }}
-
+  Lint:
+    runs-on: ubuntu-latest
+    container:
+      image: koreader/kobase:0.3.4-20.04
+      options: --user root
     env:
-      # Bump number to reset all caches.
-      CACHE_EPOCH: '1'
+      BASH_ENV: '/root/.bashrc'
       CLICOLOR_FORCE: '1'
-      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.platform == 'arm64' && '11.0' || '10.15' }}
-      MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=macos'
-
     steps:
-
-      # Install dependencies. {{{
-
-      - name: XCode version
-        run: |
-          # NOTE: don't forget to bump `CACHE_EPOCH`
-          # above when changing the XCode version.
-          sudo xcode-select -s /Applications/Xcode_15.2.app
-          xcodebuild -version
-          xcode-select -p
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          set -x
-          python3 -m pip install --disable-pip-version-check meson ruamel.yaml
-          wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/a669e3644cf22b29cbece31dbed2cfbf34e5f48e.zip
-          unzip -j ninjatracing.zip '*/ninjatracing'
-          install -m755 ninjatracing /usr/local/bin/
-          rm ninjatracing*
-          # Install brew packages.
-          packages=(
-            autoconf
-            automake
-            binutils
-            cmake
-            coreutils
-            findutils
-            libtool
-            make
-            nasm
-            ninja
-            p7zip
-            pkg-config
-            sdl2
-            util-linux
-          )
-          # Don't auto-update.
-          export HOMEBREW_NO_AUTO_UPDATE=1
-          # Don't upgrade already installed formulas.
-          export HOMEBREW_NO_INSTALL_UPGRADE=1
-          # Remove some installed packages to prevent brew
-          # from attempting (and failing) to upgrade them.
-          brew uninstall gradle maven
-          brew install --formula --quiet "${packages[@]}"
-
-      - name: Update PATH
-        run: >
-          printf '%s\n'
-          "$(brew --prefix)/opt/findutils/libexec/gnubin"
-          "$(brew --prefix)/opt/make/libexec/gnubin"
-          "$(brew --prefix)/opt/util-linux/bin"
-          | tee "${GITHUB_PATH}"
-
-      # }}}
-
-      # Checkout / fetch. {{{
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           clean: false
-          fetch-depth: 0
-          filter: tree:0
+          fetch-depth: 1
           show-progress: false
+      - name: Fix checkout ownership
+        run: chown 'root:root' .
+      - name: Checkout base
+        run: git submodule update --init --depth 1 base
+      - name: Lint
+        run: .ci/check.sh
 
-      - name: Fetch
-        run: make fetchthirdparty
+  Emulator:
+    needs: Lint
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "GCC",
+              "cache": "emu_gcc",
+              "image": "koreader/kobase:0.3.4-20.04",
+              "test": true
+            }
+          ]
+        }
 
-      # }}}
-
-      # Restore / setup caches. {{{
-
-      - name: Generate cache key
-        run: make TARGET= cache-key
-
-      - name: Restore build directory
-        id: build-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: build
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('cache-key') }}
-
-      - name: Restore build cache
-        id: ccache-restore
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
-        with:
-          path: /Users/runner/Library/Caches/ccache
-          key: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-ccache-${{ hashFiles('cache-key') }}
-          restore-keys: ${{ env.CACHE_EPOCH }}-${{ runner.os }}-${{ runner.arch }}-ccache-
-
-      - name: Install ccache
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: |
-          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v4.9.1/ccache-4.9.1-darwin.tar.gz
-          tar xf ccache-4.9.1-darwin.tar.gz
-          printf '%s\n' "$PWD/ccache-4.9.1-darwin" >>"${GITHUB_PATH}"
-
-      - name: Setup build cache
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: |
-          set -x
-          which ccache
-          ccache --version
-          ccache --zero-stats
-          ccache --max-size=256M
-          ccache --show-config
-
-      # }}}
-
-      # Build. {{{
-
-      - name: Build
-        id: build
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: make base
-
-      - name: Dump build timings
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: make buildstats
-
-      # }}}
-
-      # Clean / save caches. {{{
-
-      - name: Clean caches
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: |
-          set -x
-          # Trim the build directory.
-          rm -rf build/{cmake,staging,thirdparty}
-          ccache --cleanup >/dev/null
-          ccache --show-stats --verbose
-
-      - name: Save build cache
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
-        with:
-          path: /Users/runner/Library/Caches/ccache
-          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
-
-      - name: Save build directory
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        with:
-          path: build
-          key: ${{ steps.build-restore.outputs.cache-primary-key }}
-
-      # }}}
-
-      # Dump & check binaries. {{{
-
-      - name: Dump binaries runtime path & dependencies
-        run: make bininfo
-
-      - name: Checking binaries for missing dependencies
-        run: make bincheck
-
-      # }}}
-
-      # Generate / upload artifact. {{{
-
-      - name: Generate artifact
-        # Note: ensure the build skeleton is created, so there are no dangling
-        # symlinks (e.g. `data/dict`) to trip 7zip during artifact generation…
-        run: make skeleton update --assume-old=base
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: koreader-macos-${{ matrix.platform }}
-          path: '*.7z'
-
-      # }}}
+  macOS:
+    needs: Emulator
+    uses: ./.github/workflows/build_matrix.yml
+    with:
+      fail-fast: false
+      matrix: |
+        {
+          "include": [
+            {
+              "job": "13 x86-64 🔨15.2 🎯10.15",
+              "cache": "macos.13_x86_64_xcode.15.2_10.15",
+              "runs-on": "macos-13",
+              "target": "macos",
+              "xcode_version": "15.2",
+              "macosx_deployment_target": "10.15",
+              "artifact": "KOReader-*.7z",
+              "test": true
+            },
+            {
+              "job": "14 ARM64 🔨15.4 🎯11.0",
+              "cache": "macos.14_ARM64_xcode.15.4_11.0",
+              "runs-on": "macos-14",
+              "target": "macos",
+              "xcode_version": "15.4",
+              "macosx_deployment_target": "11.0",
+              "artifact": "KOReader-*.7z",
+              "test": true
+            }
+          ]
+        }
 
 # vim: foldmethod=marker foldlevel=0
