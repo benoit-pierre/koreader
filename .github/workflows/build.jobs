@@ -1,0 +1,123 @@
+lint:
+
+  - id: lint
+
+emulator:
+
+  - id: emu_clang
+    job: Clang
+    image: koreader/kobase-clang:0.3.4-20.04
+    target: ""
+    makeflags: USE_CLANG=1
+    test: true
+
+  - &EMU_GCC
+    id: emu_gcc
+    job: GCC
+    image: koreader/kobase:0.3.4-20.04
+    target: ""
+    test: true
+
+  - <<: *EMU_GCC
+    id: emu_gcc_debug
+    job: GCC Debug
+    cache_size: 256M
+    makeflags: KODEBUG=1
+
+macos:
+
+  - &MACOS
+    id: macos_x86-64
+    job: "13 x86-64 🔨15.2 🎯10.15"
+    cache: macos.13_x86_64_xcode.15.2_10.15
+    runs-on: macos-13
+    xcode_version: "15.2"
+    macosx_deployment_target: "10.15"
+    target: macos
+    test: true
+    artifact: KOReader-*.7z
+
+  - <<: *MACOS
+    id: macos_arm64
+    job: "14 ARM64 🔨15.4 🎯11.0"
+    cache: macos.14_ARM64_xcode.15.4_11.0
+    runs-on: macos-14
+    xcode_version: "15.4"
+    macosx_deployment_target: "11.0"
+
+  - <<: *MACOS
+    id: macos_arm64_latest
+    job: "15 ARM64 🔨16.0 🎯14.6.1"
+    cache: macos.15_ARM64_xcode.16.0_14.6.1
+    runs-on: macos-15
+    xcode_version: "16.0"
+    macosx_deployment_target: "14.6.1"
+
+platform:
+
+  - &ANDROID
+    id: android_arm
+    job: Android ARM
+    image: koreader/koandroid:0.8.3-20.04
+    target: android
+    makeflags: ANDROID_ARCH=arm
+    artifact: koreader-android-*.apk
+
+  - <<: *ANDROID
+    id: android_arm64
+    job: Android ARM64
+    makeflags: ANDROID_ARCH=arm64
+
+  - <<: *ANDROID
+    id: android_x86
+    job: Android x86
+    makeflags: ANDROID_ARCH=x86
+
+  - <<: *ANDROID
+    id: android_x86_64
+    job: Android x86_64
+    makeflags: ANDROID_ARCH=x86_64
+
+  - id: appimage
+    job: AppImage x86_64
+    image: koreader/koappimage:0.4.5-20.04
+    test: true
+    artifact: koreader-appimage-*.AppImage
+
+  - id: cervantes
+    job: Cervantes
+    image: koreader/kocervantes:0.3.4-20.04
+
+  - &KINDLE
+    id: kindle
+    job: Kindle
+    image: koreader/kokindle:0.3.4-20.04
+    artifact: |
+      koreader-kindlepw2-*.targz
+      koreader-kindlepw2-*.zip
+
+  - <<: *KINDLE
+    id: kindlehf
+    job: Kindle HF
+
+  - <<: *KINDLE
+    id: kindlepw2
+    job: Kindle PW2
+
+  - <<: *KINDLE
+    id: kindle-legacy
+    job: Kindle Legacy
+
+  - id: kobo
+    job: Kobo
+    image: koreader/kokobo:0.3.4-20.04
+
+  - id: pocketbook
+    job: PocketBook
+    image: koreader/kopb:0.4.3-20.04
+
+  - id: sony-prstux
+    job: Sony PRSTUX
+    image: koreader/kodeb:0.1.1-20.04
+
+# vim: ft=yaml
