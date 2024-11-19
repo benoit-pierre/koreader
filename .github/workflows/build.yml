@@ -4,7 +4,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  schedule:
+    # Every Friday at 21:30 (UTC).
+    - cron: '30 21 * * 4'
+  workflow_dispatch:
+    inputs:
+      jobs:
+        description: 'Run the specified list of job ids'
+        required: false
+        type: string
 
 defaults:
   run:
@@ -12,213 +23,108 @@ defaults:
 
 jobs:
 
-  macos:
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: '13'
-            platform: 'x86-64'
-            xcode_version: '15.2'
-            deployment_target: '10.15'
-          - image: '14'
-            platform: 'ARM64'
-            xcode_version: '15.4'
-            deployment_target: '11.0'
-
-    name: "macOS ${{ matrix.image }} ${{ matrix.platform }} 🔨${{ matrix.xcode_version }} 🎯${{ matrix.deployment_target }}"
-
-    runs-on: "macos-${{ matrix.image }}"
-
-    env:
-      # Bump first number to reset all caches.
-      CACHE_KEY: "1-macOS-${{ matrix.image }}-${{ matrix.platform }}-XC${{ matrix.xcode_version }}-DT${{ matrix.deployment_target }}"
-      CLICOLOR_FORCE: '1'
-      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
-      MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=macos'
-
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-24.04
     steps:
-
-      # Install dependencies. {{{
-
-      - name: XCode version
-        run: |
-          sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version }}.app
-          xcodebuild -version
-          xcode-select -p
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          set -x
-          python3 -m pip install --disable-pip-version-check meson ruamel.yaml
-          wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/a669e3644cf22b29cbece31dbed2cfbf34e5f48e.zip
-          unzip -j ninjatracing.zip '*/ninjatracing'
-          install -m755 ninjatracing /usr/local/bin/
-          rm ninjatracing*
-          # Install brew packages.
-          packages=(
-            autoconf
-            automake
-            bash
-            binutils
-            coreutils
-            findutils
-            libtool
-            make
-            nasm
-            ninja
-            pkg-config
-            sdl2
-            util-linux
-          )
-          # Don't auto-update.
-          export HOMEBREW_NO_AUTO_UPDATE=1
-          # Don't upgrade already installed formulas.
-          export HOMEBREW_NO_INSTALL_UPGRADE=1
-          # Remove some installed packages to prevent brew
-          # from attempting (and failing) to upgrade them.
-          brew uninstall gradle maven
-          brew install --formula --overwrite --quiet "${packages[@]}"
-
-      - name: Update PATH
-        run: >
-          printf '%s\n'
-          "$(brew --prefix)/opt/findutils/libexec/gnubin"
-          "$(brew --prefix)/opt/make/libexec/gnubin"
-          "$(brew --prefix)/opt/util-linux/bin"
-          | tee "${GITHUB_PATH}"
-
-      # }}}
-
-      # Checkout / fetch. {{{
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           clean: false
-          fetch-depth: 0
-          filter: tree:0
+          fetch-depth: 1
           show-progress: false
-
-      - name: Fetch
-        run: make fetchthirdparty
-
-      # }}}
-
-      # Restore / setup caches. {{{
-
-      - name: Generate cache key
-        run: make TARGET= cache-key
-
-      - name: Restore build directory
-        id: build-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: build
-          key: ${{ env.CACHE_KEY }}-build-${{ hashFiles('cache-key') }}
-
-      - name: Lookup or restore build cache
-        id: ccache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: /Users/runner/Library/Caches/ccache
-          key: ${{ env.CACHE_KEY }}-ccache-${{ hashFiles('cache-key') }}
-          restore-keys: ${{ env.CACHE_KEY }}-ccache-
-          # When not building, do a lookup so the cache
-          # does not get removed after 7 days with no use.
-          lookup-only: ${{ steps.build-restore.outputs.cache-hit }}
-
-      - name: Install ccache
-        if: steps.build-restore.outputs.cache-hit != 'true'
+          sparse-checkout: .github/workflows base/.github/workflows
+      - name: Checkout base submodule
+        run: git submodule update --depth 1 --init base
+      - name: Generate outputs
+        id: generate
+        env:
+          # Default jobs to run.
+          base_jobs: >
+            lint
+            emu-gcc
+            appimage
+            android-arm
+            kindlepw2
+            macos-arm64-14
+          # Extra jobs when on master.
+          master_extra_jobs: >
+            macos-arm64-15
+            macos-x86_64
         run: |
-          wget --progress=dot:mega https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-darwin.tar.gz
-          tar xf ccache-4.10.2-darwin.tar.gz
-          printf '%s\n' "$PWD/ccache-4.10.2-darwin" >>"${GITHUB_PATH}"
+          set -o noglob
+          jobs=(${{
+            inputs.jobs && inputs.jobs ||
+              (github.event.schedule && '.*' ||
+                format('{0} {1}', env.base_jobs, github.ref == 'refs/heads/master' && env.master_extra_jobs || ''))
+          }})
+          set +o noglob
+          >>"${GITHUB_OUTPUT}" base/.github/workflows/build.prepare.sh base/.github/workflows/build.jobs "${jobs[@]}"
+    outputs:
+      lint: ${{ steps.generate.outputs.lint }}
+      emulator: ${{ steps.generate.outputs.emulator }}
+      macos: ${{ steps.generate.outputs.macos }}
+      platform: ${{ steps.generate.outputs.platform }}
 
-      - name: Setup build cache
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: |
-          set -x
-          which ccache
-          ccache --version
-          ccache --zero-stats
-          ccache --max-size=256M
-          ccache --show-config
-
-      # }}}
-
-      # Build. {{{
-
-      - name: Build
-        id: build
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        run: make base
-
-      - name: Dump build timings
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: make buildstats
-
-      # }}}
-
-      # Clean / save caches. {{{
-
-      - name: Clean caches
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: |
-          set -x
-          # Trim the build directory.
-          rm -rf build/{cmake,staging,thirdparty}
-          ccache --cleanup >/dev/null
-          ccache --show-stats --verbose
-
-      - name: Save build cache
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true' && steps.ccache-restore.outputs.cache-hit != 'true'
+  lint:
+    name: Lint
+    needs: prepare
+    if: needs.prepare.outputs.lint
+    runs-on: ubuntu-latest
+    container:
+      image: benoitpierre/kobase:0.4.0-22.04
+    env:
+      BASH_ENV: '/home/ko/.bashrc'
+      CLICOLOR_FORCE: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          path: /Users/runner/Library/Caches/ccache
-          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+          clean: false
+          fetch-depth: 1
+          show-progress: false
+      - name: Checkout base submodule
+        run: git submodule update --depth 1 --init base
+      - name: Lint
+        run: .ci/check.sh
 
-      - name: Save build directory
-        uses: actions/cache/save@v4
-        if: steps.build-restore.outputs.cache-hit != 'true'
-        with:
-          path: build
-          key: ${{ steps.build-restore.outputs.cache-primary-key }}
+  emulator:
+    name: Emulator
+    needs: [prepare, lint]
+    if: |
+      !cancelled() &&
+      needs.prepare.outputs.emulator &&
+      contains('skipped success', needs.lint.result)
+    uses: benoit-pierre/koreader-base/.github/workflows/build.matrix.yml@ga_actions
+    with:
+      jobs: ${{ needs.prepare.outputs.emulator }}
+      fail_fast: true
+      base: base
 
-      # }}}
+  macos:
+    name: macOS
+    needs: [prepare, lint, emulator]
+    if: |
+      !cancelled() &&
+      needs.prepare.outputs.macos &&
+      contains('skipped success', needs.lint.result) &&
+      contains('skipped success', needs.emulator.result)
+    uses: benoit-pierre/koreader-base/.github/workflows/build.matrix.yml@ga_actions
+    with:
+      jobs: ${{ needs.prepare.outputs.macos }}
+      base: base
 
-      # Dump & check binaries. {{{
-
-      - name: Dump binaries runtime path & dependencies
-        run: make bininfo
-
-      - name: Checking binaries for missing dependencies
-        run: make bincheck
-
-      # }}}
-
-      - name: Test
-        run: ./base/utils/fake_tty.py make --assume-old=base testfront
-
-      # Generate / upload artifact. {{{
-
-      - name: Generate artifact
-        # Note: ensure the build skeleton is created, so there are no dangling
-        # symlinks (e.g. `data/dict`) to trip 7zip during artifact generation…
-        run: make skeleton update --assume-old=base
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: koreader-macos-${{ matrix.platform }}
-          path: '*.7z'
-
-      # }}}
+  platform:
+    name: Platform
+    needs: [prepare, lint, emulator]
+    if: |
+      !cancelled() &&
+      needs.prepare.outputs.platform &&
+      contains('skipped success', needs.lint.result) &&
+      contains('skipped success', needs.emulator.result)
+    uses: benoit-pierre/koreader-base/.github/workflows/build.matrix.yml@ga_actions
+    with:
+      jobs: ${{ needs.prepare.outputs.platform }}
+      base: base
 
 # vim: foldmethod=marker foldlevel=0
