@@ -46,9 +46,12 @@ jobs:
           BASE_JOBS: >
             lint
             emu_gcc
-            macos_arm64
+            appimage
+            android_arm
+            kindlepw2
           # Extra jobs when on master.
           EXTRA_JOBS_MASTER: >
+            macos_arm64
             macos_x86-64
         run: |
           # Generate outputs.
