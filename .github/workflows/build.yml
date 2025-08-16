@@ -160,6 +160,10 @@ jobs:
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: make base
 
+      - name: Dump build timings
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
+        run: make buildstats
+
       # }}}
 
       # Clean / save caches. {{{
@@ -186,14 +190,6 @@ jobs:
         with:
           path: build
           key: ${{ steps.build-restore.outputs.cache-primary-key }}
-
-      # }}}
-
-      # Dump build timings. {{{
-
-      - name: Dump build timings
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: make buildstats
 
       # }}}
 
