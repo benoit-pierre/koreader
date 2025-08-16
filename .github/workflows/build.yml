@@ -57,7 +57,7 @@ jobs:
         run: |
           set -x
           python3 -m pip install --disable-pip-version-check meson ruamel.yaml
-          wget -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/a669e3644cf22b29cbece31dbed2cfbf34e5f48e.zip
+          wget -O ninjatracing.zip https://github.com/cradleapps/ninjatracing/archive/084212eaf68f25c70579958a2ed67fb4ec2a9ca4.zip
           unzip -j ninjatracing.zip '*/ninjatracing'
           install -m755 ninjatracing /usr/local/bin/
           rm ninjatracing*
@@ -67,14 +67,12 @@ jobs:
             automake
             bash
             binutils
-            cmake
             coreutils
             findutils
             libtool
             make
             nasm
             ninja
-            p7zip
             pkg-config
             sdl2
             util-linux
@@ -162,10 +160,6 @@ jobs:
         if: steps.build-restore.outputs.cache-hit != 'true'
         run: make base
 
-      - name: Dump build timings
-        if: contains('failure success', steps.build.conclusion) && !cancelled()
-        run: make buildstats
-
       # }}}
 
       # Clean / save caches. {{{
@@ -192,6 +186,14 @@ jobs:
         with:
           path: build
           key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+      # }}}
+
+      # Dump build timings. {{{
+
+      - name: Dump build timings
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
+        run: make buildstats
 
       # }}}
 
