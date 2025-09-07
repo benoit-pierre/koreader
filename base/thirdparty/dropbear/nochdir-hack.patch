@@ -1,0 +1,11 @@
+--- i/src/svr-main.c
++++ w/src/svr-main.c
+@@ -185,7 +185,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
+ 			closefds = 1;
+ 		}
+ #endif
+-		if (daemon(0, closefds) < 0) {
++		if (daemon(1, closefds) < 0) {
+ 			dropbear_exit("Failed to daemonize: %s", strerror(errno));
+ 		}
+ 	}

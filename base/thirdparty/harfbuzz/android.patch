@@ -1,0 +1,15 @@
+diff --git a/src/hb.hh b/src/hb.hh
+index ba18e36b9..aabbb6e97 100644
+--- a/src/hb.hh
++++ b/src/hb.hh
+@@ -484,6 +484,10 @@ static int HB_UNUSED _hb_errno = 0;
+ #define HB_NO_SETLOCALE 1
+ #endif
+ 
++#if !defined(HB_NO_SETLOCALE) && defined(__ANDROID__) && __ANDROID_API__ < 21
++#define HB_NO_SETLOCALE 1
++#endif
++
+ #ifndef HB_NO_SETLOCALE
+ 
+ #include <locale.h>
