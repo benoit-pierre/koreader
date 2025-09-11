@@ -39,6 +39,14 @@ if [ "${untagged_todo}" ]; then
 fi
 
 echo -e "\n${ANSI_GREEN}Luacheck results${ANSI_RESET}"
-luacheck -q {reader,setupkoenv,datastorage}.lua frontend plugins spec || exit_code=1
+luacheck -q base/{ffi,spec} {reader,setupkoenv,datastorage}.lua frontend plugins spec || exit_code=1
+
+echo -e "\n${ANSI_GREEN}CMakeLint results${ANSI_RESET}"
+excludes=(
+    base/thirdparty/kpvcrlib/crengine/thirdparty/antiword/CMakeLists.txt
+    base/thirdparty/kpvcrlib/crengine/thirdparty/chmlib/CMakeLists.txt
+)
+mapfile -t cmake_files < <(git ls-files '*.cmake' '*/CMakeLists.txt' "${excludes[@]/#/:\!}")
+cmakelint "${cmake_files[@]}" || exit_code=1
 
 exit ${exit_code}
