@@ -15,12 +15,12 @@ SDK_DL_URL = https://dl.google.com/android/repository/$(SDK_TARBALL)
 SDK_SUM = 87b485c7283cba69e41c10f05bf832d2fd691552
 SDK_DIR = android-sdk-linux
 
-WGET ?= wget --progress=dot:giga
+CURL ?= curl --location --remote-name
 
 android-sdk: $(TOOLCHAIN_DIR)/$(SDK_DIR)
 
 $(SDK_TARBALL):
-	$(WGET) '$(SDK_DL_URL)'
+	$(CURL) '$(SDK_DL_URL)'
 	echo '$(SDK_SUM) $(SDK_TARBALL)' | sha1sum -c -
 
 $(TOOLCHAIN_DIR)/$(SDK_DIR): $(SDK_TARBALL)
@@ -46,7 +46,7 @@ NDK_SUM = e5053c126a47e84726d9f7173a04686a71f9a67a
 android-ndk: $(TOOLCHAIN_DIR)/$(NDK_DIR)
 
 $(NDK_TARBALL):
-	$(WGET) '$(NDK_DL_URL)'
+	$(CURL) '$(NDK_DL_URL)'
 	echo '$(NDK_SUM) $(NDK_TARBALL)' | sha1sum -c -
 
 $(TOOLCHAIN_DIR)/$(NDK_DIR): $(NDK_TARBALL)

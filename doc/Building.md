@@ -25,7 +25,6 @@ To get and compile the source you must have:
 - `perl`: version 5 or greater
 - `pkg-config` or `pkgconf`
 - `unzip`
-- `wget`
 
 For running the emulator / tests:
 - `SDL2`
@@ -43,7 +42,7 @@ Install the prerequisites using apk:
 ```
 sudo apk add autoconf automake bash cmake coreutils curl diffutils \
     findutils g++ gcc git grep gzip libtool linux-headers make meson \
-    nasm ninja-build patch perl pkgconf procps-ng sdl2 tar unzip wget
+    nasm ninja-build patch perl pkgconf procps-ng sdl2 tar unzip
 ```
 
 **Note:** don't forget to add `/usr/lib/ninja-build/bin` to `$PATH`
@@ -60,7 +59,7 @@ Install the prerequisites using pacman:
 
 ```
 run0 pacman -S base-devel ca-certificates cmake gcc-libs git \
-    meson nasm ninja perl sdl2 unzip wget
+    meson nasm ninja perl sdl2 unzip
 ```
 
 Optional:
@@ -75,7 +74,7 @@ Install the prerequisites using APT:
 ```
 sudo apt install autoconf automake build-essential ca-certificates cmake \
     gcc-multilib git libsdl2-2.0-0 libtool libtool-bin meson nasm ninja-build \
-    patch perl pkg-config unzip wget
+    patch perl pkg-config unzip
 ```
 
 **Note:** Debian distributions might need `meson` to be installed from `bookworm-backports`) because the version provided by the default repositories is too old:
@@ -96,7 +95,7 @@ Install the prerequisites using DNF:
 
 ```
 sudo dnf install autoconf automake cmake gcc gcc-c++ git libtool meson nasm \
-    ninja-build patch perl-FindBin procps-ng SDL2 unzip wget
+    ninja-build patch perl-FindBin procps-ng SDL2 unzip
 ```
 
 Optional:
