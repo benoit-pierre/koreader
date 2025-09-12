@@ -51,6 +51,7 @@ ifeq ($(USE_NO_CCACHE), 1)
   CCACHE :=
 else
   CCACHE := $(or $(CCACHE),$(shell command -v ccache))
+  export CCACHE_BASEDIR = $(abspath $(KOR_BASE))
 endif
 
 
