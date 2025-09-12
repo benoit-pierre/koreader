@@ -27,6 +27,5 @@ ifeq (remarkable-aarch64,$(TARGET))
 endif
 	# Create packages.
 	$(strip $(call mkupdate,$(REMARKABLE_PACKAGE)))
-	$(strip $(call mkupdate,$(REMARKABLE_PACKAGE_OLD_OTA)))
 
 PHONY += update

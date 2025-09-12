@@ -14,6 +14,5 @@ update: all
 	$(SYMLINK) $(KOBO_DIR)/*.sh $(INSTALL_DIR)/koreader/
 	# Create packages.
 	$(strip $(call mkupdate,--manifest-transform=/^koreader\.png$$/d $(KOBO_PACKAGE))) koreader.png
-	$(strip $(call mkupdate,$(KOBO_PACKAGE_OLD_OTA)))
 
 PHONY += update
