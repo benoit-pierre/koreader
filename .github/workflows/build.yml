@@ -44,7 +44,7 @@ jobs:
             lint
             emu-gcc
             appimage
-            android-arm
+            android-arm android-arm64
             kindlepw2
             macos-arm64-14
           # Extra jobs when on master.
@@ -105,5 +105,19 @@ jobs:
     uses: ./.github/workflows/build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.platform }}
+
+  release:
+    name: Release
+    needs: [emulator, macos, platform]
+    if: |
+      github.ref_name == 'bpierre' &&
+      !cancelled() &&
+      contains('skipped success', needs.lint.result) &&
+      contains('skipped success', needs.emulator.result) &&
+      contains('skipped success', needs.macos.result) &&
+      contains('skipped success', needs.platform.result)
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.release.yml
 
 # vim: foldmethod=marker foldlevel=0
