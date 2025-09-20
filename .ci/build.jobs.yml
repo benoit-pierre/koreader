@@ -39,7 +39,7 @@ macos: # {{{
     xcode_version: "15.2"
     macosx_deployment_target: "10.15"
     target: macos
-    cache_size: 200MB
+    cache_size: 256MB
     test: true
     artifacts: KOReader-*.7z
 
@@ -93,7 +93,7 @@ platform:
 
   - id: appimage
     job: AppImage x86_64
-    image: koreader/koappimage:0.5.2-22.04
+    image: koreader/koappimage:0.5.3-22.04
     cache_size: 300M
     test: true
     artifacts: koreader-*.AppImage
@@ -103,8 +103,7 @@ platform:
     image: koreader/kocervantes:0.4.2-22.04
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   # kindle {{{
 
@@ -114,8 +113,7 @@ platform:
     image: koreader/kokindle:0.4.2-22.04
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - <<: *KINDLE
     id: kindlehf
@@ -137,16 +135,14 @@ platform:
     image: koreader/kokobo:0.4.2-22.04
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - id: pocketbook
     job: PocketBook
     image: koreader/kopb:0.5.2-22.04
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   # remarkable {{{
 
@@ -156,8 +152,7 @@ platform:
     image: koreader/koremarkable:0.4.2-22.04
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - <<: *REMARKABLE
     id: remarkable-aarch64
@@ -170,7 +165,6 @@ platform:
     image: koreader/kodeb:0.2.2-22.04
     cache_size: 280M
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
 # vim: foldmethod=marker foldlevel=0
