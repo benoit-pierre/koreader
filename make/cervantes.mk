@@ -15,6 +15,5 @@ update: all
 	$(SYMLINK) $(CERVANTES_DIR)/*.sh $(INSTALL_DIR)/koreader
 	# Create packages.
 	$(strip $(call mkupdate,$(CERVANTES_PACKAGE)))
-	$(strip $(call mkupdate,$(CERVANTES_PACKAGE_OLD_OTA)))
 
 PHONY += update
