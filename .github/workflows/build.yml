@@ -43,7 +43,7 @@ jobs:
           base_jobs: >
             lint
             emu-gcc
-            appimage
+            appimage-x86_64
             android-arm android-arm64
             kindlepw2
             macos-arm64-14
