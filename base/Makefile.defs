@@ -296,10 +296,10 @@ USE_LUAJIT_LIB = $(or $(DARWIN),$(ANDROID),$(WIN32))
 SKIP_LUAJIT_BIN = $(ANDROID)
 
 RCP := cp -R
-WGET ?= wget --no-verbose
+CURL ?= curl --create-dirs --fail --location --remote-name-all
 
-define wget_and_validate
-	$(WGET) -O '$1' '$2' \
+define download_and_validate
+	$(CURL) --output '$1' '$2' \
 	&& echo '$3 $1' | sha1sum -c - \
 	|| { code=$$?; rm -f '$1'; exit $$code; }
 endef

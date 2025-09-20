@@ -17,7 +17,7 @@ The code is distributed under the GNU AGPL v3 license (read the [COPYING](COPYIN
 Follow these steps:
 
 * automatically fetch thirdparty sources with Makefile:
-  * make sure you have `patch`, `wget`, `unzip`, `git` and `svn` installed
+  * make sure you have `patch`, `curl`, `unzip`, `git` and `svn` installed
   * run `make fetchthirdparty`.
 * run `make TARGET=kindlehf` For kindle models running FW >= 5.16.3 (Paperwhite 4 and later)
 

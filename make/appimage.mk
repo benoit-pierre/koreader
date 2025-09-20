@@ -27,7 +27,7 @@ else
 endif
 ifeq (,$(wildcard $(APPIMAGETOOL)))
 	# Download appimagetool.
-	wget '$(APPIMAGETOOL_URL)'
+	$(CURL) '$(APPIMAGETOOL_URL)'
 	chmod a+x ./$(APPIMAGETOOL)
 endif
 	# Generate AppImage.
