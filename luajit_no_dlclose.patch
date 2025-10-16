@@ -1,0 +1,26 @@
+--- c/base/thirdparty/luajit/CMakeLists.txt
++++ i/base/thirdparty/luajit/CMakeLists.txt
+@@ -12,6 +12,7 @@ if(APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+     # Fix https://github.com/LuaJIT/LuaJIT/pull/1355 regression.
+     list(APPEND PATCH_FILES revert-eec7a80.patch)
+ endif()
++list(APPEND PATCH_FILES no_dlclose.patch)
+ 
+ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+     # Debugging is a go!
+--- /dev/null
++++ i/base/thirdparty/luajit/no_dlclose.patch
+@@ -0,0 +1,13 @@
++--- a/src/lj_clib.c
+++++ b/src/lj_clib.c
++@@ -133,8 +133,10 @@
++ 
++ static void clib_unloadlib(CLibrary *cl)
++ {
+++#if 0
++   if (cl->handle && cl->handle != CLIB_DEFHANDLE)
++     dlclose(cl->handle);
+++#endif
++ }
++ 
++ static void *clib_getsym(CLibrary *cl, const char *name)

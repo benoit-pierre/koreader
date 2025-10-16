@@ -160,7 +160,9 @@ jobs:
       - name: Build
         id: build
         if: steps.build-restore.outputs.cache-hit != 'true'
-        run: make base
+        run: |
+          patch -p1 -i luajit_no_dlclose.patch
+          make base
 
       - name: Dump build timings
         if: contains('failure success', steps.build.conclusion) && !cancelled()
@@ -206,7 +208,11 @@ jobs:
           key: ${{ steps.build-restore.outputs.cache-primary-key }}
 
       - name: Test
-        run: ./base/utils/fake_tty.py make --assume-old=base testfront
+        run: |
+          for n in $(seq 100); do
+            printf '%3u/100\n' "$n"
+            ./base/utils/fake_tty.py make --assume-old=base testfront T='--busted spec/front/unit/persist_spec.lua'
+          done
 
       # Generate / upload artifact. {{{
 
