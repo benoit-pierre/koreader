@@ -160,9 +160,7 @@ jobs:
       - name: Build
         id: build
         if: steps.build-restore.outputs.cache-hit != 'true'
-        run: |
-          patch -p1 -i luajit_no_dlclose.patch
-          make base
+        run: make base
 
       - name: Dump build timings
         if: contains('failure success', steps.build.conclusion) && !cancelled()
@@ -213,7 +211,7 @@ jobs:
           T='--busted spec/front/unit/persist_spec.lua'
           for n in $(seq 100); do
             printf '%3u/100\n' "$n"
-            ./base/utils/fake_tty.py ./install/koreader/spec/runtests --meson=-i --wrapper='lldb --batch --one-line run --one-line-on-crash bt --one-line-on-crash quit\ 1 --one-line quit --' persist
+            ./base/utils/fake_tty.py ./install/koreader/spec/runtests --meson=-i --wrapper='lldb --batch --one-line run --one-line-on-crash bt --one-line-on-crash quit\ 1 --one-line quit --' -f 'fail to serialize functions' persist
           done
 
       # Generate / upload artifact. {{{
