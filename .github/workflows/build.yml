@@ -209,7 +209,7 @@ jobs:
 
       - name: Test
         run: |
-          make --assume-old=base install
+          make --assume-old=base
           T='--busted spec/front/unit/persist_spec.lua'
           for n in $(seq 100); do
             printf '%3u/100\n' "$n"
