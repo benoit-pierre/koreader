@@ -209,9 +209,11 @@ jobs:
 
       - name: Test
         run: |
+          make --assume-old=base install
+          T='--busted spec/front/unit/persist_spec.lua'
           for n in $(seq 100); do
             printf '%3u/100\n' "$n"
-            ./base/utils/fake_tty.py make --assume-old=base testfront T='--busted spec/front/unit/persist_spec.lua'
+            ./base/utils/fake_tty.py ./install/koreader/spec/runtests --busted --wrapper='lldb --batch --one-line run --one-line-on-crash bt --one-line-on-crash quit\ 1 --one-line quit --' spec/front/unit/persist_spec.lua
           done
 
       # Generate / upload artifact. {{{
