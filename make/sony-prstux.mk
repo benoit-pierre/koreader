@@ -14,6 +14,5 @@ update: all
 	$(SYMLINK) $(SONY_PRSTUX_DIR)/*.sh $(INSTALL_DIR)/koreader
 	# Create packages.
 	$(strip $(call mkupdate,$(SONY_PRSTUX_PACKAGE)))
-	$(strip $(call mkupdate,$(SONY_PRSTUX_PACKAGE_OLD_OTA)))
 
 PHONY += update
