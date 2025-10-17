@@ -3206,8 +3206,7 @@ lString32 Utf8ToUnicode( const char * s ) {
     int len = Utf8CharCount( s );
     if (!len)
       return lString32::empty_str;
-    lString32 dst;
-    dst.append(len, (lChar32)0);
+    lString32 dst(len, len);
     lChar32 * p = dst.modify();
     DecodeUtf8(s, p, len);
     return dst;
@@ -3219,8 +3218,7 @@ lString32 Utf8ToUnicode( const char * s, int sz ) {
     int len = Utf8CharCount( s, sz );
     if (!len)
       return lString32::empty_str;
-    lString32 dst;
-    dst.append(len, 0);
+    lString32 dst(len, len);
     lChar32 * p = dst.modify();
     DecodeUtf8(s, p, len);
     return dst;
@@ -3231,11 +3229,10 @@ lString8 UnicodeToUtf8(const lChar32 * s, int count)
 {
     if (count <= 0)
       return lString8::empty_str;
-    lString8 dst;
     int len = Utf8ByteCount(s, count);
     if (len <= 0)
       return lString8::empty_str;
-    dst.append( len, ' ' );
+    lString8 dst(len, len);
     lChar8 * buf = dst.modify();
     {
         lUInt32 ch;
