@@ -42,7 +42,7 @@ macos: # {{{
     target: macos
     cache_size: 256MB
     test: true
-    artifacts: KOReader-*.7z
+    artifacts: koreader-*.7z
 
   - <<: *MACOS
     id: macos-x86_64
