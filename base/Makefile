@@ -174,7 +174,7 @@ $(OUTPUT_DIR)/data/tessdata/eng.traineddata: $(TESSDATA_FILE) | $(OUTPUT_DIR)/da
 
 $(TESSDATA_FILE):
 	mkdir -p $(dir $(TESSDATA_FILE))
-	$(call wget_and_validate,$(TESSDATA_FILE),$(TESSDATA_FILE_URL),$(TESSDATA_FILE_SHA1))
+	$(call download_and_validate,$(TESSDATA_FILE),$(TESSDATA_FILE_URL),$(TESSDATA_FILE_SHA1))
 
 DROID_FONT = $(THIRDPARTY_DIR)/fonts/build/downloads/DroidSansMono.ttf
 DROID_FONT_URL = https://github.com/koreader/koreader-fonts/raw/master/droid/$(notdir $(DROID_FONT))
@@ -185,7 +185,7 @@ $(OUTPUT_DIR)/fonts/droid/DroidSansMono.ttf: $(DROID_FONT) | $(OUTPUT_DIR)/fonts
 
 $(DROID_FONT):
 	mkdir -p $(dir $(DROID_FONT))
-	$(call wget_and_validate,$(DROID_FONT),$(DROID_FONT_URL),$(DROID_FONT_SHA1))
+	$(call download_and_validate,$(DROID_FONT),$(DROID_FONT_URL),$(DROID_FONT_SHA1))
 
 endif
 

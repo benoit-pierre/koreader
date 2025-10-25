@@ -9,6 +9,7 @@ pkgs.mkShell {
     automake
     libtool
     cmake
+    curl
     gcc
     git
     gnumake
@@ -19,7 +20,6 @@ pkgs.mkShell {
     perl
     pkg-config
     unzip
-    wget
 
     SDL2
 

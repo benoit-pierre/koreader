@@ -15,6 +15,7 @@ To get and compile the source you must have:
 - `autoconf`: version greater than 2.64
 - `bash`: version 4.0 or greater
 - `cmake`: version 3.17.5 or greater
+- `curl`
 - `gcc/g++` or `clang/clang++`: with C11 & C++17 support
 - `git`
 - `make`: version 4.1 or greater
@@ -25,7 +26,6 @@ To get and compile the source you must have:
 - `perl`: version 5 or greater
 - `pkg-config` or `pkgconf`
 - `unzip`
-- `wget`
 
 For running the emulator / tests:
 - `SDL2`
@@ -43,7 +43,7 @@ Install the prerequisites using apk:
 ```
 sudo apk add autoconf automake bash cmake coreutils curl diffutils \
     findutils g++ gcc git grep gzip libtool linux-headers make meson \
-    nasm ninja-build patch perl pkgconf procps-ng sdl2 tar unzip wget
+    nasm ninja-build patch perl pkgconf procps-ng sdl2 tar unzip
 ```
 
 **Note:** don't forget to add `/usr/lib/ninja-build/bin` to `$PATH`
@@ -59,8 +59,8 @@ sudo apk add 7zip ccache gettext-dev luacheck
 Install the prerequisites using pacman:
 
 ```
-run0 pacman -S base-devel ca-certificates cmake gcc-libs git \
-    meson nasm ninja perl sdl2 unzip wget
+run0 pacman -S base-devel ca-certificates cmake curl gcc-libs git \
+    meson nasm ninja perl sdl2 unzip
 ```
 
 Optional:
@@ -73,9 +73,9 @@ run0 pacman -S 7zip ccache luacheck
 Install the prerequisites using APT:
 
 ```
-sudo apt install autoconf automake build-essential ca-certificates cmake \
+sudo apt install autoconf automake build-essential ca-certificates cmake curl \
     gcc-multilib git libsdl2-2.0-0 libtool libtool-bin meson nasm ninja-build \
-    patch perl pkg-config unzip wget
+    patch perl pkg-config unzip
 ```
 
 **Note:** Debian distributions might need `meson` to be installed from `bookworm-backports`) because the version provided by the default repositories is too old:
@@ -96,7 +96,7 @@ Install the prerequisites using DNF:
 
 ```
 sudo dnf install autoconf automake cmake gcc gcc-c++ git libtool meson nasm \
-    ninja-build patch perl-FindBin procps-ng SDL2 unzip wget
+    ninja-build patch perl-FindBin procps-ng SDL2 unzip
 ```
 
 Optional:
@@ -114,7 +114,7 @@ luarocks install luacheck
 Install the prerequisites using [Homebrew](https://brew.sh/):
 
 ```
-brew install autoconf automake bash binutils cmake coreutils findutils \
+brew install autoconf automake bash binutils cmake coreutils curl findutils \
     gnu-getopt libtool make meson nasm ninja pkg-config sdl2 util-linux
 ```
 
