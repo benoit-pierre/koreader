@@ -37,6 +37,7 @@ set(DEFINES
     HB_NO_META
     HB_NO_PAINT
     HB_NO_STYLE
+    HB_NO_VAR_COMPOSITES
 )
 
 # We've apparently hit a weird corner-case w/ XText where GCC/STL atomics *sometimes* horribly blow up on an ARM1136JF-S CPU w/ GCC 7.5 & up...
@@ -62,8 +63,8 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL ed033407741d0e94df5049ed4dc9022b
-    https://github.com/harfbuzz/harfbuzz/releases/download/11.5.1/harfbuzz-11.5.1.tar.xz
+    DOWNLOAD URL b25852e908c06a43eb2afd4ba0c3fb2e
+    https://github.com/harfbuzz/harfbuzz/releases/download/12.0.0/harfbuzz-12.0.0.tar.xz
     PATCH_FILES ${PATCH_FILES}
     PATCH_COMMAND ${PATCH_CMD}
     CONFIGURE_COMMAND ${CFG_CMD}
