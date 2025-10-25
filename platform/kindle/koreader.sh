@@ -124,6 +124,8 @@ ko_update_check() {
         /var/tmp/fbink -c
         # Let our checkpoint script handle the detailed visual feedback...
         eips_print_bottom_centered "Updating KOReader" 3
+        # Keep a copy of the old manifest for cleaning leftovers later.
+        cp "${KOREADER_DIR}/ota/package.index" /var/tmp/
         # Setup the FBInk daemon
         export FBINK_NAMED_PIPE="/tmp/koreader.fbink"
         rm -f "${FBINK_NAMED_PIPE}"
@@ -140,6 +142,8 @@ ko_update_check() {
         rm -f /var/tmp/unpack
         # Cleanup behind us...
         if [ "${fail}" -eq 0 ]; then
+            # Cleanup leftovers from previous install.
+            (cd "${UNPACK_DIR}" && comm -23 /var/tmp/package.index "${KOREADER_DIR}/ota/package.index" | xargs -r rm -vf)
             logmsg "Update successful :)"
             eips_print_bottom_centered "Update successful :)" 2
             eips_print_bottom_centered "KOReader will start momentarily . . ." 1
@@ -154,7 +158,7 @@ ko_update_check() {
             eips_print_bottom_centered "Update failed :(" 2
             eips_print_bottom_centered "KOReader may fail to function properly" 1
         fi
-        rm -f "${NEWUPDATE}" # always purge newupdate to prevent update loops
+        rm -f /var/tmp/package.index "${NEWUPDATE}" # always purge newupdate to prevent update loops
         unset FBINK_NAMED_PIPE FBINK_PID
         # Ensure everything is flushed to disk before we restart. This *will* stall for a while on slow storage!
         sync
