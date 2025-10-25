@@ -24,6 +24,5 @@ update: all
 	$(SYMLINK) $(KINDLE_DIR)/wmctrl $(INSTALL_DIR)/koreader/
 	# Create packages.
 	$(strip $(call mkupdate,$(KINDLE_PACKAGE))) extensions $(KINDLE_LEGACY_LAUNCHER)
-	$(strip $(call mkupdate,$(KINDLE_PACKAGE_OLD_OTA))) extensions $(KINDLE_LEGACY_LAUNCHER)
 
 PHONY += update
