@@ -1,6 +1,5 @@
 list(APPEND PATCH_FILES
     cmake_tweaks.patch
-    fix_pkg-config_reqs.patch
     no_messing_with_debug_flags.patch
     k2pdfopt.patch
 )
@@ -58,8 +57,8 @@ endif()
 external_project(
     # NOTE: Needs to match the version used by whatever version of libk2pdfopt we're currently using...
     #       Probably applies to mupdf & tesseract, too...
-    DOWNLOAD URL 87273c55e154082bc88778c3f02770a3
-    https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.86.0.tar.gz
+    DOWNLOAD URL 10a7e249d13e753d75ac2c6b677efb14
+    https://github.com/DanBloomberg/leptonica/archive/refs/tags/1.87.0-pre1.tar.gz
     PATCH_FILES ${PATCH_FILES}
     CMAKE_ARGS ${CMAKE_ARGS}
     BUILD_COMMAND ${BUILD_CMD}
