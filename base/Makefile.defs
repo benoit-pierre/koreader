@@ -394,6 +394,9 @@ else
 endif
 # And for an aggressive LTO build
 # BASE_CFLAGS = $(VECTO_CFLAGS) $(LTO_FLAGS)
+ifdef LTO
+  BASE_CFLAGS += $(LTO_FLAGS)
+endif
 # Use this for debugging:
 ifdef KODEBUG
   BASE_CFLAGS = -Og -g -pipe -fno-omit-frame-pointer
