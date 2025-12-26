@@ -927,7 +927,7 @@ void docx_rHandler::handleInstruction(lString32 &instruction, lString32 paramete
 {
     if( instruction == cs32("REF") || instruction == cs32("NOTEREF") || instruction == cs32("PAGEREF") ) {
         lString32 argument, switches;
-        if( parameters.split2( cs32(" "), argument, switches) && !argument.empty() )
+        if( parameters.split2( U' ', argument, switches) && !argument.empty() )
         {
             m_importContext->m_linkNode = m_writer->OnTagOpen(U"", U"a");
             lString32 target = U"#";
@@ -1038,7 +1038,7 @@ void docx_rHandler::handleTagClose(const lChar32 *nsname, const lChar32 *tagname
             m_instruction.trim();
             if ( !m_instruction.empty() ) {
                 lString32 instruction, parameters;
-                if ( m_instruction.split2(cs32(" "), instruction, parameters) )
+                if ( m_instruction.split2(U' ', instruction, parameters) )
                     handleInstruction(instruction, parameters);
             }
         }
