@@ -852,7 +852,7 @@ $(if $(CCACHE),set(CMAKE_CXX_COMPILER_LAUNCHER $(CCACHE)))
 set(CMAKE_CXX_COMPILER $(REALCXX))
 set(CMAKE_CXX_FLAGS_INIT "$(strip $(CXXFLAGS))")
 
-# OBJC language (for SDL2 on macOS).
+# OBJC language (for SDL3 on macOS).
 $(if $(CCACHE),set(CMAKE_OBJC_COMPILER_LAUNCHER $(CCACHE)))
 set(CMAKE_OBJC_COMPILER $(REALCC))
 
@@ -878,6 +878,7 @@ set(CMAKE_STRIP true CACHE FILEPATH "Strip")
 # Set path(s) to search for libraries/binaries/headers.
 set(CMAKE_FIND_ROOT_PATH $(abspath $(STAGING_DIR)))
 set(CMAKE_PREFIX_PATH $${CMAKE_FIND_ROOT_PATH})
+set(CMAKE_LIBRARY_ARCHITECTURE $(TARGET_MACHINE))
 # So we don't include an outdated `png.h` provided by one of macOS' frameworks.
 set(CMAKE_FIND_FRAMEWORK LAST)
 
