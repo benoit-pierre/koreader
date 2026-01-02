@@ -1,14 +1,8 @@
---- i/zlib.pc.cmakein
-+++ w/zlib.pc.cmakein
-@@ -1,8 +1,8 @@
- prefix=@CMAKE_INSTALL_PREFIX@
- exec_prefix=@CMAKE_INSTALL_PREFIX@
--libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
--sharedlibdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
--includedir=${exec_prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-+libdir=@CMAKE_INSTALL_LIBDIR@
-+sharedlibdir=@CMAKE_INSTALL_LIBDIR@
-+includedir=@CMAKE_INSTALL_INCLUDEDIR@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.14...3.31.0)
++cmake_minimum_required(VERSION 3.17.5...3.31.0)
+ message(STATUS "Using CMake version ${CMAKE_VERSION}")
  
- Name: zlib
- Description: zlib compression library
+ if(POLICY CMP0169)
