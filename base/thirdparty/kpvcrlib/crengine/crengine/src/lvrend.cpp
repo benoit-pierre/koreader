@@ -3929,20 +3929,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     lUInt32 bgcl = LTEXT_COLOR_CURRENT; // erm_final: any background will be drawn by DrawDocument
                     if ( !suptitle.empty() ) {
                         lString32Collection lines;
-                        lines.parse(suptitle, cs32("\\n"), true);
+                        lines.parse(suptitle, U'\n', true);
                         for ( int i=0; i<lines.length(); i++ )
                             txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                     }
                     txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode, lang_cfg );
                     if ( !subtitle.empty() ) {
                         lString32Collection lines;
-                        lines.parse(subtitle, cs32("\\n"), true);
+                        lines.parse(subtitle, U'\n', true);
                         for ( int i=0; i<lines.length(); i++ )
                             txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                     }
                     if ( !title.empty() ) {
                         lString32Collection lines;
-                        lines.parse(title, cs32("\\n"), true);
+                        lines.parse(title, U'\n', true);
                         for ( int i=0; i<lines.length(); i++ )
                             txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                     }
