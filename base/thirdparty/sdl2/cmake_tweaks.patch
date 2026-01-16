@@ -1,13 +1,22 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index e45b53e20..50f2f242a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -5,7 +5,7 @@ endif()
- # MSVC runtime library flags are selected by an abstraction.
- set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+@@ -2,7 +2,7 @@
+ #        you can define SDL3_INCLUDE_DIRS on the cmdline.  For example:
+ #        cmake -DSDL3_INCLUDE_DIRS=/opt/SDL3/include [other stuff ....]
  
--cmake_minimum_required(VERSION 3.0.0...3.10)
+-cmake_minimum_required(VERSION 3.0...4.1)
 +cmake_minimum_required(VERSION 3.17.5)
- project(SDL2 C)
+ project(sdl2_compat VERSION 2.32.60 LANGUAGES C)
  
- if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+ if(POLICY CMP0074)
+@@ -611,8 +611,8 @@
+   set(ENABLE_SHARED_TRUE "")
+   set(ENABLE_SHARED_FALSE "#")
+ 
+-  configure_file(sdl2-compat.pc.in sdl2-compat.pc @ONLY)
+-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sdl2-compat.pc"
++  configure_file(sdl2-compat.pc.in sdl2.pc @ONLY)
++  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sdl2.pc"
+     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+   )
+ 
