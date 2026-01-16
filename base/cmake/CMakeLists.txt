@@ -404,13 +404,14 @@ declare_project(thirdparty/proxy-libintl EXCLUDE_FROM_ALL)
 # sdcv
 declare_project(thirdparty/sdcv DEPENDS glib zlib)
 
-# sdl2
+# sdl
 if(APPIMAGE OR APPLE)
     set(EXCLUDE_FROM_ALL)
 else()
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
 endif()
-declare_project(thirdparty/sdl2 ${EXCLUDE_FROM_ALL})
+declare_project(thirdparty/sdl2 DEPENDS sdl3 ${EXCLUDE_FROM_ALL})
+declare_project(thirdparty/sdl3 EXCLUDE_FROM_ALL)
 
 # sqlite
 declare_project(thirdparty/sqlite)
