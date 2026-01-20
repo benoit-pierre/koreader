@@ -1,0 +1,1 @@
+include make/android.mk
