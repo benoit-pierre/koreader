@@ -16,6 +16,11 @@ on:
         description: 'Run the specified list of job ids'
         required: false
         type: string
+      publish:
+        description: 'Publish an OTA release to GitHub'
+        required: false
+        default: false
+        type: boolean
 
 defaults:
   run:
@@ -105,5 +110,18 @@ jobs:
     uses: ./.github/workflows/build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.platform }}
+
+  release:
+    name: Release
+    needs: [emulator, macos, platform]
+    if: |
+      inputs.publish && !cancelled() &&
+      contains('skipped success', needs.lint.result) &&
+      contains('skipped success', needs.emulator.result) &&
+      contains('skipped success', needs.macos.result) &&
+      contains('skipped success', needs.platform.result)
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build.release.yml
 
 # vim: foldmethod=marker foldlevel=0
