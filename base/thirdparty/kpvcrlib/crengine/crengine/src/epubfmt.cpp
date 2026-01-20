@@ -1088,9 +1088,15 @@ public:
 //                                 _italic ? "yes" : "no", LCSTR(_url));
                     if (islocal.length()==5 && _basePath.length()!=0)
                         _url = _url.substr((_basePath.length()+1), (_url.length()-_basePath.length()));
-                    while (_fontList.findByUrl(_url))
-                        _url.append(lString32(" ")); //avoid add() replaces existing local name
-                    _fontList.add(_url, _face, _bold, _italic);
+                    int i;
+                    for (i = 0; i < _fontList.length(); ++i) {
+                        const LVEmbeddedFontDef * def = _fontList.get(i);
+                        if (def->getUrl() == _url && def->getFace() == _face &&
+                            def->getBold() == _bold && def->getItalic() == _italic)
+                            break;
+                    }
+                    if (i == _fontList.length())
+                        _fontList.add(new LVEmbeddedFontDef(_url, _face, _bold, _italic));
                 }
             }
             _state = 0;
