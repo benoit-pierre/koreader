@@ -2,7 +2,7 @@ local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
 local UIManager
-local SDL = require("ffi/SDL2_0")
+local SDL = require("ffi/SDL3")
 local ffi = require("ffi")
 local logger = require("logger")
 local time = require("ui/time")
@@ -177,7 +177,7 @@ function Device:init()
     end
 
     self.hasClipboard = yes
-    self.screen = require("ffi/framebuffer_SDL2_0"):new{
+    self.screen = require("ffi/framebuffer_SDL3"):new{
         device = self,
         debug = logger.dbg,
         w = self.window.width,
