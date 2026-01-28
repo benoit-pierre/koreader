@@ -404,13 +404,31 @@ declare_project(thirdparty/proxy-libintl EXCLUDE_FROM_ALL)
 # sdcv
 declare_project(thirdparty/sdcv DEPENDS glib zlib)
 
-# sdl2
+# sdl3
 if(APPIMAGE OR APPLE)
     set(EXCLUDE_FROM_ALL)
+elseif(EMULATE_READER)
+    execute_process(COMMAND pkg-config --variable pc_path pkg-config RESULT_VARIABLE RET OUTPUT_VARIABLE OUT OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT RET EQUAL 0)
+        message(FATAL_ERROR "could not get pkg-config builtin search path")
+    endif()
+    set(ENV{PKG_CONFIG_LIBDIR} ${OUT})
+    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpmachine RESULT_VARIABLE RET OUTPUT_VARIABLE CMAKE_LIBRARY_ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT RET EQUAL 0)
+        message(FATAL_ERROR "could not get compiler target machine")
+    endif()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3 sdl3)
+    if(SDL3_FOUND)
+        set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+    else()
+        set(EXCLUDE_FROM_ALL)
+    endif()
+    set(ENV{PKG_CONFIG_LIBDIR})
 else()
     set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
 endif()
-declare_project(thirdparty/sdl2 ${EXCLUDE_FROM_ALL})
+declare_project(thirdparty/sdl3 ${EXCLUDE_FROM_ALL})
 
 # sqlite
 declare_project(thirdparty/sqlite)
@@ -625,8 +643,8 @@ else()
 endif()
 ffi_target(remarkable mxcfb_remarkable_h.lua mxcfb_remarkable_decl.c ${EXCLUDE_FROM_ALL})
 
-# sdl2
-ffi_target(sdl2 SDL2_0_h.lua SDL2_0_decl.c ARGS -d sdl2)
+# sdl3
+ffi_target(sdl3 SDL3_h.lua SDL3_decl.c ARGS -d sdl3)
 
 # utf8proc
 ffi_target(utf8proc utf8proc_h.lua utf8proc_decl.c ARGS -d libutf8proc)

@@ -4,6 +4,9 @@ list(APPEND PATCH_FILES
     # a couple of actions to be used from the osx main menu.
     cocoa.patch
 )
+if(APPIMAGE OR EMULATE_READER)
+    list(APPEND PATCH_FILES pkg-config_jailbreak.patch)
+endif()
 if(APPIMAGE)
     # Tweak pkg-config search path (allow system packages),
     # help stupid cmake find system libraries, and fail if
@@ -14,21 +17,27 @@ endif()
 list(APPEND CMAKE_ARGS
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     # Project options.
-    -DSDL2_DISABLE_SDL2MAIN=ON
-    -DSDL_CMAKE_DEBUG_POSTFIX= # Remove 'd' suffix for the debug build library.
+    -DSDL_ANDROID_JAR=OFF
+    -DSDL_EXAMPLES=OFF
+    -DSDL_INSTALL_CPACK=OFF
+    -DSDL_INSTALL_DOCS=OFF
+    -DSDL_RPATH=OFF
     -DSDL_SHARED=ON
     -DSDL_STATIC=OFF
-    -DSDL_TEST=OFF
-    # We don't need audio support.
+    -DSDL_TEST_LIBRARY=OFF
+    # Disable unnecessary sub-systems.
     -DSDL_AUDIO=OFF
-    -DSDL_LIBSAMPLERATE=OFF
+    -DSDL_CAMERA=OFF
+    -DSDL_DIALOG=OFF
+    -DSDL_GPU=OFF
+    -DSDL_HAPTIC=OFF
+    -DSDL_SENSOR=OFF
 )
 if(APPIMAGE)
     list(APPEND CMAKE_ARGS
         # Miscellaneous video features/subsystems we don't care about.
-        -DSDL_DIRECTFB=OFF
         -DSDL_KMSDRM=OFF
-        -DSDL_RPI=OFF
+        -DSDL_ROCKCHIP=OFF
     )
 endif()
 
@@ -36,11 +45,11 @@ list(APPEND BUILD_CMD COMMAND ninja)
 
 list(APPEND INSTALL_CMD COMMAND ${CMAKE_COMMAND} --install .)
 
-append_shared_lib_install_commands(INSTALL_CMD SDL2-2.0 VERSION 0)
+append_shared_lib_install_commands(INSTALL_CMD SDL3 VERSION 0)
 
 external_project(
-    DOWNLOAD URL 7b234751c91737168d88c83041ca5aa9
-    https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz
+    DOWNLOAD URL 7eedab7982f37bfdf342dc6d2dbd24ce
+    https://github.com/libsdl-org/SDL/releases/download/release-3.2.28/SDL3-3.2.28.tar.gz
     PATCH_FILES ${PATCH_FILES}
     CMAKE_ARGS ${CMAKE_ARGS}
     BUILD_COMMAND ${BUILD_CMD}
