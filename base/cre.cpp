@@ -682,6 +682,18 @@ static int getTextLangStatus(lua_State *L) {
 	return 3;
 }
 
+extern "C" {
+#include <time.h>
+#include <math.h>
+}
+
+static double getTimestamp() {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts))
+        return NAN;
+    return (double)ts.tv_sec + (double)ts.tv_nsec / 1000000000.0;
+}
+
 static int loadDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 	const char *file_name = luaL_checkstring(L, 2);
@@ -690,8 +702,12 @@ static int loadDocument(lua_State *L) {
 		only_metadata = lua_toboolean(L, 3);
 	}
 
+	double start_time = getTimestamp();
 	doc->text_view->LoadDocument(file_name, only_metadata);
 	doc->dom_doc = doc->text_view->getDocument();
+	char str[64];
+	snprintf(str, sizeof (str), "%f", getTimestamp() - start_time);
+	doc->text_view->propsGetCurrent()->setString("doc.load.time", str);
 
 	bool loaded = false;
 	if (doc->dom_doc) { loaded = true ;}
@@ -701,7 +717,11 @@ static int loadDocument(lua_State *L) {
 
 static int renderDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
+	double start_time = getTimestamp();
 	doc->text_view->Render();
+	char str[64];
+	snprintf(str, sizeof (str), "%f", getTimestamp() - start_time);
+	doc->text_view->propsGetCurrent()->setString("doc.render.time", str);
 
 	return 0;
 }
