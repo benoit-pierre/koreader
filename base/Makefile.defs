@@ -675,6 +675,8 @@ ifndef DARWIN
   # In monolibtic mode on Android, we can statically link the STL.
   ifdef ANDROID
     LDFLAGS += $(if $(MONOLIBTIC),-static-libstdc++)
+    # We'll be using the ldd linker, enable safe Identical Code Folding.
+    LDFLAGS += -Wl,--icf=safe
   endif
 else
   LDFLAGS := -Wl,-rpath,@executable_path/libs,-rpath,@executable_path/../koreader/libs
