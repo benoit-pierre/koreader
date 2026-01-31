@@ -93,6 +93,13 @@ platform:
     test: true
     artifacts: koreader-*.AppImage
 
+  # FIXME: does not work, no support for using a docker image with
+  # the `--platform=…` docker argument (see `build.matrix.yml`)…
+  # - <<: *APPIMAGE
+  #   id: appimage-armhf
+  #   job: AppImage ARMhf
+  #   platform: aarch64
+
   - <<: *APPIMAGE
     id: appimage-x86_64
     job: AppImage x86_64
