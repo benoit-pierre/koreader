@@ -428,7 +428,7 @@ public:
     /// default constrictor
     explicit lString8() : pchunk(EMPTY_STR_8) { addref(); }
     /// constructor of empty string with buffer of specified size
-    explicit lString8( int size ) : pchunk(EMPTY_STR_8) { addref(); reserve(size); }
+    explicit lString8(size_type size, size_type len = 0) { alloc(size); pchunk->buf8[pchunk->len = len] = 0; }
     /// copy constructor
     lString8(const lString8 & str) : pchunk(str.pchunk) { addref(); }
     /// constructor from C string
@@ -661,6 +661,8 @@ public:
     explicit lString32(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
     /// empty string constructor
     explicit lString32() : pchunk(EMPTY_STR_32) { addref(); }
+    /// constructor of empty string with buffer of specified size
+    explicit lString32(size_type size, size_type len = 0) { alloc(size); pchunk->buf32[pchunk->len = len] = 0; }
     /// copy constructor
     lString32(const lString32 & str) : pchunk(str.pchunk) { addref(); }
     /// constructor from wide c-string
