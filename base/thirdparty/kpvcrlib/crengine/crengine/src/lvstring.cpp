@@ -262,187 +262,118 @@ void lstring_chunk_t::free( lstring_chunk_t * pChunk )
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////
 
-inline int _lStr_len(const lChar32 * str)
+template<typename T1, typename T2>
+static inline void _lStr_cpy(T1 * dst, const T2 * src)
 {
-    int len;
-    for (len=0; *str; str++)
-        len++;
-    return len;
-}
-
-inline int _lStr_len(const lChar8 * str)
-{
-    int len;
-    for (len=0; *str; str++)
-        len++;
-    return len;
-}
-
-inline int _lStr_nlen(const lChar32 * str, int maxcount)
-{
-    int len;
-    for (len=0; len<maxcount && *str; str++)
-        len++;
-    return len;
-}
-
-inline int _lStr_nlen(const lChar8 * str, int maxcount)
-{
-    int len;
-    for (len=0; len<maxcount && *str; str++)
-        len++;
-    return len;
-}
-
-inline int _lStr_cpy(lChar32 * dst, const lChar32 * src)
-{
-    int count;
-    for ( count=0; (*dst++ = *src++); count++ )
+    while ((*dst++ = *src++) != '\0')
         ;
-    return count;
 }
 
-inline int _lStr_cpy(lChar8 * dst, const lChar8 * src)
+template<typename T1, typename T2>
+static inline void _lStr_ncpy(T1 * dst, const T2 * src, int maxcount)
 {
-    int count;
-    for ( count=0; (*dst++ = *src++); count++ )
-        ;
-    return count;
-}
-
-inline int _lStr_cpy(lChar32 * dst, const lChar8 * src)
-{
-    int count;
-    for ( count=0; (*dst++ = *src++); count++ )
-        ;
-    return count;
-}
-
-inline int _lStr_cpy(lChar8 * dst, const lChar32 * src)
-{
-    int count;
-    for ( count=0; (*dst++ = (lChar8)*src++); count++ )
-        ;
-    return count;
-}
-
-inline int _lStr_ncpy(lChar32 * dst, const lChar32 * src, int maxcount)
-{
-    int count = 0;
     do
     {
-        if (++count > maxcount)
+        if (!maxcount--)
         {
             *dst = 0;
-            return count;
+            return;
         }
     } while ((*dst++ = *src++));
-    return count;
 }
 
-inline int _lStr_ncpy(lChar32 * dst, const lChar8 * src, int maxcount)
+template<typename T1, typename T2>
+static inline void _lStr_memcpy(T1 * dst, const T2 * src, int count)
 {
-    int count = 0;
-    do
+    while (count-- > 0)
+        *dst++ = *src++;
+}
+
+template<typename T>
+static inline void _lStr_memmove(T * dst, const T * src, int count)
+{
+    if (dst == src)
+        return;
+    if (src < dst)
     {
-        if (++count > maxcount)
-        {
-            *dst = 0;
-            return count;
-        }
-    } while ((*dst++ = (unsigned char)*src++));
-    return count;
+        src += count;
+        dst += count;
+        while (count-- > 0)
+            *--dst = *--src;
+    }
+    else while (count-- > 0)
+        *dst++ = *src++;
 }
 
-inline int _lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount)
+template<typename T>
+static inline void _lStr_memset(T * dst, T value, int count)
 {
-    int count = 0;
-    do
-    {
-        if (++count > maxcount)
-        {
-            *dst = 0;
-            return count;
-        }
-    } while ((*dst++ = *src++));
-    return count;
-}
-
-inline void _lStr_memcpy(lChar32 * dst, const lChar32 * src, int count)
-{
-    while ( count-- > 0)
-        (*dst++ = *src++);
-}
-
-inline void _lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
-{
-    memcpy(dst, src, count);
-}
-
-inline void _lStr_memset(lChar32 * dst, lChar32 value, int count)
-{
-    while ( count-- > 0)
+    while (count-- > 0)
         *dst++ = value;
 }
 
-inline void _lStr_memset(lChar8 * dst, lChar8 value, int count)
+template<typename T1, typename T2>
+static inline int _lStr_cmp(const T1 * dst, const T2 * src)
 {
-    memset(dst, value, count);
+    while (*dst == (T1)*src)
+    {
+        if (!*dst)
+            return 0;
+        ++dst;
+        ++src;
+    }
+    return *dst > (T1)*src ? +1 : -1;
 }
 
 int lStr_len(const lChar32 * str)
 {
-    return _lStr_len(str);
-}
-
-int lStr_len(const lChar8 * str)
-{
-    return _lStr_len(str);
+    int len = 0;
+    while (str[len] != '\0')
+        ++len;
+    return len;
 }
 
 int lStr_nlen(const lChar32 * str, int maxcount)
 {
-    return _lStr_nlen(str, maxcount);
+    int len = -1;
+    while (++len < maxcount && str[len] != '\0')
+        ;
+    return len;
 }
 
-int lStr_nlen(const lChar8 * str, int maxcount)
+void lStr_cpy(lChar32 * __restrict__ dst, const lChar32 * __restrict__ src)
 {
-    return _lStr_nlen(str, maxcount);
+    _lStr_cpy(dst, src);
 }
 
-int lStr_cpy(lChar32 * dst, const lChar32 * src)
+void lStr_cpy(lChar32 * __restrict__ dst, const lChar8 * __restrict__ src)
 {
-    return _lStr_cpy(dst, src);
+    _lStr_cpy(dst, src);
 }
 
-int lStr_cpy(lChar8 * dst, const lChar8 * src)
+void lStr_ncpy(lChar32 * __restrict__ dst, const lChar32 * __restrict__ src, int maxcount)
 {
-    return _lStr_cpy(dst, src);
+    _lStr_ncpy(dst, src, maxcount);
 }
 
-int lStr_cpy(lChar32 * dst, const lChar8 * src)
+void lStr_ncpy(lChar32 * __restrict__ dst, const lChar8 * __restrict__ src, int maxcount)
 {
-    return _lStr_cpy(dst, src);
+    _lStr_ncpy(dst, src, maxcount);
 }
 
-int lStr_ncpy(lChar32 * dst, const lChar32 * src, int maxcount)
-{
-    return _lStr_ncpy(dst, src, maxcount);
-}
-
-int lStr_ncpy(lChar8 * dst, const lChar8 * src, int maxcount)
-{
-    return _lStr_ncpy(dst, src, maxcount);
-}
-
-void lStr_memcpy(lChar32 * dst, const lChar32 * src, int count)
+void lStr_memcpy(lChar32 * __restrict__ dst, const lChar32 * __restrict__ src, int count)
 {
     _lStr_memcpy(dst, src, count);
 }
 
-void lStr_memcpy(lChar8 * dst, const lChar8 * src, int count)
+void lStr_memcpy(lChar32 * __restrict__ dst, const lChar8 * __restrict__ src, int count)
 {
     _lStr_memcpy(dst, src, count);
+}
+
+void lStr_memmove(lChar32 * dst, const lChar32 * src, int count)
+{
+    _lStr_memmove(dst, src, count);
 }
 
 void lStr_memset(lChar32 * dst, lChar32 value, int count)
@@ -450,69 +381,19 @@ void lStr_memset(lChar32 * dst, lChar32 value, int count)
     _lStr_memset(dst, value, count);
 }
 
-void lStr_memset(lChar8 * dst, lChar8 value, int count)
-{
-    _lStr_memset(dst, value, count);
-}
-
 int lStr_cmp(const lChar32 * dst, const lChar32 * src)
 {
-    while ( *dst == *src)
-    {
-        if (! *dst )
-            return 0;
-        ++dst;
-        ++src;
-    }
-    if ( *dst > *src )
-        return 1;
-    else
-        return -1;
-}
-
-int lStr_cmp(const lChar8 * dst, const lChar8 * src)
-{
-    while ( *dst == *src)
-    {
-        if (! *dst )
-            return 0;
-        ++dst;
-        ++src;
-    }
-    if ( *dst > *src )
-        return 1;
-    else
-        return -1;
+    return _lStr_cmp(dst, src);
 }
 
 int lStr_cmp(const lChar32 * dst, const lChar8 * src)
 {
-    while ( *dst == (lChar32)*src)
-    {
-        if (! *dst )
-            return 0;
-        ++dst;
-        ++src;
-    }
-    if ( *dst > (lChar32)*src )
-        return 1;
-    else
-        return -1;
+    return _lStr_cmp(dst, src);
 }
 
 int lStr_cmp(const lChar8 * dst, const lChar32 * src)
 {
-    while ( (lChar32)*dst == *src)
-    {
-        if (! *dst )
-            return 0;
-        ++dst;
-        ++src;
-    }
-    if ( (lChar32)*dst > *src )
-        return 1;
-    else
-        return -1;
+    return _lStr_cmp(dst, src);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -558,10 +439,10 @@ lString32::lString32(const lChar32 * str)
         addref();
         return;
     }
-    size_type len = _lStr_len(str);
+    size_type len = lStr_len(str);
     alloc( len );
     pchunk->len = len;
-    _lStr_cpy( pchunk->buf32, str );
+    lStr_cpy( pchunk->buf32, str );
 }
 
 lString32::lString32(const lChar8 * str)
@@ -600,9 +481,10 @@ lString32::lString32(const value_type * str, size_type count)
     }
     else
     {
-        size_type len = _lStr_nlen(str, count);
+        size_type len = lStr_nlen(str, count);
         alloc(len);
-        _lStr_ncpy( pchunk->buf32, str, len );
+        lStr_memcpy( pchunk->buf32, str, len );
+        pchunk->buf32[len] = '\0';
         pchunk->len = len;
     }
 }
@@ -618,7 +500,7 @@ lString32::lString32(const lString32 & str, size_type offset, size_type count)
     else
     {
         alloc(count);
-        _lStr_memcpy( pchunk->buf32, str.pchunk->buf32+offset, count );
+        lStr_memcpy( pchunk->buf32, str.pchunk->buf32+offset, count );
         pchunk->buf32[count]=0;
         pchunk->len = count;
     }
@@ -632,7 +514,7 @@ lString32 & lString32::assign(const lChar32 * str)
     }
     else
     {
-        size_type len = _lStr_len(str);
+        size_type len = lStr_len(str);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -647,7 +529,7 @@ lString32 & lString32::assign(const lChar32 * str)
             release();
             alloc(len);
         }
-        _lStr_cpy( pchunk->buf32, str );
+        lStr_cpy( pchunk->buf32, str );
         pchunk->len = len;
     }
     return *this;
@@ -661,7 +543,7 @@ lString32 & lString32::assign(const lChar8 * str)
     }
     else
     {
-        size_type len = _lStr_len(str);
+        size_type len = lStr_len(str);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -676,7 +558,7 @@ lString32 & lString32::assign(const lChar8 * str)
             release();
             alloc(len);
         }
-        _lStr_cpy( pchunk->buf32, str );
+        lStr_cpy( pchunk->buf32, str );
         pchunk->len = len;
     }
     return *this;
@@ -690,7 +572,7 @@ lString32 & lString32::assign(const lChar32 * str, size_type count)
     }
     else
     {
-        size_type len = _lStr_nlen(str, count);
+        size_type len = lStr_nlen(str, count);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -705,7 +587,7 @@ lString32 & lString32::assign(const lChar32 * str, size_type count)
             release();
             alloc(len);
         }
-        _lStr_ncpy( pchunk->buf32, str, count );
+        lStr_ncpy( pchunk->buf32, str, count );
         pchunk->len = len;
     }
     return *this;
@@ -719,7 +601,7 @@ lString32 & lString32::assign(const lChar8 * str, size_type count)
     }
     else
     {
-        size_type len = _lStr_nlen(str, count);
+        size_type len = lStr_nlen(str, count);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -734,7 +616,7 @@ lString32 & lString32::assign(const lChar8 * str, size_type count)
             release();
             alloc(len);
         }
-        _lStr_ncpy( pchunk->buf32, str, count );
+        lStr_ncpy( pchunk->buf32, str, count );
         pchunk->len = len;
     }
     return *this;
@@ -753,15 +635,15 @@ lString32 & lString32::erase(size_type offset, size_type count)
         size_type newlen = length()-count;
         if (pchunk->nref==1)
         {
-            _lStr_memcpy( pchunk->buf32+offset, pchunk->buf32+offset+count, newlen-offset+1 );
+            lStr_memmove( pchunk->buf32+offset, pchunk->buf32+offset+count, newlen-offset+1 );
         }
         else
         {
             lstring_chunk_t * poldchunk = pchunk;
             release();
             alloc( newlen );
-            _lStr_memcpy( pchunk->buf32, poldchunk->buf32, offset );
-            _lStr_memcpy( pchunk->buf32+offset, poldchunk->buf32+offset+count, newlen-offset+1 );
+            lStr_memcpy( pchunk->buf32, poldchunk->buf32, offset );
+            lStr_memcpy( pchunk->buf32+offset, poldchunk->buf32+offset+count, newlen-offset+1 );
         }
         pchunk->len = newlen;
         pchunk->buf32[newlen]=0;
@@ -784,7 +666,7 @@ void lString32::reserve(size_type n)
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( n );
-        _lStr_memcpy( pchunk->buf32, poldchunk->buf32, poldchunk->len+1 );
+        lStr_memcpy( pchunk->buf32, poldchunk->buf32, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
 }
@@ -799,7 +681,7 @@ void lString32::lock( size_type newsize )
         size_type len = newsize;
         if (len>poldchunk->len)
             len = poldchunk->len;
-        _lStr_memcpy( pchunk->buf32, poldchunk->buf32, len );
+        lStr_memcpy( pchunk->buf32, poldchunk->buf32, len );
         pchunk->buf32[len]=0;
         pchunk->len = len;
     }
@@ -833,9 +715,9 @@ void lString32::resize(size_type n, lChar32 e)
 
 lString32 & lString32::append(const lChar32 * str)
 {
-    size_type len = _lStr_len(str);
+    size_type len = lStr_len(str);
     reserve( pchunk->len+len );
-    _lStr_memcpy(pchunk->buf32+pchunk->len, str, len+1);
+    lStr_memcpy(pchunk->buf32+pchunk->len, str, len+1);
     pchunk->len += len;
     return *this;
 }
@@ -843,16 +725,16 @@ lString32 & lString32::append(const lChar32 * str)
 lString32 & lString32::append(const lChar32 * str, size_type count)
 {
     reserve(pchunk->len + count);
-    _lStr_ncpy(pchunk->buf32 + pchunk->len, str, count);
+    lStr_ncpy(pchunk->buf32 + pchunk->len, str, count);
     pchunk->len += count;
     return *this;
 }
 
 lString32 & lString32::append(const lChar8 * str)
 {
-    size_type len = _lStr_len(str);
+    size_type len = lStr_len(str);
     reserve( pchunk->len+len );
-    _lStr_ncpy(pchunk->buf32+pchunk->len, str, len+1);
+    lStr_ncpy(pchunk->buf32+pchunk->len, str, len+1);
     pchunk->len += len;
     return *this;
 }
@@ -860,7 +742,7 @@ lString32 & lString32::append(const lChar8 * str)
 lString32 & lString32::append(const lChar8 * str, size_type count)
 {
     reserve(pchunk->len + count);
-    _lStr_ncpy(pchunk->buf32+pchunk->len, str, count);
+    lStr_ncpy(pchunk->buf32+pchunk->len, str, count);
     pchunk->len += count;
     return *this;
 }
@@ -869,7 +751,7 @@ lString32 & lString32::append(const lString32 & str)
 {
     size_type len2 = pchunk->len + str.pchunk->len;
     reserve( len2 );
-    _lStr_memcpy( pchunk->buf32+pchunk->len, str.pchunk->buf32, str.pchunk->len+1 );
+    lStr_memcpy( pchunk->buf32+pchunk->len, str.pchunk->buf32, str.pchunk->len+1 );
     pchunk->len = len2;
     return *this;
 }
@@ -881,7 +763,7 @@ lString32 & lString32::append(const lString32 & str, size_type offset, size_type
         if ( offset + count > str.pchunk->len )
             count = str.pchunk->len - offset;
         reserve( pchunk->len+count );
-        _lStr_ncpy(pchunk->buf32 + pchunk->len, str.pchunk->buf32 + offset, count);
+        lStr_ncpy(pchunk->buf32 + pchunk->len, str.pchunk->buf32 + offset, count);
         pchunk->len += count;
         pchunk->buf32[pchunk->len] = 0;
     }
@@ -891,7 +773,7 @@ lString32 & lString32::append(const lString32 & str, size_type offset, size_type
 lString32 & lString32::append(size_type count, lChar32 ch)
 {
     reserve( pchunk->len+count );
-    _lStr_memset(pchunk->buf32+pchunk->len, ch, count);
+    lStr_memset(pchunk->buf32+pchunk->len, ch, count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
     return *this;
@@ -904,7 +786,7 @@ lString32 & lString32::insert(size_type p0, size_type count, lChar32 ch)
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len-1; i>=p0; i--)
         pchunk->buf32[i+count] = pchunk->buf32[i];
-    _lStr_memset(pchunk->buf32+p0, ch, count);
+    lStr_memset(pchunk->buf32+p0, ch, count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
     return *this;
@@ -918,7 +800,7 @@ lString32 & lString32::insert(size_type p0, const lString32 & str)
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len-1; i>=p0; i--)
         pchunk->buf32[i+count] = pchunk->buf32[i];
-    _lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
+    lStr_memcpy(pchunk->buf32 + p0, str.c_str(), count);
     pchunk->len += count;
     pchunk->buf32[pchunk->len] = 0;
     return *this;
@@ -977,7 +859,7 @@ lString32 & lString32::trimNonAlpha()
     if (pchunk->nref == 1)
     {
         if (firstns>0)
-            lStr_memcpy( pchunk->buf32, pchunk->buf32+firstns, newlen );
+            lStr_memmove( pchunk->buf32, pchunk->buf32+firstns, newlen );
         pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
@@ -986,7 +868,7 @@ lString32 & lString32::trimNonAlpha()
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( newlen );
-        _lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
+        lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
         pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
@@ -1024,7 +906,7 @@ lString32 & lString32::trim()
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( newlen );
-        _lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
+        lStr_memcpy( pchunk->buf32, poldchunk->buf32+firstns, newlen );
         pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
@@ -1691,10 +1573,10 @@ lString8::lString8(const lChar8 * str)
         addref();
         return;
     }
-    size_type len = _lStr_len(str);
+    size_type len = lStr_len(str);
     alloc( len );
     pchunk->len = len;
-    _lStr_cpy( pchunk->buf8, str );
+    lStr_cpy( pchunk->buf8, str );
 }
 
 lString8::lString8(const value_type * str, size_type count)
@@ -1705,9 +1587,9 @@ lString8::lString8(const value_type * str, size_type count)
     }
     else
     {
-        size_type len = _lStr_nlen(str, count);
+        size_type len = lStr_nlen(str, count);
         alloc(len);
-        _lStr_ncpy( pchunk->buf8, str, len );
+        lStr_ncpy( pchunk->buf8, str, len );
         pchunk->len = len;
     }
 }
@@ -1723,7 +1605,7 @@ lString8::lString8(const lString8 & str, size_type offset, size_type count)
     else
     {
         alloc(count);
-        _lStr_memcpy( pchunk->buf8, str.pchunk->buf8+offset, count );
+        lStr_memcpy( pchunk->buf8, str.pchunk->buf8+offset, count );
         pchunk->buf8[count]=0;
         pchunk->len = count;
     }
@@ -1737,7 +1619,7 @@ lString8 & lString8::assign(const lChar8 * str)
     }
     else
     {
-        size_type len = _lStr_len(str);
+        size_type len = lStr_len(str);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -1752,7 +1634,7 @@ lString8 & lString8::assign(const lChar8 * str)
             release();
             alloc(len);
         }
-        _lStr_cpy( pchunk->buf8, str );
+        lStr_cpy( pchunk->buf8, str );
         pchunk->len = len;
     }
     return *this;
@@ -1766,7 +1648,7 @@ lString8 & lString8::assign(const lChar8 * str, size_type count)
     }
     else
     {
-        size_type len = _lStr_nlen(str, count);
+        size_type len = lStr_nlen(str, count);
         if (pchunk->nref==1)
         {
             if (pchunk->size < len)
@@ -1781,7 +1663,7 @@ lString8 & lString8::assign(const lChar8 * str, size_type count)
             release();
             alloc(len);
         }
-        _lStr_ncpy( pchunk->buf8, str, count );
+        lStr_ncpy( pchunk->buf8, str, count );
         pchunk->len = len;
     }
     return *this;
@@ -1800,15 +1682,15 @@ lString8 & lString8::erase(size_type offset, size_type count)
         size_type newlen = length()-count;
         if (pchunk->nref==1)
         {
-            _lStr_memcpy( pchunk->buf8+offset, pchunk->buf8+offset+count, newlen-offset+1 );
+            lStr_memmove( pchunk->buf8+offset, pchunk->buf8+offset+count, newlen-offset+1 );
         }
         else
         {
             lstring_chunk_t * poldchunk = pchunk;
             release();
             alloc( newlen );
-            _lStr_memcpy( pchunk->buf8, poldchunk->buf8, offset );
-            _lStr_memcpy( pchunk->buf8+offset, poldchunk->buf8+offset+count, newlen-offset+1 );
+            lStr_memcpy( pchunk->buf8, poldchunk->buf8, offset );
+            lStr_memcpy( pchunk->buf8+offset, poldchunk->buf8+offset+count, newlen-offset+1 );
         }
         pchunk->len = newlen;
         pchunk->buf8[newlen]=0;
@@ -1831,7 +1713,7 @@ void lString8::reserve(size_type n)
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( n );
-        _lStr_memcpy( pchunk->buf8, poldchunk->buf8, poldchunk->len+1 );
+        lStr_memcpy( pchunk->buf8, poldchunk->buf8, poldchunk->len+1 );
         pchunk->len = poldchunk->len;
     }
 }
@@ -1846,7 +1728,7 @@ void lString8::lock( size_type newsize )
         size_type len = newsize;
         if (len>poldchunk->len)
             len = poldchunk->len;
-        _lStr_memcpy( pchunk->buf8, poldchunk->buf8, len );
+        lStr_memcpy( pchunk->buf8, poldchunk->buf8, len );
         pchunk->buf8[len]=0;
         pchunk->len = len;
     }
@@ -1880,9 +1762,9 @@ void lString8::resize(size_type n, lChar8 e)
 
 lString8 & lString8::append(const lChar8 * str)
 {
-    size_type len = _lStr_len(str);
+    size_type len = lStr_len(str);
     reserve( pchunk->len+len );
-    _lStr_memcpy(pchunk->buf8+pchunk->len, str, len+1);
+    lStr_memcpy(pchunk->buf8+pchunk->len, str, len+1);
     pchunk->len += len;
     return *this;
 }
@@ -1971,9 +1853,9 @@ lString32 & lString32::appendHex(lUInt64 n)
 
 lString8 & lString8::append(const lChar8 * str, size_type count)
 {
-    size_type len = _lStr_nlen(str, count);
+    size_type len = lStr_nlen(str, count);
     reserve( pchunk->len+len );
-    _lStr_ncpy(pchunk->buf8+pchunk->len, str, len);
+    lStr_ncpy(pchunk->buf8+pchunk->len, str, len);
     pchunk->len += len;
     return *this;
 }
@@ -1982,7 +1864,7 @@ lString8 & lString8::append(const lString8 & str)
 {
     size_type len2 = pchunk->len + str.pchunk->len;
     reserve( len2 );
-    _lStr_memcpy( pchunk->buf8+pchunk->len, str.pchunk->buf8, str.pchunk->len+1 );
+    lStr_memcpy( pchunk->buf8+pchunk->len, str.pchunk->buf8, str.pchunk->len+1 );
     pchunk->len = len2;
     return *this;
 }
@@ -1994,7 +1876,7 @@ lString8 & lString8::append(const lString8 & str, size_type offset, size_type co
         if ( offset + count > str.pchunk->len )
             count = str.pchunk->len - offset;
         reserve( pchunk->len+count );
-        _lStr_ncpy(pchunk->buf8 + pchunk->len, str.pchunk->buf8 + offset, count);
+        lStr_ncpy(pchunk->buf8 + pchunk->len, str.pchunk->buf8 + offset, count);
         pchunk->len += count;
         pchunk->buf8[pchunk->len] = 0;
     }
@@ -2004,8 +1886,7 @@ lString8 & lString8::append(const lString8 & str, size_type offset, size_type co
 lString8 & lString8::append(size_type count, lChar8 ch)
 {
     reserve( pchunk->len+count );
-    memset( pchunk->buf8+pchunk->len, ch, count );
-    //_lStr_memset(pchunk->buf8+pchunk->len, ch, count);
+    lStr_memset(pchunk->buf8+pchunk->len, ch, count);
     pchunk->len += count;
     pchunk->buf8[pchunk->len] = 0;
     return *this;
@@ -2018,8 +1899,7 @@ lString8 & lString8::insert(size_type p0, size_type count, lChar8 ch)
     reserve( pchunk->len+count );
     for (size_type i=pchunk->len-1; i>=p0; i--)
         pchunk->buf8[i+count] = pchunk->buf8[i];
-    //_lStr_memset(pchunk->buf8+p0, ch, count);
-    memset(pchunk->buf8+p0, ch, count);
+    lStr_memset(pchunk->buf8+p0, ch, count);
     pchunk->len += count;
     pchunk->buf8[pchunk->len] = 0;
     return *this;
@@ -2408,7 +2288,7 @@ lString8 & lString8::trim()
         lstring_chunk_t * poldchunk = pchunk;
         release();
         alloc( newlen );
-        _lStr_memcpy( pchunk->buf8, poldchunk->buf8+firstns, newlen );
+        lStr_memcpy( pchunk->buf8, poldchunk->buf8+firstns, newlen );
         pchunk->buf8[newlen] = 0;
         pchunk->len = newlen;
     }
@@ -5335,7 +5215,7 @@ bool lString32::startsWith(const lChar32 * substring) const
 {
     if (!substring || !substring[0])
         return true;
-    int len = _lStr_len(substring);
+    int len = lStr_len(substring);
     if ( length() < len )
         return false;
     const lChar32 * s1 = c_str();
@@ -5351,7 +5231,7 @@ bool lString32::startsWith(const lChar8 * substring) const
 {
     if (!substring || !substring[0])
         return true;
-    int len = _lStr_len(substring);
+    int len = lStr_len(substring);
     if ( length() < len )
         return false;
     const lChar32 * s1 = c_str();
