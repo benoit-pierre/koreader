@@ -313,6 +313,14 @@ static inline void _lStr_memset(T * dst, T value, int count)
 }
 
 template<typename T1, typename T2>
+static inline int _lStr_memcmp(const T1 * str1, const T2 * str2, int count) {
+    for (int n = 0; n < count; ++n)
+        if (str1[n] != (T1)str2[n])
+            return 1;
+    return 0;
+}
+
+template<typename T1, typename T2>
 static inline int _lStr_cmp(const T1 * dst, const T2 * src)
 {
     while (*dst == (T1)*src)
@@ -379,6 +387,16 @@ void lStr_memmove(lChar32 * dst, const lChar32 * src, int count)
 void lStr_memset(lChar32 * dst, lChar32 value, int count)
 {
     _lStr_memset(dst, value, count);
+}
+
+int lStr_memcmp(const lChar32 * str1, const lChar32 * str2, int count)
+{
+    return _lStr_memcmp(str1, str2, count);
+}
+
+int lStr_memcmp(const lChar32 * str1, const lChar8 * str2, int count)
+{
+    return _lStr_memcmp(str1, str2, count);
 }
 
 int lStr_cmp(const lChar32 * dst, const lChar32 * src)
