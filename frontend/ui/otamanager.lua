@@ -35,6 +35,7 @@ local OTAManager = {
         "http://koreader-pl.ak-team.com/",
         "http://koreader-na.ak-team.com/",
         "http://koreader.ak-team.com/",
+        "https://github.com/benoit-pierre/koreader/releases/download/ota/",
     },
     ota_channels = {
         "stable",
