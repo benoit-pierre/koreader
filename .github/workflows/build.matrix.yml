@@ -250,7 +250,7 @@ jobs:
       # Generate / upload artifacts. {{{
 
       - name: Install 7z (Android)
-        if: matrix.artifacts && matrix.target == 'android'
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
         run: |
           set -x
           dist=linux-p7zip.7z
@@ -260,7 +260,7 @@ jobs:
           printf '%s\n' "${PWD}/7z" >>"${GITHUB_PATH}"
 
       - name: Setup gradle (Android)
-        if: matrix.artifacts && matrix.target == 'android'
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
         uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: ${{ runner.debug == '1' && 'always' || 'never' }}
@@ -276,7 +276,7 @@ jobs:
         run: make --assume-old=all skeleton update
 
       - name: Sign artifacts (Android)
-        if: matrix.artifacts && matrix.target == 'android'
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
         run: uber-apk-signer --overwrite --apks ${{ matrix.artifacts }}
 
       - name: Upload artifacts
