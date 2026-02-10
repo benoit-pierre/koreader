@@ -14,7 +14,7 @@ emulator: # {{{
   - &EMU_GCC
     id: emu-gcc
     job: GCC
-    image: koreader/kobase:0.5.3-22.04
+    image: benoitpierre/kobase:0.5.4-22.04
     target: ""
     makeflags: PARALLEL_JOBS=5 KODEBUG=
     cache_size: 240M
@@ -86,7 +86,7 @@ platform:
     id: appimage-aarch64
     job: AppImage AArch64
     runs-on: ubuntu-24.04-arm
-    image: koreader/koappimage:0.6.3-22.04
+    image: benoitpierre/koappimage:0.6.4-22.04
     target: appimage
     makeflags: PARALLEL_JOBS=5 LTO=1 OSIZE=1 MONOLIBTIC=1
     cache_size: 415M
