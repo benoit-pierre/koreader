@@ -171,6 +171,31 @@ jobs:
 
       # }}}
 
+      # Download. {{{
+
+      - name: Restore download cache
+        id: download-restore
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v5
+        with:
+          path: &DOWNLOAD_PATHS base/thirdparty/*/build
+          key: ${{ inputs.cache_epoch }}-download-${{ hashFiles('cache-key') }}
+
+      - name: Download
+        if: steps.build-restore.outputs.cache-hit != 'true' && steps.download-restore.outputs.cache-hit != 'true'
+        run: |
+          make download-all
+          make buildstats
+
+      - name: Save download cache
+        uses: actions/cache/save@v5
+        if: steps.build-restore.outputs.cache-hit != 'true' && steps.download-restore.outputs.cache-hit != 'true'
+        with:
+          path: *DOWNLOAD_PATHS
+          key: ${{ steps.download-restore.outputs.cache-primary-key }}
+
+      # }}}
+
       # Build. {{{
 
       - name: Build
