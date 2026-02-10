@@ -2605,7 +2605,7 @@ bool LVTextBookmarkParser::Parse()
       // BODY
       m_callback->OnTagOpenNoAttr( NULL, U"body" );
           m_callback->OnTagOpenNoAttr( NULL, U"title" );
-              postParagraph( m_callback, "", cs32("CoolReader Bookmarks file"), false );
+              postParagraph( m_callback, "", U"CoolReader Bookmarks file", false );
           m_callback->OnTagClose( NULL, U"title" );
           postParagraph( m_callback, "file: ", fname, false );
           postParagraph( m_callback, "path: ", path, false );
