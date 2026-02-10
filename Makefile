@@ -32,7 +32,7 @@ ifdef KODEBUG
 endif
 
 ifdef TARGET
-	DIST:=$(TARGET)
+	DIST:=$(TARGET:android-%=android)
 else
 	DIST:=emulator
 endif
