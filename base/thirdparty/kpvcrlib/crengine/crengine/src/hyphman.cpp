@@ -415,29 +415,22 @@ bool HyphDictionaryList::open(lString32 hyphDirectory, bool clear)
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
 			lString32 name = item->GetName();
-            lString32 suffix;
-            lString32 suffix2add;
+            int suffix_len;
+            const char *suffix2add;
             HyphDictType t = HDT_NONE;
             if ( name.endsWith("_hyphen_(Alan).pdb") ) {
-                suffix = "_hyphen_(Alan).pdb";
+                suffix_len = 18;
                 suffix2add = " (Alan)";
                 t = HDT_DICT_ALAN;
             } else if ( name.endsWith(".pattern") ) {
-                suffix = ".pattern";
+                suffix_len = 8;
+                suffix2add = "";
                 t = HDT_DICT_TEX;
             } else
                 continue;
-
-
-
-			lString32 filename = hyphDirectory + name;
-			lString32 id = name;
-			lString32 title = name;
-			if ( title.endsWith( suffix ) )
-				title.erase( title.length() - suffix.length(), suffix.length() );
-			if (!suffix2add.empty())
-				title.append(suffix2add);
-			_list.add( new HyphDictionary( t, title, id, filename ) );
+			lString32 filename = concat32(hyphDirectory, name);
+			lString32 title = concat32(name.substr(0, name.length() - suffix_len), suffix2add);
+			_list.add( new HyphDictionary( t, title, name, filename ) );
 		}
         _list.sort(HyphDictionary_comparator);
 		CRLog::info("%d dictionaries added to list", _list.length());
