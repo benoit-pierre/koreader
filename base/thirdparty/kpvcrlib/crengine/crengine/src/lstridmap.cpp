@@ -316,13 +316,8 @@ void LDOMNameIdMap::Clear()
 void LDOMNameIdMap::dumpUnknownItems( FILE * f, int start_id )
 {
     for (int i=start_id; i<m_size; i++)
-    {
         if (m_by_id[i] != NULL)
-        {
-            lString8 s8( m_by_id[i]->value.c_str() );
-            fprintf( f, "%d %s\n", m_by_id[i]->id, s8.c_str() );
-        }
-    }
+            fprintf( f, "%d %s\n", m_by_id[i]->id, LCSTR(m_by_id[i]->value) );
 }
 
 lString32 LDOMNameIdMap::getUnknownItems( int start_id )
