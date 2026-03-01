@@ -110,8 +110,7 @@ platform:
     makeflags: PARALLEL_JOBS=5
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   # kindle {{{
 
@@ -123,8 +122,7 @@ platform:
     cache_size: 390M
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - <<: *KINDLE
     id: kindlehf
@@ -147,8 +145,7 @@ platform:
     makeflags: PARALLEL_JOBS=5
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - id: pocketbook
     job: PocketBook
@@ -156,8 +153,7 @@ platform:
     makeflags: PARALLEL_JOBS=5
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   # remarkable {{{
 
@@ -168,8 +164,7 @@ platform:
     makeflags: PARALLEL_JOBS=5
     check_ffi_cdecls: true
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
   - <<: *REMARKABLE
     id: remarkable-aarch64
@@ -182,7 +177,6 @@ platform:
     image: koreader/kodeb:0.2.6-22.04
     makeflags: PARALLEL_JOBS=5
     artifacts: |
-      koreader-*.targz
-      koreader-*.zip
+      koreader-*.tar.xz
 
 # vim: foldmethod=marker foldlevel=0
