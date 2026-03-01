@@ -5550,6 +5550,18 @@ bool lString32::split2( const lChar8 * delim, lString32 & value1, lString32 & va
     return true;
 }
 
+bool lString32::split2( lChar32 delim, lString32 & value1, lString32 & value2 )
+{
+    if ( empty() )
+        return false;
+    int p = pos(delim);
+    if ( p<=0 )
+        return false;
+    value1 = substr(0, p);
+    value2 = substr(p+1);
+    return true;
+}
+
 bool splitIntegerList( lString32 s, lString32 delim, int &value1, int &value2 )
 {
     if ( s.empty() )
