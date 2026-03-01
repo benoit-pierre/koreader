@@ -60,6 +60,12 @@ $(BASE_PREFIX)uninstall:
 
 # }}}
 
+PHONY += buildbak buildtrim
+buildbak: buildtrim
+	mv --no-target-directory $(OUTPUT_DIR) $(OUTPUT_DIR).$(shell git log -1 --format=%ct)＿$(shell git rev-parse --short @)
+buildtrim:
+	rm -rf $(CMAKE_DIR) $(STAGING_DIR) $(OUTPUT_DIR)/thirdparty
+
 # CMake build interface. {{{
 
 setup $(BUILD_ENTRYPOINT): $(CMAKE_KOVARS) $(CMAKE_TCF) $(MESON_CROSS_TOOLCHAIN) $(MESON_HOST_TOOLCHAIN)
