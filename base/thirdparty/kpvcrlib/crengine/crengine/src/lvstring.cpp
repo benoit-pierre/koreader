@@ -5517,7 +5517,7 @@ bool lString32::split2( const lString32 & delim, lString32 & value1, lString32 &
     if ( empty() )
         return false;
     int p = pos(delim);
-    if ( p<=0 || p>=length()-delim.length() )
+    if ( p<=0 )
         return false;
     value1 = substr(0, p);
     value2 = substr(p+delim.length());
@@ -5530,7 +5530,7 @@ bool lString32::split2( const lChar32 * delim, lString32 & value1, lString32 & v
         return false;
     int p = pos(delim);
     int l = lStr_len(delim);
-    if (p<=0 || p >= length() - l)
+    if ( p<=0 )
         return false;
     value1 = substr(0, p);
     value2 = substr(p + l);
@@ -5543,7 +5543,7 @@ bool lString32::split2( const lChar8 * delim, lString32 & value1, lString32 & va
         return false;
     int p = pos(delim);
     int l = lStr_len(delim);
-    if (p<=0 || p >= length() - l)
+    if ( p<=0 )
         return false;
     value1 = substr(0, p);
     value2 = substr(p + l);
