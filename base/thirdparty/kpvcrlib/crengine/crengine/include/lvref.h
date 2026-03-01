@@ -69,7 +69,7 @@ public:
     LVRefCounter() : refCount(0) { }
     void AddRef() { refCount++; }
     int Release() { return --refCount; }
-    int getRefCount() { return refCount; }
+    int getRefCount() const { return refCount; }
 };
 
 /// Fast smart pointer with reference counting
