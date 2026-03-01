@@ -306,9 +306,9 @@ jobs:
 
       - name: Upload artifacts
         if: matrix.artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          compression-level: 0
+          archive: false
           name: koreader-${{ matrix.cache }}
           path: ${{ matrix.artifacts }}
 
