@@ -1697,20 +1697,6 @@ lString8::lString8(const lChar8 * str)
     _lStr_cpy( pchunk->buf8, str );
 }
 
-lString8::lString8(const lChar32 * str)
-{
-    if (!str || !(*str))
-    {
-        pchunk = EMPTY_STR_8;
-        addref();
-        return;
-    }
-    size_type len = _lStr_len(str);
-    alloc( len );
-    pchunk->len = len;
-    _lStr_cpy( pchunk->buf8, str );
-}
-
 lString8::lString8(const value_type * str, size_type count)
 {
     if ( !str || !(*str) || count<=0 )
