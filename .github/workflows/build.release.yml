@@ -1,0 +1,54 @@
+name: Build Release
+
+on:
+  workflow_call:
+    inputs:
+      # Internal.
+      kotasync_version:
+        default: '1.0.0'
+        type: string
+      wget:
+        default: 'wget -progress=dot:giga'
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  release:
+
+    name: Release
+
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Install kotasync
+        run: |
+          ${{ inputs.wget }} -O /usr/local/bin/kotasync 'https://github.com/benoit-pierre/koreader/releases/download/kotasync-${{ inputs.kotasync_version }}/kotasync-${{ inputs.kotasync_version }}-x86_64.AppImage'
+          chmod +x /usr/local/bin/kotasync
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          clean: false
+          sparse-checkout: .ci
+          show-progress: false
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          merge-multiple: true
+          path: artifacts/new
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./.ci/build.release.sh
+
+# vim: foldmethod=marker foldlevel=0
