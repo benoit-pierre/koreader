@@ -146,12 +146,16 @@ void clear_cs() {
         if (const_ptrs_8[n]) {
             values_8[n].release();
             const_ptrs_8[n] = NULL;
+            --size_8;
         }
         if (const_ptrs_32[n]) {
             values_32[n].release();
             const_ptrs_32[n] = NULL;
+            --size_32;
         }
     }
+    assert(!size_8);
+    assert(!size_32);
 }
 
 
