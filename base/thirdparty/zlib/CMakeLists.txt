@@ -8,7 +8,6 @@ list(APPEND BUILD_CMD COMMAND ninja zlib zlibstatic)
 
 list(APPEND INSTALL_CMD COMMAND ${CMAKE_COMMAND} --install .)
 
-append_install_commands(INSTALL_CMD ${SOURCE_DIR}/contrib/minizip/crypt.h DESTINATION ${STAGING_DIR}/include/contrib/minizip)
 if(MONOLIBTIC)
     # The CMake build system does not support building & installing only
     # a static / shared library, so we have to manually cleanup after the
