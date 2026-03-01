@@ -381,7 +381,7 @@ index a6d7d2a68..588a73618 100644
  
  static pdf_obj*
 diff --git a/source/pdf/pdf-font.c b/source/pdf/pdf-font.c
-index 5ca895341..d383bb13d 100644
+index 4375e56fa..d43e5fc8b 100644
 --- a/source/pdf/pdf-font.c
 +++ b/source/pdf/pdf-font.c
 @@ -93,6 +93,8 @@ static const char *base_font_names[][10] =

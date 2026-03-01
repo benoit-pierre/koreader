@@ -1,16 +1,3 @@
-commit f03e781d1926171ea417c23a3f63bf0a89e34388
-Author: Marcel Röthke <marcel@roethke.info>
-Date:   Sun Nov 13 22:10:06 2022 +0100
-
-    add support for chapters in comic book (cbz/cbt) archive
-    
-    Chapters can be created in a comic book archive by putting the images in
-    directories. The directory names will be the chapter names. They can be
-    nested up to 10 times. This not a technical limitation, but it does not
-    really make sense to nest chapters arbitrarily deep. Ordering of
-    chapters will abide by the same rules as the ordering for other files in
-    a comic book archive.
-
 diff --git a/source/cbz/mucbz.c b/source/cbz/mucbz.c
 index e877490bb..a096648ac 100644
 --- a/source/cbz/mucbz.c
