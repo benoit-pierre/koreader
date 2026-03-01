@@ -391,6 +391,7 @@ class lString8
 {
     friend class lString8Collection;
     friend const lString8 & cs8(const char * str);
+    friend void clear_cs();
 public:
     // typedefs for STL compatibility
     typedef lChar8              value_type;      ///< character type
@@ -638,6 +639,7 @@ class lString32
 {
     friend const lString32 & cs32(const char * str);
     friend const lString32 & cs32(const lChar32 * str);
+    friend void clear_cs();
 public:
     // typedefs for STL compatibility
     typedef lChar32             value_type;
@@ -912,6 +914,8 @@ const lString8 & cs8(const char * str);
 const lString32 & cs32(const char * str);
 /// get reference to atomic constant wide string for string literal e.g. cs32(U"abc") -- fast and memory effective replacement of lString32(U"abc")
 const lString32 & cs32(const lChar32 * str);
+/// clear all constant strings
+void clear_cs();
 
 /// collection of wide strings
 class lString32Collection
