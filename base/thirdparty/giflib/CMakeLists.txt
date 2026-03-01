@@ -12,8 +12,8 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL 913dd251492134e235ee3c9a91987a4d
-    https://sourceforge.net/projects/giflib/files/giflib-5.2.2.tar.gz
+    DOWNLOAD GIT 6.1.1
+    https://git.code.sf.net/p/giflib/code
     PATCH_OVERLAY overlay
     PATCH_COMMAND ${PATCH_CMD}
     CMAKE_ARGS ${CMAKE_ARGS}
