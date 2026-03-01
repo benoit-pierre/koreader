@@ -981,7 +981,7 @@ public:
         if (url.startsWith(".."))
             url = LVExtractFilename( url );
         lString32 v1, v2;
-        if ( !url.split2(cs32("#"), v1, v2) )
+        if ( !url.split2(U'#', v1, v2) )
             v1 = url;
         PreProcessXmlString( name, 0 );
         addFile(v1);
