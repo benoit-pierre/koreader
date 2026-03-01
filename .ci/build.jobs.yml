@@ -1,0 +1,188 @@
+lint:
+
+  - id: lint
+
+emulator: # {{{
+
+  - id: emu-clang
+    job: Clang
+    image: koreader/kobase-clang:0.4.6-22.04
+    target: ""
+    makeflags: PARALLEL_JOBS=5 KODEBUG= USE_CLANG=1
+    test: true
+
+  - &EMU_GCC
+    id: emu-gcc
+    job: GCC
+    image: koreader/kobase:0.5.4-22.04
+    target: ""
+    makeflags: PARALLEL_JOBS=5 KODEBUG=
+    cache_size: 240M
+    test: true
+    check_ffi_cdecls: true
+
+  - <<: *EMU_GCC
+    id: emu-gcc-debug
+    job: GCC Debug
+    makeflags: PARALLEL_JOBS=5 KODEBUG=1
+
+# }}}
+
+macos: # {{{
+
+  - &MACOS
+    id: macos-arm64
+    job: "26 ARM64 🔨26.0.1 🎯11.0"
+    cache: macos.26_ARM64_xcode.26.0.1_11.0
+    runs-on: macos-26
+    xcode_version: "26.0.1"
+    macosx_deployment_target: "11.0"
+    makeflags: PARALLEL_JOBS=4
+    cache_size: 256MB
+    target: macos
+    test: true
+    artifacts: KOReader-*.7z
+
+  - <<: *MACOS
+    id: macos-x86_64
+    job: "15 x86-64 🔨16.4 🎯10.15"
+    cache: macos.15_x86_64_xcode.16.4_10.15
+    runs-on: macos-15-intel
+    xcode_version: "16.4"
+    macosx_deployment_target: "10.15"
+    makeflags: PARALLEL_JOBS=5
+
+# }}}
+
+platform:
+
+  # android {{{
+
+  - &ANDROID
+    id: android-arm
+    job: Android ARM
+    image: koreader/koandroid:0.9.6-22.04
+    target: android
+    makeflags: PARALLEL_JOBS=5 ANDROID_ARCH=arm
+    cache_size: 260M
+    artifacts: koreader-*.apk
+
+  - <<: *ANDROID
+    id: android-arm64
+    job: Android ARM64
+    makeflags: PARALLEL_JOBS=5 ANDROID_ARCH=arm64
+
+  - <<: *ANDROID
+    id: android-x86
+    job: Android x86
+    makeflags: PARALLEL_JOBS=5 ANDROID_ARCH=x86
+
+  - <<: *ANDROID
+    id: android-x86_64
+    job: Android x86_64
+    makeflags: PARALLEL_JOBS=5 ANDROID_ARCH=x86_64
+
+  # }}}
+
+  # appimage {{{
+
+  - &APPIMAGE
+    id: appimage-aarch64
+    job: AppImage AArch64
+    runs-on: ubuntu-24.04-arm
+    image: koreader/koappimage:0.6.4-22.04
+    target: appimage
+    makeflags: PARALLEL_JOBS=5
+    cache_size: 415M
+    test: true
+    artifacts: koreader-*.AppImage
+
+  - <<: *APPIMAGE
+    id: appimage-x86_64
+    job: AppImage x86_64
+    runs-on:
+
+  # }}}
+
+  - id: cervantes
+    job: Cervantes
+    image: koreader/kocervantes:0.4.6-22.04
+    makeflags: PARALLEL_JOBS=5
+    check_ffi_cdecls: true
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+  # kindle {{{
+
+  - &KINDLE
+    id: kindle
+    job: Kindle
+    image: koreader/kokindle:0.4.6-22.04
+    makeflags: PARALLEL_JOBS=5
+    cache_size: 390M
+    check_ffi_cdecls: true
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+  - <<: *KINDLE
+    id: kindlehf
+    job: Kindle HF
+
+  - <<: *KINDLE
+    id: kindlepw2
+    job: Kindle PW2
+
+  - <<: *KINDLE
+    id: kindle-legacy
+    job: Kindle Legacy
+    check_ffi_cdecls: false
+
+  # }}}
+
+  - id: kobo
+    job: Kobo
+    image: koreader/kokobo:0.4.6-22.04
+    makeflags: PARALLEL_JOBS=5
+    check_ffi_cdecls: true
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+  - id: pocketbook
+    job: PocketBook
+    image: koreader/kopb:0.5.6-22.04
+    makeflags: PARALLEL_JOBS=5
+    check_ffi_cdecls: true
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+  # remarkable {{{
+
+  - &REMARKABLE
+    id: remarkable
+    job: Remarkable
+    image: koreader/koremarkable:0.4.9-22.04
+    makeflags: PARALLEL_JOBS=5
+    check_ffi_cdecls: true
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+  - <<: *REMARKABLE
+    id: remarkable-aarch64
+    job: Remarkable Pro
+
+  # }}}
+
+  - id: sony-prstux
+    job: Sony PRSTUX
+    image: koreader/kodeb:0.2.6-22.04
+    makeflags: PARALLEL_JOBS=5
+    artifacts: |
+      koreader-*.targz
+      koreader-*.zip
+
+# vim: foldmethod=marker foldlevel=0
