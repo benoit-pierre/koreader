@@ -32,15 +32,21 @@ inline lUInt32 getHash( lUInt64 n )
     return (lUInt32)(n * 1975317 + (n >> 32) * 31 + 164521);
 }
 
+#if (__SIZEOF_POINTER__ == 4)
+typedef lUInt32 PtrHashType;
+#else
+typedef lUInt64 PtrHashType;
+#endif
+
 class LVFont;
 inline lUInt32 getHash(LVFont * n )
 {
-    return getHash((lUInt64)n);
+    return getHash((PtrHashType)n);
 }
 
 inline lUInt32 getHash(void * n )
 {
-    return getHash((lUInt64)n);
+    return getHash((PtrHashType)n);
 }
 
 /// Hash table
