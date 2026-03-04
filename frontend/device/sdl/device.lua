@@ -200,8 +200,9 @@ function Device:init()
         handleSdlEv = function(device_input, ev)
 
             if ev.code == SDL.SDL.SDL_EVENT_MOUSE_WHEEL then
-                local scrolled_x = ev.value.x
-                local scrolled_y = ev.value.y
+                local scrolled_x = ev.value.integer_x
+                local scrolled_y = ev.value.integer_y
+                if scrolled_x ~= 0 or scrolled_y ~= 0 then
 
                 local pos = Geom:new{
                     x = 0,
@@ -233,6 +234,7 @@ function Device:init()
                 local fake_release_ev = Event:new("Gesture", fake_ges_release)
                 UIManager:sendEvent(fake_pan_ev)
                 UIManager:sendEvent(fake_release_ev)
+                end
             elseif ev.code == SDL.SDL.SDL_EVENT_DROP_FILE then
                 local dropped_file_path = ev.value
                 if dropped_file_path and dropped_file_path ~= "" then
