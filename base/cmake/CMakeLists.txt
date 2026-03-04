@@ -265,7 +265,7 @@ if(NOT HAS_GETTEXT)
     list(APPEND DEPENDS proxy-libintl)
 endif()
 if(NOT HAS_ICONV)
-    list(APPEND DEPENDS libiconv)
+    list(APPEND DEPENDS miniconv)
 endif()
 declare_project(thirdparty/glib DEPENDS ${DEPENDS} EXCLUDE_FROM_ALL)
 
@@ -292,9 +292,6 @@ if(NOT (APPLE OR EMULATE_READER))
     list(APPEND DEPENDS xz)
 endif()
 declare_project(thirdparty/libarchive DEPENDS ${DEPENDS})
-
-# libiconv
-declare_project(thirdparty/libiconv EXCLUDE_FROM_ALL)
 
 # libjpeg-turbo
 declare_project(thirdparty/libjpeg-turbo)
