@@ -1,7 +1,4 @@
-list(APPEND PATCH_FILES
-    android.patch
-    no-subset.patch
-)
+list(APPEND PATCH_FILES android.patch)
 
 # Get rid of a bunch of `#line` directives that trip ccache 4.9.1.
 # NOTE: this has also the nice effect of "touching" each file, so
@@ -21,8 +18,11 @@ list(APPEND PATCH_CMD COMMAND ${ISED} "/^#line/d"
 list(APPEND CFG_CMD COMMAND
     ${MESON_SETUP} --default-library=$<IF:$<BOOL:${MONOLIBTIC}>,static,shared>
     -Dfreetype=enabled
+    -Draster=disabled
+    -Dsubset=disabled
     -Dtests=disabled
     -Dutilities=disabled
+    -Dvector=disabled
     ${SOURCE_DIR}
 )
 
@@ -63,8 +63,8 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL 10040432f566e50bda84bfba8ad80b8d
-    https://github.com/harfbuzz/harfbuzz/releases/download/12.3.2/harfbuzz-12.3.2.tar.xz
+    DOWNLOAD URL ec479992a0736f0a3609f119ef93844a
+    https://github.com/harfbuzz/harfbuzz/releases/download/13.0.0/harfbuzz-13.0.0.tar.xz
     PATCH_FILES ${PATCH_FILES}
     PATCH_COMMAND ${PATCH_CMD}
     CONFIGURE_COMMAND ${CFG_CMD}
