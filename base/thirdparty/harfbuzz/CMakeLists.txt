@@ -18,6 +18,7 @@ list(APPEND PATCH_CMD COMMAND ${ISED} "/^#line/d"
 list(APPEND CFG_CMD COMMAND
     ${MESON_SETUP} --default-library=$<IF:$<BOOL:${MONOLIBTIC}>,static,shared>
     -Dfreetype=enabled
+    -Dgpu=disabled
     -Draster=disabled
     -Dsubset=disabled
     -Dtests=disabled
@@ -63,8 +64,8 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL de595664aa7213f408d417ea16e8a6be
-    https://github.com/harfbuzz/harfbuzz/releases/download/13.2.1/harfbuzz-13.2.1.tar.xz
+    DOWNLOAD URL c8f3cf2bab86c2edd662e7beca0240fb
+    https://github.com/harfbuzz/harfbuzz/releases/download/14.0.0/harfbuzz-14.0.0.tar.xz
     PATCH_FILES ${PATCH_FILES}
     PATCH_COMMAND ${PATCH_CMD}
     CONFIGURE_COMMAND ${CFG_CMD}
