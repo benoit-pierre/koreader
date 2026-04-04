@@ -1,0 +1,346 @@
+name: Build Matrix
+
+on:
+  workflow_call:
+    inputs:
+      # Mandatory.
+      jobs:
+        required: true
+        type: string
+      # Optional.
+      fail_fast:
+        default: false
+        type: boolean
+      # Internal.
+      cache_epoch:
+        default: 'Geeb7cei'
+        type: string
+      cache_size:
+        default: '512M'
+        type: string
+      ccache_version:
+        default: '4.12.2'
+        type: string
+      ninjatracing_version:
+        default: '084212eaf68f25c70579958a2ed67fb4ec2a9ca4'
+        type: string
+      sevenzip_version:
+        default: '17.05'
+        type: string
+      wget:
+        default: 'wget -progress=dot:giga'
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  Build:
+
+    strategy:
+      fail-fast: ${{ inputs.fail_fast }}
+      matrix:
+        include: ${{ fromJSON(inputs.jobs) }}
+
+    name: ${{ matrix.job }}
+    runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
+    container: "${{ matrix.image && fromJSON(format('{{ \"image\": \"{0}\" }}', matrix.image, matrix.platform && format(', \"options\": \"--platform {0}\"', matrix.platform) || '')) || '' }}"
+
+    env:
+      BASH_ENV: '/home/ko/.bashrc'
+      CLICOLOR_FORCE: '1'
+      CCACHE_DIR: "${{ format('{0}/ccache', github.workspace) }}"
+      MAKEFLAGS: 'OUTPUT_DIR=build INSTALL_DIR=install TARGET=${{ matrix.target }} ${{ matrix.makeflags }}'
+
+    steps:
+
+      # Setup. {{{
+
+      - name: Setup Python (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Setup build environment (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set -x
+          # python packages
+          python3 -m pip install --disable-pip-version-check meson ruamel.yaml
+          # ninjatracing
+          ${{ inputs.wget }} -O ninjatracing.zip https://github.com/nico/ninjatracing/archive/${{ inputs.ninjatracing_version }}.zip
+          unzip -j ninjatracing.zip '*/ninjatracing'
+          install -m755 ninjatracing /usr/local/bin/
+          rm ninjatracing*
+          # brew packages
+          packages=(
+            autoconf
+            automake
+            bash
+            binutils
+            coreutils
+            findutils
+            gcc
+            gmp
+            libtool
+            make
+            nasm
+            ninja
+            pkg-config
+            util-linux
+          )
+          # Don't auto-update.
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          # Don't upgrade already installed formulas.
+          export HOMEBREW_NO_INSTALL_UPGRADE=1
+          # Remove some installed packages to prevent brew
+          # from attempting (and failing) to upgrade them.
+          brew uninstall gradle maven
+          brew install --formula --overwrite --quiet "${packages[@]}"
+          brew_paths=(
+            "$(brew --prefix)/opt/findutils/libexec/gnubin"
+            "$(brew --prefix)/opt/make/libexec/gnubin"
+            "$(brew --prefix)/opt/util-linux/bin"
+          )
+          printf '%s\n' "${brew_paths[@]}" | tee -a "${GITHUB_PATH}"
+          # gcc
+          ln -vsf "$(brew --prefix)"/bin/gcc{-15,}
+          ln -vsf "$(brew --prefix)"/bin/g++{-15,}
+          "$(brew --prefix)"/bin/gcc --version
+          "$(brew --prefix)"/bin/g++ --version
+          # ccache
+          ${{ inputs.wget }} -O ccache.tar.gz https://github.com/ccache/ccache/releases/download/v${{ inputs.ccache_version }}/ccache-${{ inputs.ccache_version }}-darwin.tar.gz
+          tar xf ccache.tar.gz -C /usr/local/bin --strip-components=1 'ccache-${{ inputs.ccache_version }}-darwin/ccache'
+          rm -rf ccache.tar.gz
+          # xcode
+          sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version }}.app
+          xcodebuild -version
+          xcode-select -p
+          # environment
+          macos_env=(
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macosx_deployment_target }}
+          )
+          printf '%s\n' "${macos_env[@]}" | tee -a "${GITHUB_ENV}"
+
+      # }}}
+
+      # Checkout / fetch. {{{
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          clean: false
+          fetch-depth: 0
+          fetch-tags: true
+          filter: tree:0
+          show-progress: false
+
+      - name: Fetch
+        run: make fetchthirdparty
+
+      # }}}
+
+      - name: Generate cache key
+        run: make TARGET= cache-key
+
+      - name: Restore build directory
+        id: build-restore
+        uses: actions/cache/restore@v5
+        with:
+          # NOTE:
+          # - we need to use `build/*` to work around https://github.com/actions/toolkit#713
+          # - the same `path` must be used when restoring and saving (or the mismatch will
+          #   result in failures to restore)
+          path: &BUILD_PATHS |
+            build/*
+            !build/cmake
+            !build/staging
+            !build/thirdparty
+          key: ${{ inputs.cache_epoch }}-${{ matrix.cache }}-build-${{ hashFiles('cache-key') }}
+
+      # Restore / setup build cache. {{{
+
+      - name: Lookup or restore build cache
+        id: ccache-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ inputs.cache_epoch }}-${{ matrix.cache }}-ccache-${{ hashFiles('cache-key') }}
+          restore-keys: ${{ inputs.cache_epoch }}-${{ matrix.cache }}-ccache-
+          # When not building, do a lookup so the cache
+          # does not get removed after 7 days with no use.
+          lookup-only: ${{ steps.build-restore.outputs.cache-hit }}
+
+      - name: Setup build cache
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: |
+          set -x
+          which ccache
+          ccache --version
+          ccache --zero-stats
+          ccache --max-size=${{ matrix.cache_size || inputs.cache_size }}
+          ccache --set-config inode_cache=false
+          ccache --show-config
+
+      # }}}
+
+      # Download. {{{
+
+      - name: Restore download cache
+        id: download-restore
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v5
+        with:
+          path: &DOWNLOAD_PATHS base/thirdparty/*/build
+          key: ${{ inputs.cache_epoch }}-download-${{ hashFiles('cache-key') }}
+
+      - name: Download
+        if: steps.build-restore.outputs.cache-hit != 'true' && steps.download-restore.outputs.cache-hit != 'true'
+        run: |
+          make download-all
+          make buildstats
+
+      - name: Save download cache
+        uses: actions/cache/save@v5
+        if: steps.build-restore.outputs.cache-hit != 'true' && steps.download-restore.outputs.cache-hit != 'true'
+        with:
+          path: *DOWNLOAD_PATHS
+          key: ${{ steps.download-restore.outputs.cache-primary-key }}
+
+      # }}}
+
+      # Build. {{{
+
+      - name: Build
+        id: build
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: make base
+
+      - name: Dump build timings
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
+        run: make buildstats
+
+      # }}}
+
+      # Clean & save build cache. {{{
+
+      - name: Clean build cache
+        if: contains('failure success', steps.build.conclusion) && !cancelled()
+        run: |
+          set -x
+          ccache --cleanup >/dev/null
+          ccache --show-stats --verbose
+
+      - name: Save build cache
+        uses: actions/cache/save@v5
+        if: >
+          contains('failure success', steps.build.conclusion) && !cancelled()
+          && steps.build-restore.outputs.cache-hit != 'true'
+          && steps.ccache-restore.outputs.cache-hit != 'true'
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+      # }}}
+
+      # Check FFI cdecls are up-to-date. {{{
+
+      - name: Check FFI cdecls are up-to-date
+        id: ffi
+        if: steps.build-restore.outputs.cache-hit != 'true' && matrix.check_ffi_cdecls
+        run: |
+          set -x
+          make ffi-cdecl
+          code=0
+          make ffi || code=$?
+          git add base/ffi
+          tar='koreader-${{ matrix.cache }}-ffi.tar.xz' upload=''
+          if ! git --no-pager diff --color=always --exit-code --staged base/ffi; then
+            git diff --name-only --staged | tar cJf 'koreader-${{ matrix.cache }}-ffi.tar.xz' -T -
+            upload=true
+            code=1
+          fi
+          printf '%s\n' "tar=${tar}" "upload=${upload}" >>"${GITHUB_OUTPUT}"
+          exit ${code}
+
+      - name: Upload changed FFI cdecls
+        if: steps.ffi.outputs.upload && !cancelled()
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: ${{ steps.ffi.outputs.tar }}
+
+      # }}}
+
+      # Dump & check binaries. {{{
+
+      - name: Dump binaries runtime path & dependencies
+        run: make bininfo
+
+      - name: Checking binaries for missing dependencies
+        run: make bincheck
+
+      # }}}
+
+      - name: Save build directory
+        uses: actions/cache/save@v5
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        with:
+          path: *BUILD_PATHS
+          key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+      - name: Install
+        run: make --assume-old=base all
+
+      - name: Test
+        if: matrix.test
+        run: ./base/utils/fake_tty.py make --assume-old=all test
+
+      # Generate / upload artifacts. {{{
+
+      - name: Install 7z (Android)
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
+        run: |
+          set -x
+          dist=linux-p7zip.7z
+          ${{ inputs.wget }} -O "${dist}" "https://github.com/p7zip-project/p7zip/releases/download/v${{ inputs.sevenzip_version }}/${dist}"
+          7z -o7z x "${dist}"
+          rm "${dist}"
+          printf '%s\n' "${PWD}/7z" >>"${GITHUB_PATH}"
+
+      - name: Setup gradle (Android)
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          add-job-summary: ${{ runner.debug == '1' && 'always' || 'never' }}
+          cache-read-only: false
+          gradle-version: wrapper
+
+      - name: Generate artifacts
+        if: matrix.artifacts
+        env:
+          ANDROID_ASSETS_COMPRESSION: '-m0=flzma2 -mx=9'
+        # Note: ensure the build skeleton is created, so there are no dangling
+        # symlinks (e.g. `data/dict`) to trip 7zip during artifact generation…
+        run: make --assume-old=all skeleton ${{ matrix.update_target || 'update' }}
+
+      - name: Sign artifacts (Android)
+        if: matrix.artifacts && startsWith(matrix.target, 'android-')
+        run: uber-apk-signer --overwrite --apks ${{ matrix.artifacts }}
+
+      - name: Upload artifacts
+        if: matrix.artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          name: koreader-${{ matrix.cache }}
+          path: |
+            ${{ matrix.artifacts }}
+            ${{ steps.ffi.outputs.tar && format('!{0}', steps.ffi.outputs.tar) || '' }}
+
+      # }}}
+
+# vim: foldmethod=marker foldlevel=0
