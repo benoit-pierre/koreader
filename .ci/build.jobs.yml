@@ -19,7 +19,6 @@ emulator: # {{{
     makeflags: PARALLEL_JOBS=5 KODEBUG=
     cache_size: 240M
     test: true
-    check_ffi_cdecls: true
 
   - <<: *EMU_GCC
     id: emu-gcc-debug
@@ -112,7 +111,6 @@ platform:
     job: Cervantes
     image: koreader/kocervantes:0.4.6-22.04
     makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
-    check_ffi_cdecls: true
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -124,7 +122,6 @@ platform:
     image: koreader/kokindle:0.4.6-22.04
     makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
     cache_size: 390M
-    check_ffi_cdecls: true
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -139,7 +136,6 @@ platform:
   - <<: *KINDLE
     id: kindle-legacy
     job: Kindle Legacy
-    check_ffi_cdecls: false
 
   # }}}
 
@@ -147,7 +143,6 @@ platform:
     job: Kobo
     image: koreader/kokobo:0.4.6-22.04
     makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
-    check_ffi_cdecls: true
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -155,7 +150,6 @@ platform:
     job: PocketBook
     image: koreader/kopb:0.5.6-22.04
     makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
-    check_ffi_cdecls: true
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -166,7 +160,6 @@ platform:
     job: Remarkable
     image: koreader/koremarkable:0.4.9-22.04
     makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
-    check_ffi_cdecls: true
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 

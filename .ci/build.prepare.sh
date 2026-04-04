@@ -19,7 +19,10 @@ all_jobs="$("${yq[@]}" --output-format=json . "${jobs_file}")"
 for variant in lint emulator macos platform; do
     jobs="$(jq --arg variant "${variant}" --arg enabled "${jobs_rx}" --compact-output '
     [.[$variant][] | select(.id | test($enabled)) |
-        .cache=(.cache // .id) | .target=(.target // .id)
+        .cache=(.cache // .id) |
+        .target=(.target // .id) |
+        .check_ffi_cdecls=(.check_ffi_cdecls // true) |
+        .
     ]' <<<"${all_jobs}")"
     {
         printf '%s jobs: ' "${variant}"
