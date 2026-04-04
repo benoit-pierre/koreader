@@ -534,7 +534,9 @@ function ListMenuItem:update()
                 local series = bookinfo.series_index and bookinfo.series .. " #" .. bookinfo.series_index
                     or bookinfo.series
                 series = BD.auto(series)
-                if series_mode == "append_series_to_title" then
+                if series_mode == "prepend_series_to_title" then
+                    title = series .. " - " .. title
+                elseif series_mode == "append_series_to_title" then
                     title = title .. " - " .. series
                 elseif series_mode == "append_series_to_authors" then
                     authors = authors and authors .. " - " .. series or series
