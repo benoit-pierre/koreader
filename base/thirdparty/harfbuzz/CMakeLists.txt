@@ -17,7 +17,6 @@ list(APPEND PATCH_CMD COMMAND ${ISED} "/^#line/d"
 
 list(APPEND CFG_CMD COMMAND
     ${MESON_SETUP} --default-library=$<IF:$<BOOL:${MONOLIBTIC}>,static,shared>
-    --unity on -Dunity_size=256
     -Dfreetype=enabled
     -Draster=disabled
     -Dsubset=disabled
