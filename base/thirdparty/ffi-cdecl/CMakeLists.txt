@@ -3,7 +3,7 @@ set(BINARY_DIR ${SOURCE_DIR})
 
 list(APPEND PATCH_FILES ffi-cdecl.patch)
 
-set(MAKE_CMD make CROSSCC=${CC} CROSSCXX=${CXX} HOSTCC=${HOSTCC})
+set(MAKE_CMD make CROSSCC=${GCC} CROSSCXX=${GXX} HOSTCC=${GCC})
 if(EMULATE_READER)
     # Native compiler, use our own luajit.
     set(LUACFLAGS "-I${STAGING_DIR}/include/luajit-2.1")
@@ -65,13 +65,30 @@ append_install_commands(
     gcc-lua-cdecl/ffi-cdecl/ffi-cdecl.h
 )
 
+set(TARGET_FLAGS "")
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(TARGET_FLAGS "-fno-blocks")
+endif()
+set(COMMON_CFLAGS "-std=gnu11 -fno-builtin")
+set(COMMON_CXXFLAGS "-std=gnu++17 -fno-builtin")
+set(GCC_FLAGS "-Wno-attributes -D_Nonnull='' -D_Nullable=''")
+if(NOT EMULATE_READER)
+    # Add -m32 when cross compile on a 64bit host for 32bit target.
+    execute_process(COMMAND ${GCC} -dumpmachine OUTPUT_VARIABLE GCC_MACHINE)
+    if(GCC_MACHINE MATCHES "^.+64-.+$" AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES ".+64$")
+        string(APPEND GCC_FLAGS  " -m32")
+    endif()
+endif()
+
 # Install helper.
 list(APPEND INSTALL_CMD COMMAND mkdir -p ${STAGING_DIR}/bin)
 list(APPEND INSTALL_CMD COMMAND
     sh -c "in=\"$1\" out=\"$2\" && shift 2 && sed \"$@\" <\"$in\" >\"$out\"" sed
     ${CMAKE_CURRENT_SOURCE_DIR}/ffi-cdecl.sh.in ${STAGING_DIR}/bin/ffi-cdecl
-    -e "s,@CC@,${CMAKE_C_COMPILER},"
-    -e "s,@CXX@,${CMAKE_CXX_COMPILER},"
+    -e "s,@CC@,${CMAKE_C_COMPILER} ${COMMON_CFLAGS} ${TARGET_FLAGS},"
+    -e "s,@CXX@,${CMAKE_CXX_COMPILER} ${COMMON_CXXFLAGS} ${TARGET_FLAGS},"
+    -e "s,@GCC@,${GCC} ${COMMON_CFLAGS} ${GCC_FLAGS},"
+    -e "s,@GXX@,${GXX} ${COMMON_CXXFLAGS} ${GCC_FLAGS},"
     -e "s,@PREFIX@,${STAGING_DIR},"
     -e "s,@PLUGIN@,${STAGING_DIR}/lib/gcc/plugin/gcclua.so,"
     -e "s,@SCRIPT@,${INSTALL_LUADIR}/ffi-cdecl.lua,"
