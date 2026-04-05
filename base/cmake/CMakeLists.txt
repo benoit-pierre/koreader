@@ -720,6 +720,17 @@ else()
 endif()
 ffi_target(pocketbook mxcfb_pocketbook_h.lua mxcfb_pb_decl.c ${EXCLUDE_FROM_ALL})
 
+# pthread
+math(EXPR BITS "${CMAKE_SIZEOF_VOID_P} * 8")
+if(ANDROID)
+    set(VARIANT android_${BITS})
+elseif(APPLE)
+    set(VARIANT macos_${BITS})
+else()
+    set(VARIANT linux_${BITS})
+endif()
+ffi_target(pthread pthread_h_${VARIANT}.lua pthread_cdecl.c)
+
 # remarkable
 if(REMARKABLE)
     set(EXCLUDE_FROM_ALL)
