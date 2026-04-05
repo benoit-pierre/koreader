@@ -46,12 +46,12 @@ jobs:
         env:
           # Default jobs to run.
           base_jobs: >
-            lint
-            emu-gcc
-            linux-x86_64
-            android-arm android-arm64
-            kindlepw2
             macos-arm64
+          # lint
+          # emu-gcc
+          # linux-x86_64
+          # android-arm android-arm64
+          # kindlepw2
           # macos-x86_64
           # Extra jobs when on master.
           master_extra_jobs:

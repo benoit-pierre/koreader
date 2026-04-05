@@ -52,7 +52,7 @@ pkg-config() {
 compiler=''
 dry_run=''
 output='-'
-verbose=0
+verbose=2
 
 cflags=(
     -I"${PREFIX}/include/ffi-cdecl"
