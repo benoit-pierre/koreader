@@ -569,6 +569,7 @@ typedef struct SDL_Texture SDL_Texture;
 typedef enum SDL_TextureAccess SDL_TextureAccess;
 typedef long unsigned int SDL_TouchID;
 typedef struct SDL_Window SDL_Window;
+typedef long unsigned int SDL_WindowFlags;
 typedef unsigned int SDL_WindowID;
 struct SDL_Finger {
   SDL_FingerID id;
@@ -1022,7 +1023,7 @@ union SDL_Event {
 typedef union SDL_Event SDL_Event;
 SDL_Renderer *SDL_CreateRenderer(SDL_Window *, const char *);
 SDL_Texture *SDL_CreateTexture(SDL_Renderer *, SDL_PixelFormat, SDL_TextureAccess, int, int);
-SDL_Window *SDL_CreateWindow(const char *, int, int, long unsigned int);
+SDL_Window *SDL_CreateWindow(const char *, int, int, SDL_WindowFlags);
 void SDL_DestroyRenderer(SDL_Renderer *);
 void SDL_DestroyTexture(SDL_Texture *);
 bool SDL_EnableScreenSaver(void);

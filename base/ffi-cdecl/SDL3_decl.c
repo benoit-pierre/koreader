@@ -75,6 +75,7 @@ cdecl_type(SDL_Texture)
 cdecl_type(SDL_TextureAccess)
 cdecl_type(SDL_TouchID)
 cdecl_type(SDL_Window)
+cdecl_type(SDL_WindowFlags)
 cdecl_type(SDL_WindowID)
 
 cdecl_struct(SDL_Finger)
