@@ -7,11 +7,11 @@
 cdecl_const(LZMA_FILTERS_MAX);
 cdecl_const(LZMA_STREAM_HEADER_SIZE);
 
-cdecl_c99_type(lzma_vli, uint64_t);
 cdecl_type(lzma_allocator);
 cdecl_type(lzma_bool);
 cdecl_type(lzma_reserved_enum);
 cdecl_type(lzma_ret);
+cdecl_type(lzma_vli);
 
 // }}}
 

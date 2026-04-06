@@ -16,3 +16,231 @@
    if arg.output:match(".*%.(.*)") == "py" then
      f:write([=[
  """
+diff --git c/Makefile w/Makefile
+index febb7ca..2a855b7 100644
+--- c/Makefile
++++ w/Makefile
+@@ -29,6 +29,7 @@ UNPATCH = git -C $1 reset --hard && git -C $1 clean -fxdq
+ 	$(call APPLY_PATCH,gcc-lua,gcc-lua-gcc15.patch)
+ 	$(call APPLY_PATCH,gcc-lua,gcc-lua-honor-CPPFLAGS.patch)
+ 	$(call APPLY_PATCH,gcc-lua,gcc-lua-prefer-luajit.patch)
++	$(call APPLY_PATCH,gcc-lua,gcc-lua-type_decl-original_type.patch)
+ 	$(call APPLY_PATCH,gcc-lua-cdecl,gcc-lua-cdecl-do-not-mangle-c99-types.patch)
+ 	touch $@
+ 
+diff --git c/ffi-cdecl.lua w/ffi-cdecl.lua
+index c467a17..2c66181 100644
+--- c/ffi-cdecl.lua
++++ w/ffi-cdecl.lua
+@@ -15,30 +15,25 @@ local types = {}
+ 
+ -- Parse C declaration from capture macro.
+ gcc.register_callback(gcc.PLUGIN_PRE_GENERICIZE, function(node)
+-  local decl, id, ref = fficdecl.parse(node)
++  local decl, id = fficdecl.parse(node)
+   if decl then
+     if decl:class() == "type" or decl:code() == "type_decl" then
+       types[decl] = id
+     end
+-    table.insert(decls, {decl = decl, id = id, ref = ref})
++    table.insert(decls, {decl = decl, id = id})
+   end
+ end)
+ 
+ -- Formats the given declaration as a string of C code.
+-local function format(decl, id, ref)
++local function format(decl, id)
+   if decl:class() == "constant" then
+     return "static const int " .. id .. " = " .. decl:value()
+   end
+-  if decl:class() == "declaration" and ref then
+-    -- If we have an original typedef ref, use it instead of letting GCC resolve it to a canonical type (cdecl_c99_type hack)...
+-    -- That's always a typedef, so, just format it like the original and call it a day.
+-    -- The callback has already run, so the actual new name made it to the types map, meaning we'll use it in function calls & co.
+-    return "typedef " .. ref .. " " .. id
++  -- For integer typedefs, we want to keep the original base type (not the GCC resolved one).
++  if decl:class() == "declaration" and decl:code() == "type_decl" and decl:type():code() == "integer_type" then
++      return "typedef " .. decl:original_type():name():name():value() .. " " .. id
+   end
+-  return cdecl.declare(decl, function(node)
+-    if node == decl then return id end
+-    return types[node]
+-  end)
++  return cdecl.declare(decl, function(node) return types[node] end)
+ end
+ 
+ -- Output captured C declarations to Lua file.
+@@ -51,24 +46,24 @@ gcc.register_callback(gcc.PLUGIN_FINISH_UNIT, function()
+     -- NOTE: To check for suspicious type conversions, with an x86_64 compiler,
+     --       do a second run w/ -m32 in CPPFLAGS.
+     if decl.id == "bool"
+-    or decl.id == "ptrdiff_t"
+-    or decl.id == "size_t"
+-    or decl.id == "wchar_t"
+     or decl.id == "int8_t"
+     or decl.id == "int16_t"
+     or decl.id == "int32_t"
+     or decl.id == "int64_t"
++    or decl.id == "intptr_t"
++    or decl.id == "ptrdiff_t"
++    or decl.id == "size_t"
++    or decl.id == "ssize_t"
+     or decl.id == "uint8_t"
+     or decl.id == "uint16_t"
+     or decl.id == "uint32_t"
+     or decl.id == "uint64_t"
+-    or decl.id == "intptr_t"
+     or decl.id == "uintptr_t"
+-    or decl.id == "ssize_t"
++    or decl.id == "wchar_t"
+     then
+         goto continue
+     end
+-    table.insert(result, format(decl.decl, decl.id, decl.ref) .. ";\n")
++    table.insert(result, format(decl.decl, decl.id) .. ";\n")
+     -- That's one janky-ass workaround to the lack of continue keyword (requires LuaJIT/Lua 5.2)...
+     ::continue::
+   end
+diff --git c/gcc-lua-cdecl-do-not-mangle-c99-types.patch w/gcc-lua-cdecl-do-not-mangle-c99-types.patch
+index 6e4cddf..4fe3e56 100644
+--- c/gcc-lua-cdecl-do-not-mangle-c99-types.patch
++++ w/gcc-lua-cdecl-do-not-mangle-c99-types.patch
+@@ -2,7 +2,7 @@ diff --git a/ffi-cdecl/C99.c b/ffi-cdecl/C99.c
+ new file mode 100644
+ --- /dev/null
+ +++ b/ffi-cdecl/C99.c
+-@@ -0,0 +1,24 @@
++@@ -0,0 +1,23 @@
+ +#include <stdbool.h>
+ +#include <stddef.h>
+ +#include <stdint.h>
+@@ -12,32 +12,23 @@ new file mode 100644
+ +// Keep types LuaJIT understands as-is
+ +// (c.f., https://luajit.org/ext_ffi_semantics.html)
+ +cdecl_type(bool)
+-+cdecl_type(ptrdiff_t)
+-+cdecl_type(size_t)
+-+cdecl_type(wchar_t)
+ +cdecl_type(int8_t)
+ +cdecl_type(int16_t)
+ +cdecl_type(int32_t)
+ +cdecl_type(int64_t)
+++cdecl_type(intptr_t)
+++cdecl_type(ptrdiff_t)
+++cdecl_type(size_t)
+++cdecl_type(ssize_t)
+ +cdecl_type(uint8_t)
+ +cdecl_type(uint16_t)
+ +cdecl_type(uint32_t)
+ +cdecl_type(uint64_t)
+-+cdecl_type(intptr_t)
+ +cdecl_type(uintptr_t)
+-+// And we can add ssize_t to the list (c.f., src/lj_ctype.c)
+-+cdecl_type(ssize_t)
+++cdecl_type(wchar_t)
+ diff --git a/ffi-cdecl/ffi-cdecl.h b/ffi-cdecl/ffi-cdecl.h
+ --- a/ffi-cdecl/ffi-cdecl.h
+ +++ b/ffi-cdecl/ffi-cdecl.h
+-@@ -2,6 +2,7 @@
+- #define FFI_CDECL_H
+- 
+- #define cdecl_type(id)                  void cdecl_type__ ## id(id *unused) {}
+-+#define cdecl_c99_type(id, c99)         void cdecl_c99_type__ ## id ## __c99__ ## c99(id *unused) {}
+- #define cdecl_memb(id)                  void cdecl_memb__ ## id(id *unused) {}
+- #define cdecl_struct(tag)               void cdecl_struct__ ## tag(struct tag *unused) {}
+- #define cdecl_union(tag)                void cdecl_union__ ## tag(union tag *unused) {}
+ @@ -10,4 +11,7 @@
+  #define cdecl_var                       cdecl_func
+  #define cdecl_const                     cdecl_func
+@@ -46,29 +37,3 @@ diff --git a/ffi-cdecl/ffi-cdecl.h b/ffi-cdecl/ffi-cdecl.h
+ +#include "C99.c"
+ +
+  #endif
+-diff --git a/ffi-cdecl/ffi-cdecl.lua b/ffi-cdecl/ffi-cdecl.lua
+---- a/ffi-cdecl/ffi-cdecl.lua
+-+++ b/ffi-cdecl/ffi-cdecl.lua
+-@@ -46,15 +46,21 @@ local macro = {
+- macro.struct = macro.memb
+- macro.union = macro.memb
+- macro.enum = macro.memb
+-+macro.c99_type = macro.type
+- 
+- -- Parse C declaration from capture macro.
+- function _M.parse(node)
+-   local name = node:name()
+-   if not name then return end
+-   local op, id = name:value():match("^cdecl_(.-)__(.+)")
+-+  -- Handle the crap c99_type workaround
+-+  local ref
+-+  if op == "c99_type" then
+-+    id, ref = id:match("^(.-)__c99__(.+)")
+-+  end
+-   if not op then return end
+-   local decl = macro[op](node)
+--  return decl, id
+-+  return decl, id, ref
+- end
+- 
+- return _M
+diff --git c/gcc-lua-type_decl-original_type.patch w/gcc-lua-type_decl-original_type.patch
+new file mode 100644
+index 0000000..6df8afd
+--- /dev/null
++++ w/gcc-lua-type_decl-original_type.patch
+@@ -0,0 +1,56 @@
++From 4fa8b89feb64d368ecaf2c9753da1c8d936fbb31 Mon Sep 17 00:00:00 2001
++From: Benoit Pierre <benoit.pierre@gmail.com>
++Date: Mon, 6 Apr 2026 03:53:39 +0200
++Subject: [PATCH] add original_type() for type declarations
++
++
++diff --git a/doc/reference.md b/doc/reference.md
++index 27b81bb..461a57b 100644
++--- a/doc/reference.md
+++++ b/doc/reference.md
++@@ -249,6 +249,10 @@ This tree code class is used for declarations.
++ 
++           : Returns **true** if type is accessible outside translation unit, or **false** otherwise.
++ 
+++        `node:original_type()`
+++
+++          : Returns tree node of "original" type (the typedef's base type).
+++
++     `var_decl`
++ 
++       : Variable declaration.
++diff --git a/gcc/gcclua.c b/gcc/gcclua.c
++index 1bac531..87efb2e 100644
++--- a/gcc/gcclua.c
+++++ b/gcc/gcclua.c
++@@ -452,6 +452,20 @@ static int gcclua_tree_get_decl_user_align(lua_State *L)
++   return 1;
++ }
++ 
+++static int gcclua_tree_get_type_decl_original_type(lua_State *L)
+++{
+++  const tree *t;
+++  tree child;
+++  luaL_checktype(L, 1, LUA_TUSERDATA);
+++  t = (const tree *)lua_touserdata(L, 1);
+++  child = DECL_ORIGINAL_TYPE(*t);
+++  if (!child) {
+++    return 0;
+++  }
+++  gcclua_tree_new(L, child);
+++  return 1;
+++}
+++
++ static int gcclua_tree_get_identifier(lua_State *L)
++ {
++   const tree *t;
++@@ -1350,7 +1364,8 @@ static const luaL_Reg gcclua_tree_list[] = {
++ };
++ 
++ static const luaL_Reg gcclua_type_decl[] = {
++-  {"public", gcclua_tree_get_public},
+++  {"public",        gcclua_tree_get_public},
+++  {"original_type", gcclua_tree_get_type_decl_original_type},
++   {NULL, NULL},
++ };
++ 

@@ -5,7 +5,6 @@ local ffi = require("ffi")
 ffi.cdef[[
 static const int LZMA_FILTERS_MAX = 4;
 static const int LZMA_STREAM_HEADER_SIZE = 12;
-typedef uint64_t lzma_vli;
 typedef struct {
   void *(*alloc)(void *, size_t, size_t);
   void (*free)(void *, void *);
@@ -38,6 +37,7 @@ typedef enum {
   LZMA_RET_INTERNAL7 = 107,
   LZMA_RET_INTERNAL8 = 108,
 } lzma_ret;
+typedef uint64_t lzma_vli;
 typedef enum {
   LZMA_CHECK_NONE = 0,
   LZMA_CHECK_CRC32 = 1,

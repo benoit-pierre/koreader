@@ -24,7 +24,8 @@ static const int RTC_AIE_OFF = 28674;
 static const int RTC_WKALM_SET = 1076391951;
 static const int RTC_WKALM_RD = 2150133776;
 static const int RTC_RD_TIME = 2149871625;
-typedef long int time_t;
+typedef long int __time_t;
+typedef __time_t time_t;
 struct tm {
   int tm_sec;
   int tm_min;

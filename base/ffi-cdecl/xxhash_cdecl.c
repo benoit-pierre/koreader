@@ -3,7 +3,7 @@
 #include "ffi-cdecl.h"
 
 cdecl_type(XXH3_state_t)
-cdecl_c99_type(XXH64_hash_t, uint64_t)
+cdecl_type(XXH64_hash_t)
 
 cdecl_type(XXH_errorcode)
 
