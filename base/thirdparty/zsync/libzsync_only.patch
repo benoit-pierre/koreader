@@ -1,0 +1,173 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f3640ec..1533c7c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -95,7 +95,7 @@ option(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ add_subdirectory(lib)
+ 
+ # add source code
+-add_subdirectory(src)
++# add_subdirectory(src)
+ 
+ # add unit tests
+ if(BUILD_TESTING)
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 43d1246..b01d8b4 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -8,6 +8,7 @@ add_subdirectory(librcksum)
+ add_subdirectory(libzsync)
+ 
+ # external dependencies used as submodules
++if(FALSE)
+ 
+ # using system cURL as it has proper SSL support etc., and reduces the build time
+ set(USE_SYSTEM_CURL ON CACHE BOOL "" FORCE)
+@@ -35,3 +36,4 @@ target_include_directories(args INTERFACE args)
+ 
+ # minimal zlib-licensed hash library
+ add_subdirectory(hashlib)
++endif()
+diff --git a/lib/librcksum/rcksum.h b/lib/librcksum/rcksum.h
+index 3a48506..85b6c69 100644
+--- a/lib/librcksum/rcksum.h
++++ b/lib/librcksum/rcksum.h
+@@ -46,7 +46,7 @@ void rcksum_add_target_block(struct rcksum_state* z, zs_blockid b, struct rsum r
+ 
+ int rcksum_submit_blocks(struct rcksum_state* z, const unsigned char* data, zs_blockid bfrom, zs_blockid bto);
+ int rcksum_submit_source_data(struct rcksum_state* z, unsigned char* data, size_t len, off_t offset);
+-int rcksum_submit_source_file(struct rcksum_state* z, FILE* f, int progress);
++int rcksum_submit_source_file(struct rcksum_state* z, FILE* f, int (*progress)(long long got, long long total));
+ 
+ /* This reads back in data which is already known. */
+ ssize_t rcksum_read_known_data(struct rcksum_state *z, unsigned char *buf,
+diff --git a/lib/librcksum/rsum.c b/lib/librcksum/rsum.c
+index d8d0f44..6f38a36 100644
+--- a/lib/librcksum/rsum.c
++++ b/lib/librcksum/rsum.c
+@@ -35,9 +35,6 @@
+ #include "md4.h"
+ #include "rcksum.h"
+ #include "internal.h"
+-/* TODO: decide how to handle progress; this is now being used by the client
+- * and by the library, which is ugly. */
+-#include "../../src/legacy_progress.h"
+ 
+ #define UPDATE_RSUM(a, b, oldc, newc, bshift) do { (a) += ((unsigned char)(newc)) - ((unsigned char)(oldc)); (b) += (a) - ((oldc) << (bshift)); } while (0)
+ 
+@@ -461,15 +458,13 @@ static off_t get_file_size(FILE* f) {
+ /* rcksum_submit_source_file(self, stream, progress)
+  * Read the given stream, applying the rsync rolling checksum algorithm to
+  * identify any blocks of data in common with the target file. Blocks found are
+- * written to our working target output. Progress reports if progress != 0
++ * written to our working target output. Progress reports if progress != NULL
+  */
+-int rcksum_submit_source_file(struct rcksum_state *z, FILE * f, int progress) {
++int rcksum_submit_source_file(struct rcksum_state *z, FILE * f, int (*progress)(long long got, long long total)) {
+     /* Track progress */
+     int got_blocks = 0;
+     off_t in = 0;
+-    int in_mb = 0;
+     off_t size = get_file_size(f);
+-    struct progress *p;
+ 
+     /* Allocate buffer of 16 blocks */
+     register size_t bufsize = z->blocksize * 16;
+@@ -478,16 +473,11 @@ int rcksum_submit_source_file(struct rcksum_state *z, FILE * f, int progress) {
+         return 0;
+ 
+     /* Build checksum hash tables ready to analyse the blocks we find */
+-    if (!z->rsum_hash)
+-        if (!build_hash(z)) {
+-            free(buf);
+-            return 0;
+-        }
++    if (!z->rsum_hash && !build_hash(z))
++        goto end;
+ 
+-    if (progress) {
+-        p = start_progress();
+-        do_progress(p, 0, in);
+-    }
++    if (progress && !progress(0, size))
++        goto end;
+ 
+     while (!feof(f)) {
+         size_t len;
+@@ -510,10 +500,7 @@ int rcksum_submit_source_file(struct rcksum_state *z, FILE * f, int progress) {
+         /* If either fread above failed, or EOFed */
+         if (ferror(f)) {
+             perror("fread");
+-            free(buf);
+-            if (progress)
+-                end_progress(p, 0);
+-            return got_blocks;
++            goto end;
+         }
+         if (feof(f)) {          /* 0 pad to complete a block */
+             memset(buf + len, 0, z->context);
+@@ -522,14 +509,12 @@ int rcksum_submit_source_file(struct rcksum_state *z, FILE * f, int progress) {
+ 
+         /* Process the data in the buffer, and report progress */
+         got_blocks += rcksum_submit_source_data(z, buf, len, start_in);
+-        if (progress && in_mb != in / 1000000) {
+-            do_progress(p, 100.0 * in / size, in);
+-            in_mb = in / 1000000;
+-        }
++        if (progress && !progress(in, size))
++            goto end;
+     }
++    if (progress)
++        progress(size, size);
++end:
+     free(buf);
+-    if (progress) {
+-        end_progress(p, 2);
+-    }
+     return got_blocks;
+ }
+diff --git a/lib/libzsync/CMakeLists.txt b/lib/libzsync/CMakeLists.txt
+index 84fadca..921667a 100644
+--- a/lib/libzsync/CMakeLists.txt
++++ b/lib/libzsync/CMakeLists.txt
+@@ -18,5 +18,10 @@ target_link_libraries(libzsync PRIVATE zsync2_libz PUBLIC librcksum)
+ target_include_directories(libzsync PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+ 
+ # add tests
++if(BUILD_TESTING)
+ add_executable(sha1test sha1.c sha1test.c)
+ add_test(sha1test sha1test)
++endif()
++
++install(TARGETS libzsync)
++install(FILES zsync.h TYPE INCLUDE)
+diff --git a/lib/libzsync/zsync.c b/lib/libzsync/zsync.c
+index 77a1306..2a6ca55 100644
+--- a/lib/libzsync/zsync.c
++++ b/lib/libzsync/zsync.c
+@@ -527,9 +527,9 @@ off_t *zsync_needed_byte_ranges(struct zsync_state * zs, int *num, int type) {
+  * Read the given stream, applying the rsync rolling checksum algorithm to
+  * identify any blocks of data in common with the target file. Blocks found are
+  * written to our local copy of the target in progress. Progress reports if
+- * progress != 0  */
+-int zsync_submit_source_file(struct zsync_state *zs, FILE * f, int progress) {
+-    return rcksum_submit_source_file(zs->rs, f, progress);
++ * progress != NULL  */
++long long zsync_submit_source_file(struct zsync_state *zs, FILE * f, int (*progress)(long long got, long long total)) {
++    return rcksum_submit_source_file(zs->rs, f, progress) * zs->blocksize;
+ }
+ 
+ static char *zsync_cur_filename(struct zsync_state *zs) {
+diff --git a/lib/libzsync/zsync.h b/lib/libzsync/zsync.h
+index a0421cc..97358af 100644
+--- a/lib/libzsync/zsync.h
++++ b/lib/libzsync/zsync.h
+@@ -49,7 +49,7 @@ void zsync_progress(const struct zsync_state* zs, long long* got, long long* tot
+ 
+ /* zsync_submit_source_file - submit local file data to zsync
+  */
+-int zsync_submit_source_file(struct zsync_state* zs, FILE* f, int progress);
++long long zsync_submit_source_file(struct zsync_state* zs, FILE* f, int (*progress)(long long got, long long total));
+ 
+ /* zsync_get_url - returns a URL from which to get needed data.
+  * Returns NULL on failure, or a array of pointers to URLs.

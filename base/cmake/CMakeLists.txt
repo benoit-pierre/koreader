@@ -484,6 +484,9 @@ declare_project(thirdparty/zlib)
 # zstd
 declare_project(thirdparty/zstd)
 
+# zsync
+declare_project(thirdparty/zsync EXCLUDE_FROM_ALL)
+
 # }}}
 
 # TESTSUITE DEPENDENCIES. {{{
@@ -717,6 +720,9 @@ ffi_target(zlib zlib_h.lua zlib_decl.c ARGS -d zlib)
 
 # zstd
 ffi_target(zstd zstd_h.lua zstd_decl.c ARGS -d libzstd)
+
+# zsync
+ffi_target(zsync zsync_h.lua zsync_cdecl.c)
 
 # }}}
 
