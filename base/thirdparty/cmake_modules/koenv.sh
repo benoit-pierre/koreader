@@ -107,6 +107,8 @@ extract_archive() { (
     case "${archive}" in
         # Luarocks source rock, no root dir.
         *.src.rock) root='' ;;
+        # Ditto for wheel.
+        *.whl) root='' ;;
         *) root="$(echo *)" ;;
     esac
     cd "${oldpwd}"
