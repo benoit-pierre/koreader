@@ -17,7 +17,6 @@ To get and compile the source you must have:
 - `awk`
 - `bash`: version >= 4.0
 - `cmake`: version >= 3.17.5
-- `curl`
 - `find`
 - `gcc/g++` or `clang/clang++`: with C11 & C++17 support
 - `gettext`
@@ -46,10 +45,9 @@ Optional:
 Install the prerequisites using apk:
 
 ```
-sudo apk add autoconf automake bash cmake coreutils curl diffutils \
-    findutils g++ gcc gettext-dev git grep gzip libtool linux-headers \
-    make meson nasm ninja-build patch pkgconf procps-ng sdl3 tar \
-    unzip wget
+sudo apk add autoconf automake bash cmake coreutils diffutils findutils \
+    g++ gcc gettext-dev git grep gzip libtool linux-headers make meson \
+    nasm ninja-build patch pkgconf procps-ng sdl3 tar unzip wget
 ```
 
 **Note:** don't forget to add `/usr/lib/ninja-build/bin` to `$PATH`
@@ -80,8 +78,8 @@ Install the prerequisites using APT:
 
 ```
 sudo apt install --no-install-recommends autoconf automake build-essential \
-    ca-certificates cmake curl gcc-multilib gettext git libtool libtool-bin \
-    meson nasm ninja-build patch pkg-config unzip wget
+    ca-certificates cmake gcc-multilib gettext git libtool libtool-bin meson \
+    nasm ninja-build patch pkg-config unzip wget
 ```
 
 To install SDL3, on recent enough distributions:
