@@ -213,6 +213,8 @@ set_target_properties(djvulibre PROPERTIES
 )
 target_compile_definitions(djvulibre PRIVATE HAVE_CONFIG_H)
 target_compile_options(djvulibre PRIVATE -Wall)
+# Unbreak build with GCC 16 at higher optimization levels (-O2 and above).
+target_compile_options(djvulibre PRIVATE -fno-strict-aliasing)
 target_include_directories(djvulibre PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(djvulibre PRIVATE PkgConfig::JPeg Threads::Threads)
 
