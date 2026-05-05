@@ -125,6 +125,13 @@ jobs:
           )
           printf '%s\n' "${macos_env[@]}" | tee -a "${GITHUB_ENV}"
 
+      - name: Setup build environment (Android)
+        if: startsWith(matrix.target, 'android-')
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y g++ gcc-11-multilib gcc-11-plugin-dev
+          sudo ln -sf /usr/include/x86_64-linux-gnu/asm /usr/local/include/asm
+
       # }}}
 
       # Checkout / fetch. {{{
