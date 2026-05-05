@@ -788,6 +788,8 @@ public:
     bool split2( const lChar32 * delim, lString32 & value1, lString32 & value2 );
     /// split string into two strings using delimiter
     bool split2( const lChar8 * delim, lString32 & value1, lString32 & value2 );
+    /// split string into two strings using delimiter
+    bool split2( lChar32 delim, lString32 & value1, lString32 & value2 );
 
     /// returns n characters beginning with pos
     lString32 substr(size_type pos, size_type n) const;
