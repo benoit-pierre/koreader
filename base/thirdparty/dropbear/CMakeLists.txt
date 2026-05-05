@@ -43,6 +43,8 @@ list(APPEND PATCH_FILES
     pubkey-hack.patch
     reduce_build_verbosity.patch
     fix__GNU_SOURCE_warnings.patch
+    scp-don-t-use-reallocarray.patch
+    scp-fix-recursive-overwrite-check.patch
 )
 
 if(ANDROID)
@@ -78,8 +80,8 @@ list(APPEND BUILD_CMD make ${PROGRAMS})
 append_binary_install_command(INSTALL_CMD ${PROGRAMS})
 
 external_project(
-    DOWNLOAD URL 43169508301ac5918b62b83ffc947dee
-    https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_2025.89.tar.gz
+    DOWNLOAD URL 463b2300a81beb8f9633dc20d5322357
+    https://github.com/mkj/dropbear/archive/refs/tags/DROPBEAR_2026.90.tar.gz
     PATCH_FILES ${PATCH_FILES}
     CONFIGURE_COMMAND ${CFG_CMD}
     BUILD_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/localoptions.h
