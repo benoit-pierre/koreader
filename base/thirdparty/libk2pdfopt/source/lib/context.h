@@ -34,7 +34,8 @@ typedef struct {
 typedef struct KOPTContext {
     int trim;
     int wrap;
-    int white;
+    int white_threshold;
+    int paint_white_threshold;
     int indent;
     int rotate;
     int columns;
