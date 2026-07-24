@@ -2764,7 +2764,7 @@ bool tinyNodeCollection::saveNodeData( lUInt16 type, ldomNode ** list, int nodec
         if (offs + sz > nodecount) {
             sz = nodecount - offs;
         }
-        ldomNode buf[sz];
+        ldomNode buf[sz]; // NOLINT(clang-diagnostic-vla-cxx-extension)
         memcpy(buf, list[i], sizeof(buf));
         for (int j = 0; j < sz; j++) {
             buf[j].setDocumentIndex(0);
