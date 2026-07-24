@@ -728,6 +728,9 @@ ffi_target(libk2pdfopt koptcontext_h.lua koptcontext_cdecl.c ARGS -d lept -I ${K
 # libressl
 ffi_target(libressl crypto_h.lua crypto_decl.c ARGS -d libcrypto)
 
+# libspng
+ffi_target(libspng libspng_h.lua libspng_cdecl.c ARGS -r ffi/posix_h)
+
 # libwebp
 ffi_target(libwebp libwebp_h.lua libwebp_decl.c ARGS -d libwebp)
 
