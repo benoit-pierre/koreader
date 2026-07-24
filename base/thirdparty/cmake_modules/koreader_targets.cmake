@@ -275,8 +275,8 @@ if(MONOLIBTIC)
         libk2pdfopt::k2pdfopt
         libressl::crypto
         libressl::ssl
+        libspng::spng
         libzmq::zmq
-        lodepng::lodepng
         lpeg::lpeg
         lua-rapidjson::rapidjson
         luasec::ssl
@@ -326,8 +326,8 @@ if(MONOLIBTIC)
             koreader-lfs_cdecl
             leptonica_cdecl
             libarchive_cdecl
+            libspng_cdecl
             libwebp_decl
-            lodepng_decl
             lpeg_cdecl
             lua-rapidjson_cdecl
             luasec_cdecl
