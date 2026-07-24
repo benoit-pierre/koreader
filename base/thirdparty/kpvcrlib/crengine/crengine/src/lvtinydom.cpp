@@ -21962,7 +21962,7 @@ LVStreamRef ldomDocument::getObjectImageStream( lString32 refName )
     if ( refName.startsWith(lString32(BLOB_NAME_PREFIX)) ) {
         return _blobCache.getBlob(refName);
     }
-    if ( refName.length() > 10 && refName[4] == ':' && refName.startsWith(lString32("data:image/")) ) {
+    if ( refName.length() > 10 && refName[4] == ':' && refName.startsWith(U"data:image/") ) {
         // <img src="data:image/png;base64,iVBORw0KG...>
         lString32 data = refName.substr(0, 50);
         int pos = data.pos(U";base64,");
