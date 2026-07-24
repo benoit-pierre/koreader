@@ -3717,7 +3717,7 @@ public:
     virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px)
     {
         if ( _extra_metric == NULL ) {
-            _extra_metric = (int *)malloc(sizeof(int)*FONT_METRIC_MAX);
+            _extra_metric = new int[FONT_METRIC_MAX];
             for (int i=0; i<FONT_METRIC_MAX; i++) {
                 _extra_metric[i] = CACHED_SIGNED_METRIC_NOT_SET;
             }
@@ -4947,7 +4947,7 @@ public:
             _face = NULL;
         }
         if ( _extra_metric ) {
-            free(_extra_metric);
+            delete[] _extra_metric;
             _extra_metric = NULL;
         }
     }
