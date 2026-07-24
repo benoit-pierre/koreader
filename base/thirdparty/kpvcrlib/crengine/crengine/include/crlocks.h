@@ -54,7 +54,6 @@ public:
     ~CRGuard() { if (mutex) mutex->release(); }
 };
 
-
 extern CRMutex * _refMutex;
 extern CRMutex * _fontMutex;
 extern CRMutex * _fontManMutex;
