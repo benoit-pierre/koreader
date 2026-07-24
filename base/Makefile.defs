@@ -659,6 +659,9 @@ ifndef DARWIN
     # We'll be using the ldd linker, enable safe Identical Code Folding.
     LDFLAGS += -Wl,--icf=safe
   endif
+  ifndef KODEBUG
+    LDFLAGS += -Wl,-Bsymbolic-functions
+  endif
   # Unfortunately, this needs glibc >= 2.36…
   # ifneq (,$(filter i686-% x86_64-%,$(TARGET_MACHINE)))
   #   LDFLAGS += -Wl,-z,pack-relative-relocs
