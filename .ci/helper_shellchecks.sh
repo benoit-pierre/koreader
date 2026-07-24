@@ -5,6 +5,10 @@ CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${CI_DIR}/common.sh"
 
 # shellcheck disable=2016
-mapfile -t shellscript_locations < <({ git grep -lE '^#!(/usr)?/bin/(env )?(bash|sh)' | sed "/^plugins\/terminal.koplugin\/shfm$/d" && git submodule --quiet foreach '[ "$path" = "base" -o "$path" = "platform/android/luajit-launcher" ] || git grep -lE "^#!(/usr)?/bin/(env )?(bash|sh)" | sed "s|^|$path/|"' && git ls-files './*.sh'; } | sort | uniq)
+excludes=(
+    platform/android/luajit-launcher/gradlew
+    plugins/terminal.koplugin/shfm
+)
+mapfile -t shellscript_locations < <({ git grep --recurse-submodules -lE '^#!(/usr)?/bin/(env )?(bash|sh)' "${excludes[@]/#/:\!}" && git ls-files --recurse-submodules './*.sh' "${excludes[@]/#/:\!}"; } | sort | uniq)
 
 ./base/utils/shellcheck.sh "${shellscript_locations[@]}"
