@@ -7458,7 +7458,6 @@ public:
         FONT_MAN_GUARD
         lString8 name8 = UnicodeToUtf8(name);
         CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
-        name.trim(); // Remove any " " appended to avoid url override with duplicates
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
         if (stream.isNull()) // Try again in case it is percent-encoded
             stream = container->OpenStream(DecodeHTMLUrlString(name).c_str(), LVOM_READ);
