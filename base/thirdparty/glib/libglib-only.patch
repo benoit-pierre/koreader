@@ -1,6 +1,8 @@
---- i/glib/meson.build
-+++ w/glib/meson.build
-@@ -462,6 +462,8 @@
+diff --git a/glib/meson.build b/glib/meson.build
+index 0fb6e2696..248f453cb 100644
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -501,6 +501,8 @@ pkg.generate(libglib,
  )
  meson.override_dependency('glib-2.0', libglib_dep)
  
@@ -9,7 +11,7 @@
  # FIXME: This needs to be added to the `depends` of every invocation of
  # glib_compile_resources in the build process. We can drop this when
  # https://github.com/mesonbuild/meson/issues/13385 is fixed.
-@@ -503,6 +505,8 @@
+@@ -542,6 +544,8 @@ else
    meson.override_find_program('gtester', gtester)
  endif
  
@@ -17,29 +19,28 @@
 +
  report_conf = configuration_data()
  report_conf.set('GLIB_VERSION', glib_version)
- report_conf.set('PYTHON', python.full_path())
---- i/meson.build
-+++ w/meson.build
-@@ -2214,13 +2214,13 @@ else
+ report_conf.set('PYTHON', python_shebang)
+diff --git a/meson.build b/meson.build
+index c432f75ed..dc676ed40 100644
+--- a/meson.build
++++ b/meson.build
+@@ -2293,14 +2293,7 @@ else
+   use_pcre2_static_flag = false
  endif
  
- # Import the gvdb sources as a subproject to avoid having the copylib in-tree
--subproject('gvdb')
+-# Import the gvdb sources as a subproject to avoid having the copylib in-tree
+-subproject('gvdb', default_options: {'tests': false})
 -gvdb_dep = dependency('gvdb')
-+# subproject('gvdb')
-+# gvdb_dep = dependency('gvdb')
- 
+-
  libm = cc.find_library('m', required : false)
--libffi_dep = dependency('libffi', version : '>= 3.0.0')
-+# libffi_dep = dependency('libffi', version : '>= 3.0.0')
- 
+-libffi_dep = dependency('libffi', version : '>= 3.0.0', default_options: {'werror': false})
+-
 -libz_dep = dependency('zlib')
-+# libz_dep = dependency('zlib')
  
- # First check in libc, fallback to libintl, and as last chance build
- # proxy-libintl subproject.
-@@ -2570,25 +2570,19 @@ gnome = import('gnome')
- 
+ libatomic_test_code = '''
+   int main (int argc, char ** argv) {
+@@ -2731,12 +2724,6 @@ gnome = import('gnome')
+ subdir('build-aux')
  subdir('tools')
  subdir('glib')
 -subdir('gobject')
@@ -48,17 +49,10 @@
 -subdir('gio')
 -subdir('girepository')
 -subdir('fuzzing')
--subdir('tests')
-+# subdir('gobject')
-+# subdir('gthread')
-+# subdir('gmodule')
-+# subdir('gio')
-+# subdir('girepository')
-+# subdir('fuzzing')
-+# subdir('tests')
- 
- # xgettext is optional (on Windows for instance)
- if find_program('xgettext', required : get_option('nls')).found()
+ if get_option('tests')
+   subdir('tests')
+ endif
+@@ -2746,12 +2733,6 @@ if find_program('xgettext', required : get_option('nls')).found()
    subdir('po')
  endif
  
@@ -71,12 +65,11 @@
  # Check whether we support overriding the invalid parameter handler on Windows for _get_osfhandle(),
  # g_fsync() (i.e. _commit()), etc
  if host_system == 'windows'
-@@ -2614,7 +2608,7 @@ if rst2man.found()
- endif
+@@ -2779,7 +2760,6 @@ endif
+ rst2html5 = find_program('rst2html5', 'rst2html5.py', required: get_option('documentation'))
  
  gnome = import('gnome')
 -subdir('docs/reference')
-+# subdir('docs/reference')
  
  summary({
    'host cpu' : host_machine.cpu_family(),
