@@ -1,0 +1,13 @@
+diff --git a/source/html/md.c b/source/html/md.c
+index 97b867e95..7eee042c8 100644
+--- a/source/html/md.c
++++ b/source/html/md.c
+@@ -23,7 +23,7 @@
+ #include "mupdf/fitz.h"
+ #include "html-imp.h"
+ 
+-#ifdef FZ_ENABLE_MD
++#if FZ_ENABLE_MD
+ 
+ #include "cmark-gfm.h"
+ #include "cmark-gfm-core-extensions.h"

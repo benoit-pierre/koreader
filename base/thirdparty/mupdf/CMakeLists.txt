@@ -19,8 +19,8 @@ list(APPEND PATCH_FILES
     relink_on_xlibs_change.patch
     # Fix symbols visiblity.
     visibility.patch
-    # Backport addition of `passthrough` member to `fz_device` (from b20077eb2).
-    passthrough_device.patch
+    # Fix compilation with `-DFZ_ENABLE_MD=0`.
+    fix_compilation_with_-DFZ_ENABLE_MD-0.patch
 )
 
 # Remove unnecessary vendored thirdparty libraries.
@@ -58,13 +58,14 @@ string(APPEND XCFLAGS
     # - builtin fonts
     # - CMYK plotter only 100 kB
     # - hyphenation (~700 kB)
-    # - formats already supported by crengine: FB2, EPUB, MOBI
+    # - formats already supported by crengine: FB2, EPUB, Markdown, MOBI
     # - miscellaneous output formats: DOCX, OCR, ODT
     " -DNOBUILTINFONT"
     " -DFZ_ENABLE_DOCX_OUTPUT=0"
     " -DFZ_ENABLE_EPUB=0"
     " -DFZ_ENABLE_FB2=0"
     " -DFZ_ENABLE_HYPHEN=0"
+    " -DFZ_ENABLE_MD=0"
     " -DFZ_ENABLE_MOBI=0"
     " -DFZ_ENABLE_OCR_OUTPUT=0"
     " -DFZ_ENABLE_ODT_OUTPUT=0"
@@ -93,6 +94,7 @@ set(MAKE_CMD
     brotli=no
     mujs=no
     tesseract=no
+    USE_CMARK_GFM=no
     # Disable some vendored libraries:
     # - curl
     USE_SYSTEM_CURL=yes
@@ -131,9 +133,9 @@ list(APPEND BUILD_CMD COMMAND ${MAKE_CMD} libs)
 list(APPEND INSTALL_CMD COMMAND ${MAKE_CMD} DESTDIR=${STAGING_DIR} prefix=/ install-libs)
 
 external_project(
-    DOWNLOAD URL 17169f89d135a9cb0de147690f982c88
-    https://github.com/ArtifexSoftware/mupdf-downloads/releases/download/1.27.2/mupdf-1.27.2-source.tar.lz
-    https://mupdf.com/downloads/archive/mupdf-1.27.2-source.tar.lz
+    DOWNLOAD URL 268b6ffdf12d8062fe24693ed065ac3f
+    https://github.com/ArtifexSoftware/mupdf-downloads/releases/download/1.28.0/mupdf-1.28.0-source.tar.lz
+    https://mupdf.com/downloads/archive/mupdf-1.28.0-source.tar.lz
     PATCH_FILES ${PATCH_FILES}
     PATCH_COMMAND ${PATCH_CMD}
     BUILD_COMMAND ${BUILD_CMD}
