@@ -399,6 +399,7 @@ ifdef KODEBUG
   VECTO_CFLAGS =
 else
   BASE_CFLAGS += -DNDEBUG
+  BASE_CFLAGS += -fno-semantic-interposition
 endif
 ifdef DARWIN
   # Work around Apple clang bug: `/usr/local/include` is inserted
