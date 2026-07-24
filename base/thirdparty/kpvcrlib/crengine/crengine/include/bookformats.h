@@ -27,9 +27,4 @@ typedef enum {
     // don't forget update getDocFormatName() when changing this enum
 } doc_format_t;
 
-lString32 LVDocFormatName(int fmt);
-int LVDocFormatFromExtension(lString32 &pathName);
-lString8 LVDocFormatCssFileName(int fmt);
-
-
 #endif // BOOKFORMATS_H
