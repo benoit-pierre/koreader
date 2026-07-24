@@ -1116,7 +1116,7 @@ public:
             if (_state == 2) {
                 if (!_url.empty()) {
                     while (_fontList.findByUrl(_url))
-                        _url.append(lString32(" "));
+                        _url << U' ';
                     _fontList.add(_url, _face, _bold, _italic, _urlIsLocal);
                 }
                 _state = 11;
