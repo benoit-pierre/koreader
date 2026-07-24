@@ -490,14 +490,6 @@ declare_project(
     SOURCE_DIR thirdparty/srell
 )
 
-# tar
-if(NOT (ANDROID OR APPLE OR EMULATE_READER OR WIN32))
-    set(EXCLUDE_FROM_ALL)
-else()
-    set(EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
-endif()
-declare_project(thirdparty/tar ${EXCLUDE_FROM_ALL})
-
 # tesseract
 set(DEPENDS leptonica)
 if(ANDROID)
