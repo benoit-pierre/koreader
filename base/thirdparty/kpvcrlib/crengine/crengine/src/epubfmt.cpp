@@ -1053,7 +1053,9 @@ class EmbeddedFontStyleParser {
     bool _urlIsLocal;  // true when _url for the current block came from local(...)
     lString32 _url;
 public:
-    EmbeddedFontStyleParser(LVEmbeddedFontList & fontList) : _fontList(fontList) { }
+    EmbeddedFontStyleParser(LVEmbeddedFontList & fontList) : _fontList(fontList),
+    _state(0), _italic(false), _bold(false), _srcIsLocal(false), _urlIsLocal(false)
+    { }
     void onToken(char token) {
         // 4,5:  font-family:
         // 6,7:  font-weight:
