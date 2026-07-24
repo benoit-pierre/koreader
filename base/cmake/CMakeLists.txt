@@ -345,6 +345,9 @@ declare_project(thirdparty/libpng DEPENDS zlib EXCLUDE_FROM_ALL)
 # NOTE: `EXCLUDE_FROM_ALL` is not used because `ffi/crypto` needs `libcrypto`.
 declare_project(thirdparty/libressl)
 
+# libspng
+declare_project(thirdparty/libspng DEPENDS zlib EXCLUDE_FROM_ALL)
+
 # libunibreak
 declare_project(thirdparty/libunibreak EXCLUDE_FROM_ALL)
 
