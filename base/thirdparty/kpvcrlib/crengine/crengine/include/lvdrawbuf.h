@@ -837,8 +837,8 @@ public:
         , min_opacity(minopacity), buf_height(h), vertical_spread(vertspread)
         {
             if ( by_line ) {
-                left_max_x = (int*)malloc( sizeof(int) * buf_height );
-                right_min_x = (int*)malloc( sizeof(int) * buf_height );
+                left_max_x = new int[buf_height];
+                right_min_x = new int[buf_height];
                 for (int i=0; i<buf_height; i++) {
                     left_max_x[i] = - 0x0FFFFFFF; // -infinity
                     right_min_x[i] = 0x0FFFFFFF;  // +infinity
@@ -852,8 +852,8 @@ public:
     /// destructor
     virtual ~LVHorizontalOverlapMeasurementDrawBuf() {
         if ( by_line ) {
-            free(left_max_x);
-            free(right_min_x);
+            delete[] left_max_x;
+            delete[] right_min_x;
         }
     }
 };
