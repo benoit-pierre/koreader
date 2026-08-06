@@ -5977,6 +5977,17 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
 }
 #endif
 
+static bool IsEmptySpaceNode( const ldomNode *node )
+{
+    const lString8 s8(node->getText8());
+    const lChar8 *text = s8.c_str();
+    int len = s8.length();
+    for (int i=0; i<len; i++)
+        if ( text[i]!=' ' && text[i]!='\r' && text[i]!='\n' && text[i]!='\t')
+            return false;
+    return true;
+}
+
 bool IsEmptySpace( const lChar32 * text, int len )
 {
    for (int i=0; i<len; i++)
@@ -6769,14 +6780,12 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
     // (Note: did not check how floats inside <PRE> are supposed to work)
     if ( !pre ) {
         while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
-            lString32 s = getChildNode(firstNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !IsEmptySpaceNode(getChildNode(firstNonEmpty)) )
                 break;
             firstNonEmpty++;
         }
         while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
-            lString32 s = getChildNode(lastNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !IsEmptySpaceNode(getChildNode(lastNonEmpty)) )
                 break;
             lastNonEmpty--;
         }
@@ -6787,8 +6796,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
                 hasInline = true;
                 if ( !hasNonEmptyInline ) {
                     if (node->isText()) {
-                        lString32 s = node->getText();
-                        if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+                        if ( !IsEmptySpaceNode(node) ) {
                             hasNonEmptyInline = true;
                         }
                     }
@@ -6919,8 +6927,7 @@ bool ldomNode::cleanIfOnlyEmptyTextInline( bool handleFloating )
     for ( ; i>=0; i-- ) {
         ldomNode * node = getChildNode(i);
         if ( node->isText() ) {
-            lString32 s = node->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+            if ( !IsEmptySpaceNode(node) ) {
                 return false;
             }
         }
@@ -6958,8 +6965,7 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
     // padding top/bottom (and height if check ENSURE_STYLE_HEIGHT)
     // if these will introduce some content.
     if ( isText() ) {
-        lString32 s = getText();
-        return !IsEmptySpace(s.c_str(), s.length() );
+        return !IsEmptySpaceNode(this);
     }
     if (getNodeId() == el_br) {
         return true;
@@ -7032,14 +7038,12 @@ ldomNode * ldomNode::boxWrapChildren( int startIndex, int endIndex, lUInt16 elem
     int lastNonEmpty = endIndex;
     if (!pre) {
         while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
-            lString32 s = getChildNode(firstNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !IsEmptySpaceNode(getChildNode(firstNonEmpty)) )
                 break;
             firstNonEmpty++;
         }
         while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
-            lString32 s = getChildNode(lastNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !IsEmptySpaceNode(getChildNode(lastNonEmpty)) )
                 break;
             lastNonEmpty--;
         }
@@ -7106,8 +7110,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText()) {
                 // A text node wrapped in an <autoBoxing> because it was surrounded
                 // by non-inline elements (the other table subelements)
-                lString32 s = child->getChildNode(0)->getText();
-                if ( IsEmptySpace(s.c_str(), s.length()) ) {
+                if ( IsEmptySpaceNode(child->getChildNode(0)) ) {
                     is_whitespace = true;
                 }
             }
@@ -7118,8 +7121,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             // by the XML parsers, but we may see some when completing
             // incomplete tables or when white-space:pre, or in case of
             // style changes (inline > table) after a book has been loaded.
-            lString32 s = child->getText();
-            if ( IsEmptySpace(s.c_str(), s.length()) ) {
+            if ( IsEmptySpaceNode(child) ) {
                 is_whitespace = true;
             }
         }
@@ -7619,8 +7621,7 @@ void ldomNode::initNodeRendMethod()
                     // are all empty text.
                     for ( int i=0; i < getChildCount(); i++ ) {
                         if ( getChildNode(i)->isText() ) {
-                            lString32 s = getChildNode(i)->getText();
-                            if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+                            if ( !IsEmptySpaceNode(getChildNode(i)) ) {
                                 has_non_empty_text_nodes = true;
                                 break;
                             }
@@ -7664,14 +7665,12 @@ void ldomNode::initNodeRendMethod()
                             // Remove any preceeding or following empty text nodes (there can't
                             // be consecutive text nodes) so we don't get spurious empty lines.
                             if ( i < getChildCount()-1 && getChildNode(i+1)->isText() ) {
-                                lString32 s = getChildNode(i+1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                if ( IsEmptySpaceNode(getChildNode(i+1)) ) {
                                     removeChildren(i+1, i+1);
                                 }
                             }
                             if ( i > 0 && getChildNode(i-1)->isText() ) {
-                                lString32 s = getChildNode(i-1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                if ( IsEmptySpaceNode(getChildNode(i-1)) ) {
                                     removeChildren(i-1, i-1);
                                     i--; // update our position
                                 }
@@ -7924,8 +7923,7 @@ void ldomNode::initNodeRendMethod()
                             int run_in_idx = inBetweenTextNode ? i-2 : i-1;
                             int block_idx = i;
                             if ( inBetweenTextNode ) {
-                                lString32 text = inBetweenTextNode->getText();
-                                if ( IsEmptySpace(text.c_str(), text.length() ) ) {
+                                if ( IsEmptySpaceNode(inBetweenTextNode) ) {
                                     removeChildren(i-1, i-1);
                                     block_idx = i-1;
                                 }
@@ -8014,8 +8012,7 @@ void ldomNode::initNodeRendMethod()
                 int cm = child->getRendMethod();
                 int is_whitespace = false;
                 if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText() ) {
-                    lString32 s = child->getChildNode(0)->getText();
-                    if ( IsEmptySpace(s.c_str(), s.length()) )
+                    if ( IsEmptySpaceNode(child->getChildNode(0)) )
                         is_whitespace = true;
                 }
                 if ( cd == css_d_table_cell ) {
@@ -8106,8 +8103,7 @@ void ldomNode::initNodeRendMethod()
             int cm = child->getRendMethod();
             int is_whitespace = false;
             if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText() ) {
-                lString32 s = child->getChildNode(0)->getText();
-                if ( IsEmptySpace(s.c_str(), s.length()) )
+                if ( IsEmptySpaceNode(child->getChildNode(0)) )
                     is_whitespace = true;
             }
             bool is_misparented = false;
@@ -8347,8 +8343,7 @@ void ldomNode::initNodeRendMethod()
                         elemId = child->getNodeId();
                     }
                     else {
-                        lString32 s = child->getText();
-                        elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                        elemId = IsEmptySpaceNode(child) ? -2 : -1;
                         // When meeting an empty space (elemId==-2), we'll delay wrapping
                         // decision to when we process the next node.
                         // We'll also not start a wrap with it.
@@ -8436,8 +8431,7 @@ void ldomNode::initNodeRendMethod()
                             elemId = child->getNodeId();
                         }
                         else {
-                            lString32 s = child->getText();
-                            elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                            elemId = IsEmptySpaceNode(child) ? -2 : -1;
                             // When meeting an empty space (elemId==-2), we'll delay wrapping
                             // decision to when we process the next node.
                             // We'll also not start a wrap with it.
