@@ -14,6 +14,7 @@
 
 #include "crsetup.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +26,10 @@
 
 #if (USE_LIBPNG==1)
 #include <png.h>
+#endif
+
+#if (USE_LIBSPNG==1)
+#include <spng.h>
 #endif
 
 #if (USE_LIBJPEG==1)
@@ -995,6 +1000,124 @@ bool LVPngImageSource::CheckPattern( const lUInt8 * buf, int )
 {
     return( !png_sig_cmp((unsigned char *)buf, (png_size_t)0, 4) );
 }
+
+#endif
+
+#if (USE_LIBSPNG==1)
+
+static int spng_rd_fn(spng_ctx *ctx, void *user, void *buf, size_t len) {
+    LVStream *stream = ((LVNodeImageSource *)user)->GetSourceStream();
+
+    if (stream->Eof())
+        return SPNG_IO_EOF;
+
+    lvsize_t read = 0;
+
+    if (stream->Read(buf, len, &read) != LVERR_OK || read != len)
+       return SPNG_IO_ERROR;
+
+   return 0;
+}
+
+class LVPngImageSource : public LVNodeImageSource
+{
+protected:
+public:
+    LVPngImageSource(ldomNode *node, LVStreamRef stream) : LVNodeImageSource(node, stream) {
+    }
+    virtual ~LVPngImageSource() {
+    }
+    virtual void Compact() {
+    }
+    virtual bool Decode(LVImageDecoderCallback *callback) {
+        spng_ctx *ctx;
+        bool ret;
+        int err;
+
+        _stream->SetPos(0);
+
+        ret = false;
+        ctx = NULL;
+
+        ctx = spng_ctx_new(0);
+        if (!ctx)
+            goto end;
+
+        err = spng_set_png_stream(ctx, spng_rd_fn, this);
+        if (err) {
+            fprintf(stderr, "%s: spng_set_png_stream: %s\n", __func__, spng_strerror(err));
+            goto end;
+        }
+
+        {
+            struct spng_ihdr ihdr;
+
+            err = spng_get_ihdr(ctx, &ihdr);
+            if (err) {
+                fprintf(stderr, "%s: spng_get_ihdr: %s\n", __func__, spng_strerror(err));
+                goto end;
+            }
+
+            _width = ihdr.width;
+            _height = ihdr.height;
+        }
+
+        if (!callback) {
+            ret = true;
+            goto end;
+        }
+
+        err = spng_decode_image(ctx, NULL, 0, SPNG_FMT_RGBA8, SPNG_DECODE_PROGRESSIVE | SPNG_DECODE_TRNS);
+        if (err) {
+            fprintf(stderr, "%s: spng_decode_image: %s\n", __func__, spng_strerror(err));
+            goto end;
+        }
+
+        {
+            uint32_t *row = (uint32_t *)malloc(_width * 4);
+            if (!row) {
+                fprintf(stderr, "%s: malloc: %s\n", __func__, strerror(errno));
+                goto end;
+            }
+
+            callback->OnStartDecode(this);
+
+            for (;;) {
+                struct spng_row_info row_info;
+
+                err = spng_get_row_info(ctx, &row_info);
+                if (err)
+                    break;
+
+                err = spng_decode_row(ctx, row, _width * 4);
+                if (err)
+                    break;
+
+                // lvimg expects BGRA with inverted alpha…
+                for (int x = 0; x < _width; ++x)
+                    row[x] = (((row[x] & 0x000000ff) << 16) | (row[x] & 0xff00ff00) | ((row[x] & 0x00ff0000) >> 16)) ^ 0xff000000;
+                callback->OnLineDecoded(this, row_info.row_num, row);
+            }
+
+            ret = err == SPNG_EOI;
+            if (!ret)
+                fprintf(stderr, "%s: spng_get_row_info / spng_decode_row: %s\n", __func__, spng_strerror(err));
+
+            callback->OnEndDecode(this, ret);
+
+            free(row);
+        }
+
+end:
+        if (ctx)
+            spng_ctx_free(ctx);
+
+        return ret;
+    }
+    static bool CheckPattern(const lUInt8 *buf, int len) {
+        return len >= 8 && memcmp(buf, "\x89PNG\r\n\x1a\n", 8) == 0;
+    }
+};
 
 #endif
 
@@ -2331,7 +2454,7 @@ LVImageSourceRef LVCreateStreamImageSource( LVStreamRef stream, ldomDocument * d
 
 
     LVImageSource * img = NULL;
-#if (USE_LIBPNG==1)
+#if (USE_LIBPNG==1) || (USE_LIBSPNG==1)
     if ( LVPngImageSource::CheckPattern( hdr, (lUInt32)bytesRead ) )
         img = new LVPngImageSource( node, stream );
     else
