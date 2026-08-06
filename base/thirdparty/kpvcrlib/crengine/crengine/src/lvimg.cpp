@@ -968,6 +968,8 @@ bool LVPngImageSource::Decode( LVImageDecoderCallback * callback )
         size_t image_offset = ALIGN((height * sizeof(*row_pointers)), 16);
         // And we can now alloc the whole thing...
         storage = (unsigned char *) malloc(image_offset + image_size);
+        if (!storage)
+            longjmp(png_jmpbuf(png_ptr), 1);
         // ...and update both pointers to point to the right storage location.
         image = storage + image_offset; // Still aligned properly, thanks to the above trickery.
         row_pointers = (png_bytep * __restrict) storage;
