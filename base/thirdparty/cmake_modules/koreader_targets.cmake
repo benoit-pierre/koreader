@@ -92,9 +92,13 @@ function(setup_blitbuffer)
 endfunction()
 
 # koreade-cre
+set(DEPENDS crengine::crengine luajit::luajit)
+if(LINUX AND NOT ANDROID)
+    list(APPEND DEPENDS rt)
+endif()
 declare_koreader_target(
     koreader-cre TYPE monolibtic
-    DEPENDS crengine::crengine luajit::luajit
+    DEPENDS ${DEPENDS}
     SOURCES cre.cpp
     SUFFIX .so
     VISIBILITY hidden
