@@ -19,7 +19,6 @@
 
 #include "lvtypes.h"
 #include "lvfntman.h"
-#include "lvbmpbuf.h"
 #include "textlang.h"
 
 #ifdef __cplusplus
