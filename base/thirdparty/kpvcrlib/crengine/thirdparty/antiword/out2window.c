@@ -484,7 +484,7 @@ tComputeStringLengthMax(const char *szString, size_t tColumnWidthMax)
 	}
 
 	tLen = 0;
-	tWidth = 0;
+	tWidth = 0; // NOLINT(clang-analyzer-deadcode.DeadStores)
 	for (;;) {
 		tLenPrev = tLen;
 		tLen += tGetCharacterLength(szString + tLen);
