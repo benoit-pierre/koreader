@@ -323,7 +323,7 @@ declare_project(thirdparty/kobo-usbms ${EXCLUDE_FROM_ALL})
 declare_project(thirdparty/koreader-lfs DEPENDS luajit)
 
 # leptonica
-declare_project(thirdparty/leptonica DEPENDS libpng zlib)
+declare_project(thirdparty/leptonica DEPENDS libspng)
 
 # libarchive
 set(DEPENDS zlib zstd)
