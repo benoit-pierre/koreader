@@ -3380,7 +3380,7 @@ class LVTCRStream : public LVNamedStream
         void set( const char * s, int sz )
         {
             if ( sz>0 ) {
-                str = (char *)malloc( sz + 1 );
+                str = new char[sz + 1];
                 memcpy( str, s, sz );
                 str[sz] = 0;
                 len = sz;
@@ -3389,7 +3389,7 @@ class LVTCRStream : public LVNamedStream
         ~TCRCode()
         {
             if ( str )
-                free( str );
+                delete[] str;
         }
     };
     LVStreamRef _stream;
