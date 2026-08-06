@@ -11,7 +11,7 @@ link_args="$2"
 exports_script="$3"
 shift 3
 
-linker_version="$("${linker}" -v 2>&1)"
+linker_version="$("${linker}" --version 2>&1)"
 case "${linker_version}" in
     *PROJECT:ld64-* | *PROJECT:dyld-* | *PROJECT:ld-*)
         symarg='-u _%s\n'
@@ -23,7 +23,7 @@ case "${linker_version}" in
         vsarg='--version-script=%s\n'
         vsfmt='version'
         ;;
-    GNU\ gold | LLD\ *)
+    GNU\ gold | LLD\ * | Wild\ *)
         symarg='--undefined=%s\n'
         vsarg='--version-script=%s\n'
         vsfmt='version'

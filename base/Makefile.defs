@@ -677,6 +677,12 @@ else
   LDFLAGS := -Wl,-rpath,@executable_path/libs,-rpath,@executable_path/../koreader/libs
 endif
 
+ifneq ($(and $(EMULATE_READER),$(LINKER)),)
+HOSTLD = $(LINKER)
+LD = $(LINKER)
+LDFLAGS += -fuse-ld=$(LINKER)
+endif
+
 # NOTE: Follow the NDK's lead
 ifdef ANDROID
 	LDFLAGS+=-no-canonical-prefixes
