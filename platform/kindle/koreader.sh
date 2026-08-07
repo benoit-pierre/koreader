@@ -24,6 +24,15 @@ fi
 # We rely on starting from our working directory, and it needs to be set, sane and absolute.
 cd "${KOREADER_DIR:-/dev/null}" || exit
 
+# We keep at most 500KB worth of crash log.
+if [ -e crash.log ]; then
+    tail -c 500000 crash.log >crash.log.new
+    mv -f crash.log.new crash.log
+fi
+
+# Start logging.
+exec >>crash.log 2>&1
+
 PROC_KEYPAD="/proc/keypad"
 PROC_FIVEWAY="/proc/fiveway"
 [ -e "${PROC_KEYPAD}" ] && echo unlock >"${PROC_KEYPAD}"
@@ -312,18 +321,12 @@ if [ "${FROM_KUAL}" = "yes" ]; then
     eips_print_bottom_centered "Starting KOReader . . ." 1
 fi
 
-# we keep at most 500KB worth of crash log
-if [ -e crash.log ]; then
-    tail -c 500000 crash.log >crash.log.new
-    mv -f crash.log.new crash.log
-fi
-
 RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do
     # Do an update check now, so we can actually update KOReader via the "Restart KOReader" menu entry ;).
     ko_update_check
 
-    ./reader.lua "$@" >>crash.log 2>&1
+    ./reader.lua "$@"
     RETURN_VALUE=$?
 done
 
