@@ -22470,31 +22470,6 @@ int ldomNode::renderFinalBlock(  LFormattedTextRef & frmtext, RenderRectAccessor
     return h;
 }
 
-/// formats final block again after change, returns true if size of block is changed
-/// (not used anywhere, not updated to use RENDER_RECT_HAS_FLAG(fmt, INNER_FIELDS_SET)
-bool ldomNode::refreshFinalBlock()
-{
-    ASSERT_NODE_NOT_NULL;
-    if ( getRendMethod() != erm_final )
-        return false;
-    // TODO: implement reformatting of one node
-    CVRendBlockCache & cache = getDocument()->getRendBlockCache();
-    cache.remove( this );
-    RenderRectAccessor fmt( this );
-    lvRect oldRect, newRect;
-    fmt.getRect( oldRect );
-    LFormattedTextRef txtform;
-    int width = fmt.getWidth();
-    renderFinalBlock( txtform, &fmt, width-measureBorder(this,1)-measureBorder(this,3)
-         -lengthToPx(this, this->getStyle()->padding[0],fmt.getWidth())
-         -lengthToPx(this, this->getStyle()->padding[1],fmt.getWidth()) );
-    fmt.getRect( newRect );
-    if ( oldRect == newRect )
-        return false;
-    // TODO: relocate other blocks
-    return true;
-}
-
 #endif
 
 /// replace node with r/o persistent implementation
