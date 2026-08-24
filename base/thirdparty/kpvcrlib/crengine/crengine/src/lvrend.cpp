@@ -2385,20 +2385,6 @@ int renderTable( LVRendPageContext & context, ldomNode * node, int x, int y, int
     return h;
 }
 
-void freeFormatData( ldomNode * node )
-{
-    node->clearRenderData();
-}
-
-bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )
-{
-    return (style1->font_family == style2->font_family)
-        && (style1->font_size == style2->font_size)
-        && (style1->font_style == style2->font_style)
-        && (style1->font_name == style2->font_name)
-        && (style1->font_weight == style2->font_weight);
-}
-
 static int rend_font_base_weight = 400;
 
 void LVRendSetBaseFontWeight( int weight )
