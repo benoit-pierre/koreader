@@ -5505,27 +5505,17 @@ lString32 DecodeHTMLUrlString( lString32 s )
 }
 
 /// remove soft-hyphens from string
-lString32 removeSoftHyphens( lString32 s )
+lString32 & lString32::trimSoftHyphens()
 {
-    lChar32 hyphen = lChar32(UNICODE_SOFT_HYPHEN_CODE);
-    int start = 0;
-    while (true) {
-        int p = -1;
-        int len = s.length();
-        for (int i = start; i < len; i++) {
-            if (s[i] == hyphen) {
-                p = i;
-                break;
-            }
-        }
-        if (p == -1)
-            break;
-        start = p;
-        lString32 s1 = s.substr( 0, p );
-        lString32 s2 = p < len-1 ? s.substr( p+1, len-p-1 ) : lString32::empty_str;
-        s = s1 + s2;
-    }
-    return s;
+    constexpr lChar32 hyphen = lChar32(UNICODE_SOFT_HYPHEN_CODE);
+    int len = pchunk->len;
+    lChar32 *dp = modify();
+    for (const lChar32 *sp = dp; len-- >= 0; ++sp)
+        if (*sp != hyphen)
+            *dp++ = *sp;
+    *dp = '\0';
+    pchunk->len = dp - pchunk->buf32;
+    return *this;
 }
 
 
