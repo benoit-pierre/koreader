@@ -101,9 +101,7 @@ function ReaderRolling:init()
         end
     end)
     table.insert(self.ui.postReaderReadyCallback, function()
-        self:updatePos()
-        -- Disable crengine internal history, with required redraw
-        self.ui.document:enableInternalHistory(false)
+        self:updatePos(true)
         self:onRedrawCurrentView()
     end)
     self.ui.menu:registerToMainMenu(self)
@@ -1104,15 +1102,10 @@ function ReaderRolling:onSetDimensions(dimen)
     else
         -- Initialization done: we are called on orientation change
         -- or on window resize (SDL, Android possibly).
-        -- We need to temporarily re-enable internal history as crengine
-        -- uses it to reposition after resize
-        self.ui.document:enableInternalHistory(true)
         -- Set document dimensions
         self.ui.document:setViewDimen(Screen:getSize())
         -- Re-render document (and update TOC, re set position)
-        self:onUpdatePos()
-        -- Re-disable internal history, with required redraw
-        self.ui.document:enableInternalHistory(false)
+        self:onUpdatePos(true)
         self:onRedrawCurrentView()
     end
 end

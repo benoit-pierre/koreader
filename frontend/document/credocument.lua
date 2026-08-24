@@ -1413,19 +1413,6 @@ function CreDocument:findAllText(pattern, case_insensitive, nb_context_words, ma
     return self._document:findAllText(pattern, case_insensitive, regex, max_hits, true, nb_context_words, search_flags)
 end
 
-function CreDocument:enableInternalHistory(toggle)
-    -- Setting this to 0 unsets crengine internal bookmarks highlighting,
-    -- and as a side effect, disable internal history and the need to build
-    -- a bookmark at each page turn: this speeds up a lot page turning
-    -- and menu opening on big books.
-    -- It has to be called late in the document opening process, and setting
-    -- it to false needs to be followed by a redraw.
-    -- It needs to be temporarily re-enabled on page resize for crengine to
-    -- keep track of position in page and restore it after resize.
-    logger.dbg("CreDocument: set bookmarks highlight and internal history", toggle)
-    self._document:setIntProperty("crengine.highlight.bookmarks", toggle and 2 or 0)
-end
-
 function CreDocument:setCallback(func)
     return self._document:setCallback(func)
 end
