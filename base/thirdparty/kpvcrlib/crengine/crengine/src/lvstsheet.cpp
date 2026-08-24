@@ -383,8 +383,8 @@ static int substr_icompare( const char * sub, const char * & str )
 
     // Small optimisation: don't toLower() 'sub', as all the harcoded values
     // we compare with are lowercase in this file.
-    // for ( j=0; toLower(sub[j]) == toLower(str[j]) && sub[j] && str[j]; j++)
-    for ( j=0; sub[j] == toLower(str[j]) && sub[j] && str[j]; j++)
+    // for ( j=0; sub[j] && toLower(sub[j]) == toLower(str[j]); j++)
+    for ( j=0; sub[j] && sub[j] == toLower(str[j]); j++)
         ;
     if (j && !sub[j])
     {
