@@ -169,31 +169,6 @@ class LVDocViewImageCache
 };
 #endif
 
-class LVPageWordSelector {
-    LVDocView * _docview;
-    ldomWordExList _words;
-    void updateSelection();
-public:
-    // selects middle word of current page
-    LVPageWordSelector( LVDocView * docview );
-    // clears selection
-    ~LVPageWordSelector();
-    // move current word selection in specified direction, (distance) times
-    void moveBy( MoveDirection dir, int distance = 1 );
-    // returns currently selected word
-    ldomWordEx * getSelectedWord() { return _words.getSelWord(); }
-    // access to words
-    ldomWordExList & getWords() { return _words; }
-    // append chars to search pattern
-    ldomWordEx * appendPattern( lString32 chars );
-    // remove last item from pattern
-    ldomWordEx * reducePattern();
-    // selects word of current page with specified coords;
-    void selectWord(int x, int y);
-};
-
-
-
 /// document view mode: pages/scroll
 enum LVDocViewMode
 {
