@@ -701,9 +701,6 @@ public:
         return updateMap(infinite, progressCallback)!=CR_ERROR;
     }
 
-    bool swapToCacheIfNecessary();
-
-
     bool createCacheFile();
 #endif
 
@@ -3048,8 +3045,6 @@ public:
     /// sets flags
     virtual void setFlags( lUInt32 flags ) { _flags = flags; }
     // overrides
-    /// called when encoding directive found in document
-    virtual void OnEncoding( const lChar32 * name, const lChar32 * table );
     /// called on parsing start
     virtual void OnStart(LVFileFormatParser * parser);
     /// called on parsing end
