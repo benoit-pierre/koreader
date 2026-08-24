@@ -1,7 +1,6 @@
 list(APPEND PATCH_FILES
     cmake_tweaks.patch
     no_messing_with_debug_flags.patch
-    k2pdfopt.patch
     use_libspng.patch
 )
 # Make sure we use the old fmemopen symbol on ARM Linux when building against
