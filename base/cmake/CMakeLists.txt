@@ -336,7 +336,13 @@ declare_project(thirdparty/libarchive DEPENDS ${DEPENDS})
 declare_project(thirdparty/libjpeg-turbo)
 
 # libk2pdfopt
-declare_project(thirdparty/libk2pdfopt DEPENDS leptonica tesseract)
+declare_project(
+    thirdparty/libk2pdfopt
+    DEPENDS
+    leptonica
+    tesseract
+    SOURCE_DIR thirdparty/libk2pdfopt/source
+)
 
 # libpng
 declare_project(thirdparty/libpng DEPENDS zlib EXCLUDE_FROM_ALL)
