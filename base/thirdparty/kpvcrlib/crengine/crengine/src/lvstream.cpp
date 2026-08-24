@@ -3862,8 +3862,7 @@ lString32 LVCombinePaths( lString32 basePath, lString32 newPath )
     s += newPath;
     //LVAppendPathDelimiter( s );
     LVReplacePathSeparator( s, separator );
-    lString32 pattern;
-    pattern << separator << ".." << separator;
+    lString32 pattern = concat32(separator, "..", separator);
     bool changed;
     do {
         changed = false;
@@ -3885,10 +3884,8 @@ lString32 LVCombinePaths( lString32 basePath, lString32 newPath )
         }
     } while ( changed && s.length()>=pattern.length() );
     // Replace "/./" inside with "/"
-    pattern.clear();
-    pattern << separator << "." << separator;
-    lString32 replacement;
-    replacement << separator;
+    pattern = concat32(separator, ".", separator);
+    lString32 replacement = concat32(separator);
     while ( s.replace( pattern, replacement ) ) ;
     // Remove "./" at start
     if ( s.length()>2 && s[0]=='.' && s[1]==separator )
