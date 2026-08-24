@@ -119,45 +119,6 @@ public:
     }
 };
 
-/// bookmark/position change info for synchronization/replication
-class ChangeInfo {
-    CRBookmark * _bookmark;
-    lString32 _fileName;
-    bool _deleted;
-    time_t _timestamp;
-
-public:
-    ChangeInfo() : _bookmark(NULL), _deleted(false), _timestamp(0) {
-    }
-
-    ChangeInfo(CRBookmark * bookmark, lString32 fileName, bool deleted);
-
-    ~ChangeInfo() {
-        if (_bookmark)
-            delete _bookmark;
-    }
-
-    CRBookmark * getBookmark() { return _bookmark; }
-
-    lString32 getFileName() { return _fileName; }
-
-    bool isDeleted() { return _deleted; }
-
-    time_t getTimestamp() { return _timestamp; }
-
-    lString8 toString();
-
-    static ChangeInfo * fromString(lString8 s);
-
-    static ChangeInfo * fromBytes(lChar8 * buf, int start, int end);
-
-    static bool findNextRecordBounds(lChar8 * buf, int start, int end, int & recordStart, int & recordEnd);
-};
-
-class ChangeInfoList : public LVPtrVector<ChangeInfo> {
-
-};
-
 class CRFileHistRecord {
 private:
     lString32 _fname;
@@ -169,12 +130,6 @@ private:
     LVPtrVector<CRBookmark> _bookmarks;
     CRBookmark _lastpos;
 public:
-    /// returns first available placeholder for new bookmark, -1 if no more space
-    int getLastShortcutBookmark();
-    /// returns first available placeholder for new bookmark, -1 if no more space
-    int getFirstFreeShortcutBookmark();
-    CRBookmark * setShortcutBookmark( int shortcut, ldomXPointer ptr );
-    CRBookmark * getShortcutBookmark( int shortcut );
     time_t getLastTime() { return _lastpos.getTimestamp(); }
     lString32 getLastTimeString( bool longFormat=false );
     void setLastTime( time_t t ) { _lastpos.setTimestamp(t); }
@@ -221,12 +176,6 @@ private:
     int findEntry( const lString32 & fname, const lString32 & fpath, lvsize_t sz );
     void makeTop( int index );
 public:
-    void limit( int maxItems )
-    {
-        for ( int i=_records.length()-1; i>maxItems; i-- ) {
-            _records.erase( i, 1 );
-        }
-    }
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
     bool loadFromStream( LVStreamRef stream );
     bool saveToStream( LVStream * stream );
@@ -235,7 +184,6 @@ public:
         const lString32 & author,
         const lString32 & series,
         ldomXPointer ptr );
-    ldomXPointer restorePosition(  ldomDocument * doc, lString32 fpathname, size_t sz );
     CRFileHist()
     {
     }
