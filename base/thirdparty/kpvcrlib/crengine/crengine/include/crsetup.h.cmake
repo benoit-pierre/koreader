@@ -58,8 +58,6 @@
 
 /// Text.
 #define USE_LIMITED_FONT_SIZES_SET           0
-#define USE_BITMAP_FONTS                     0
-#define USE_WIN32_FONTS                      0
 #define USE_GLYPHCACHE_HASHTABLE             0
 #define GLYPH_CACHE_SIZE                     0x40000   // 256.0 KiB
 #define ALLOW_KERNING                        1

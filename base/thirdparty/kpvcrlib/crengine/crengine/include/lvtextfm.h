@@ -134,7 +134,7 @@ typedef struct
     // move unions bottom to simplify debugging
     union {
         struct {
-            lvfont_handle   font;     /**< \brief handle of font to draw string */
+            LVFont *        font;     /**< \brief handle of font to draw string */
             const lChar32 * text;     /**< \brief pointer to unicode text string */
             lUInt16         len;      /**< \brief number of chars in text */
             lUInt16         offset;   /**< \brief offset from node start to beginning of line */
@@ -354,7 +354,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer );
 */
 void lvtextAddSourceLine(
    formatted_text_fragment_t * pbuffer,
-   lvfont_handle   font,     /* handle of font to draw string */
+   LVFont *        font,     /* handle of font to draw string */
    TextLangCfg *   lang_cfg,
    const lChar32 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */

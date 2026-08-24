@@ -90,7 +90,6 @@ set(CRE_SRCS
     crengine/src/lstridmap.cpp
     crengine/src/lvdocview.cpp
     crengine/src/lvdrawbuf.cpp
-    crengine/src/lvfnt.cpp
     crengine/src/lvfntman.cpp
     crengine/src/lvimg.cpp
     crengine/src/lvmemman.cpp
