@@ -1518,21 +1518,20 @@ typedef struct ZipLocalFileHdr {
     void byteOrderConv()
     {
         //
-        lvByteOrderConv cnv;
-        if ( cnv.msf() )
+        if ( lvByteOrderConv::msf() )
         {
-            cnv.rev( &Mark );
-            cnv.rev( &Flags );
+            lvByteOrderConv::rev( &Mark );
+            lvByteOrderConv::rev( &Flags );
             for ( int i=0; i<11; i++) {
-                cnv.rev( &others[i] );
+                lvByteOrderConv::rev( &others[i] );
             }
-            //cnv.rev( &Method );
-            //cnv.rev( &ftime );
-            //cnv.rev( &CRC );
-            //cnv.rev( &PackSize );
-            //cnv.rev( &UnpSize );
-            //cnv.rev( &NameLen );
-            //cnv.rev( &AddLen );
+            //lvByteOrderConv::rev( &Method );
+            //lvByteOrderConv::rev( &ftime );
+            //lvByteOrderConv::rev( &CRC );
+            //lvByteOrderConv::rev( &PackSize );
+            //lvByteOrderConv::rev( &UnpSize );
+            //lvByteOrderConv::rev( &NameLen );
+            //lvByteOrderConv::rev( &AddLen );
         }
     }
     //  Omitted fields (which follow this structure):
@@ -1573,25 +1572,24 @@ struct ZipHd2
     void byteOrderConv()
     {
         //
-        lvByteOrderConv cnv;
-        if ( cnv.msf() )
+        if ( lvByteOrderConv::msf() )
         {
-            cnv.rev( &Mark );
-            cnv.rev( &Flags );
-            cnv.rev( &Method );
-            cnv.rev( &ftime );
-            cnv.rev( &CRC );
-            cnv.rev( &PackSize );
-            cnv.rev( &UnpSize );
-            cnv.rev( &NameLen );
-            cnv.rev( &AddLen );
-            cnv.rev( &CommLen );
-            cnv.rev( &DiskNum );
-            cnv.rev( &_Attr_and_Offset[0] );
-            cnv.rev( &_Attr_and_Offset[1] );
-            cnv.rev( &_Attr_and_Offset[2] );
-            cnv.rev( &_Attr_and_Offset[3] );
-            cnv.rev( &_Attr_and_Offset[4] );
+            lvByteOrderConv::rev( &Mark );
+            lvByteOrderConv::rev( &Flags );
+            lvByteOrderConv::rev( &Method );
+            lvByteOrderConv::rev( &ftime );
+            lvByteOrderConv::rev( &CRC );
+            lvByteOrderConv::rev( &PackSize );
+            lvByteOrderConv::rev( &UnpSize );
+            lvByteOrderConv::rev( &NameLen );
+            lvByteOrderConv::rev( &AddLen );
+            lvByteOrderConv::rev( &CommLen );
+            lvByteOrderConv::rev( &DiskNum );
+            lvByteOrderConv::rev( &_Attr_and_Offset[0] );
+            lvByteOrderConv::rev( &_Attr_and_Offset[1] );
+            lvByteOrderConv::rev( &_Attr_and_Offset[2] );
+            lvByteOrderConv::rev( &_Attr_and_Offset[3] );
+            lvByteOrderConv::rev( &_Attr_and_Offset[4] );
         }
     }
     //  Omitted fields (which follow this structure):
@@ -1607,10 +1605,9 @@ struct Zip64ExtInfo
     lUInt8 data[28];
 
     void byteOrderConv() {
-        lvByteOrderConv cnv;
-        if ( cnv.msf() ) {
-            cnv.rev( &Tag );
-            cnv.rev( &Size );
+        if ( lvByteOrderConv::msf() ) {
+            lvByteOrderConv::rev( &Tag );
+            lvByteOrderConv::rev( &Size );
         }
     }
     lUInt32 getField32(int pos) {
@@ -1949,7 +1946,6 @@ public:
     {
     }
     virtual int ReadContents() {
-        lvByteOrderConv cnv;
         //bool arcComment = false;
         bool truncated = false;
 
@@ -1993,7 +1989,7 @@ public:
                         break;
                     if (m_stream->Read(&NextPosition, sizeof(NextPosition), &ReadSize) != LVERR_OK)
                         break;
-                    cnv.lsf(&NextPosition);
+                    lvByteOrderConv::lsf(&NextPosition);
                     found = true;
                     if (0xFFFFFFFFUL == NextPosition) {
                         require64 = true;
@@ -2009,7 +2005,7 @@ public:
                         break;
                     if (m_stream->Read(&NextPosition64, sizeof(NextPosition64), &ReadSize) != LVERR_OK)
                         break;
-                    cnv.lsf(&NextPosition64);
+                    lvByteOrderConv::lsf(&NextPosition64);
                     found64 = true;
                     break;
                 }
@@ -2363,8 +2359,6 @@ public:
 
     virtual int ReadContents()
     {
-        lvByteOrderConv cnv;
-
         m_list.clear();
 
         if (!m_stream || m_stream->Seek(0, LVSEEK_SET, NULL)!=LVERR_OK)

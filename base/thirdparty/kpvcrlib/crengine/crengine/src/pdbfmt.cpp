@@ -396,21 +396,20 @@ struct PDBHdr
             return false;
         if ( bytesRead!=sizeof(PDBHdr) )
             return false;
-        lvByteOrderConv cnv;
-        if ( cnv.lsf() )
+        if ( lvByteOrderConv::lsf() )
         {
-            cnv.rev(&attributes);
-            cnv.rev(&version);
-            cnv.rev(&creationDate);
-            cnv.rev(&modificationDate);
-            cnv.rev(&lastBackupDate);
-            cnv.rev(&modificationNumber);
-            cnv.rev(&appInfoID);
-            cnv.rev(&sortInfoID);
-            cnv.rev(&uniqueIDSeed);
-            cnv.rev(&nextRecordList);
-            cnv.rev(&recordCount);
-            cnv.rev(&firstEntry);
+            lvByteOrderConv::rev(&attributes);
+            lvByteOrderConv::rev(&version);
+            lvByteOrderConv::rev(&creationDate);
+            lvByteOrderConv::rev(&modificationDate);
+            lvByteOrderConv::rev(&lastBackupDate);
+            lvByteOrderConv::rev(&modificationNumber);
+            lvByteOrderConv::rev(&appInfoID);
+            lvByteOrderConv::rev(&sortInfoID);
+            lvByteOrderConv::rev(&uniqueIDSeed);
+            lvByteOrderConv::rev(&nextRecordList);
+            lvByteOrderConv::rev(&recordCount);
+            lvByteOrderConv::rev(&firstEntry);
         }
         return true;
     }
@@ -435,10 +434,9 @@ struct PDBRecordEntry
             return false;
         if ( bytesRead!=sizeof(PDBRecordEntry) )
             return false;
-        lvByteOrderConv cnv;
-        if ( cnv.lsf() )
+        if ( lvByteOrderConv::lsf() )
         {
-            cnv.rev(&localChunkId);
+            lvByteOrderConv::rev(&localChunkId);
         }
         return true;
     }
@@ -458,13 +456,12 @@ struct PalmDocPreamble
             return false;
         if ( bytesRead!=sizeof(PalmDocPreamble) )
             return false;
-        lvByteOrderConv cnv;
-        if ( cnv.lsf() )
+        if ( lvByteOrderConv::lsf() )
         {
-            cnv.rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
-            cnv.rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
-            cnv.rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
-            cnv.rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
+            lvByteOrderConv::rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+            lvByteOrderConv::rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
+            lvByteOrderConv::rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
+            lvByteOrderConv::rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
         }
         if ( compression!=1 && compression!=2 )
             return false;
@@ -522,34 +519,33 @@ struct MobiPreamble : public PalmDocPreamble
             return false;
         if ( bytesRead!=sizeof(MobiPreamble) )
             return false;
-        lvByteOrderConv cnv;
-        if ( cnv.lsf() )
+        if ( lvByteOrderConv::lsf() )
         {
-            cnv.rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
-            cnv.rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
-            cnv.rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
-            cnv.rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
-            cnv.rev(&mobiEncryption);// 2  Encryption Type	0 == no encryption, 1 = Old Mobipocket Encryption, 2 = Mobipocket Encryption
-            cnv.rev(&hederLength); // 20	4	header length	the length of the MOBI header, including the previous 4 bytes
-            cnv.rev(&mobiType);    //    24	4	Mobi type	The kind of Mobipocket file this is
-            cnv.rev(&encoding); //    28	4	text Encoding	1252 = CP1252 (WinLatin1); 65001 = UTF-8
-            cnv.rev(&uid); //    32	4	Unique-ID	Some kind of unique ID number (random?)
-            cnv.rev(&fileVersion); //    36	4	File version	Version of the Mobipocket format used in this file.
-            cnv.rev(&firstNonBookIndex); //    80	4	First Non-book index?	First record number (starting with 0) that's not the book's text
-            cnv.rev(&fullNameOffset); //    84	4	Full Name Offset	Offset in record 0 (not from start of file) of the full name of the book
-            cnv.rev(&fullNameLength); //    88	4	Full Name Length	Length in bytes of the full name of the book
-            cnv.rev(&locale); //    92	4	Locale	Book locale code. Low byte is main language 09= English, next byte is dialect, 08 = British, 04 = US. Thus US English is 1033, UK English is 2057.
-            cnv.rev(&inputLanguage); //    96	4	Input Language	Input language for a dictionary
-            cnv.rev(&outputLanguage); //    100	4	Output Language	Output language for a dictionary
-            cnv.rev(&minVersion); //    104	4	Min version	Minimum mobipocket version support needed to read this file.
-            cnv.rev(&firstImageIndex); //    108	4	First Image index?	First record number (starting with 0) that contains an image. Image records should be sequential.
-            cnv.rev(&huffmanRecordOffset); //    112	4	Huffman Record Offset	The record number of the first huffman compression record.
-            cnv.rev(&huffmanRecordCount); //    116	4	Huffman Record Count	The number of huffman compression records.
-            cnv.rev(&mobiFlags); //    128	4	EXTH flags	bitfield. if bit 6 (0x40) is set, then there's an EXTH record
-            cnv.rev(&drmOffset); //    164	4	DRM Offset	Offset to DRM key info in DRMed files. 0xFFFFFFFF if no DRM
-            cnv.rev(&drmCount); //    168	4	DRM Count	Number of entries in DRM info. 0xFFFFFFFF if no DRM
-            cnv.rev(&drmSize); //    172	4	DRM Size	Number of bytes in DRM info.
-            cnv.rev(&drmFlags); //    176	4	DRM Flags	Some flags concerning the DRM info.
+            lvByteOrderConv::rev(&compression); // 2  Compression   1 == no compression, 2 = PalmDOC compression (see below)
+            lvByteOrderConv::rev(&textLength);  // 4  text length  Uncompressed length of the entire text of the book
+            lvByteOrderConv::rev(&recordCount); // 2  record count  Number of PDB records used for the text of the book.
+            lvByteOrderConv::rev(&recordSize);  // 2  record size  Maximum size of each record containing text, always 4096
+            lvByteOrderConv::rev(&mobiEncryption);// 2  Encryption Type	0 == no encryption, 1 = Old Mobipocket Encryption, 2 = Mobipocket Encryption
+            lvByteOrderConv::rev(&hederLength); // 20	4	header length	the length of the MOBI header, including the previous 4 bytes
+            lvByteOrderConv::rev(&mobiType);    //    24	4	Mobi type	The kind of Mobipocket file this is
+            lvByteOrderConv::rev(&encoding); //    28	4	text Encoding	1252 = CP1252 (WinLatin1); 65001 = UTF-8
+            lvByteOrderConv::rev(&uid); //    32	4	Unique-ID	Some kind of unique ID number (random?)
+            lvByteOrderConv::rev(&fileVersion); //    36	4	File version	Version of the Mobipocket format used in this file.
+            lvByteOrderConv::rev(&firstNonBookIndex); //    80	4	First Non-book index?	First record number (starting with 0) that's not the book's text
+            lvByteOrderConv::rev(&fullNameOffset); //    84	4	Full Name Offset	Offset in record 0 (not from start of file) of the full name of the book
+            lvByteOrderConv::rev(&fullNameLength); //    88	4	Full Name Length	Length in bytes of the full name of the book
+            lvByteOrderConv::rev(&locale); //    92	4	Locale	Book locale code. Low byte is main language 09= English, next byte is dialect, 08 = British, 04 = US. Thus US English is 1033, UK English is 2057.
+            lvByteOrderConv::rev(&inputLanguage); //    96	4	Input Language	Input language for a dictionary
+            lvByteOrderConv::rev(&outputLanguage); //    100	4	Output Language	Output language for a dictionary
+            lvByteOrderConv::rev(&minVersion); //    104	4	Min version	Minimum mobipocket version support needed to read this file.
+            lvByteOrderConv::rev(&firstImageIndex); //    108	4	First Image index?	First record number (starting with 0) that contains an image. Image records should be sequential.
+            lvByteOrderConv::rev(&huffmanRecordOffset); //    112	4	Huffman Record Offset	The record number of the first huffman compression record.
+            lvByteOrderConv::rev(&huffmanRecordCount); //    116	4	Huffman Record Count	The number of huffman compression records.
+            lvByteOrderConv::rev(&mobiFlags); //    128	4	EXTH flags	bitfield. if bit 6 (0x40) is set, then there's an EXTH record
+            lvByteOrderConv::rev(&drmOffset); //    164	4	DRM Offset	Offset to DRM key info in DRMed files. 0xFFFFFFFF if no DRM
+            lvByteOrderConv::rev(&drmCount); //    168	4	DRM Count	Number of entries in DRM info. 0xFFFFFFFF if no DRM
+            lvByteOrderConv::rev(&drmSize); //    172	4	DRM Size	Number of bytes in DRM info.
+            lvByteOrderConv::rev(&drmFlags); //    176	4	DRM Flags	Some flags concerning the DRM info.
         }
         if ( compression!=1 && compression!=2 )
             return false;
@@ -561,8 +557,8 @@ struct MobiPreamble : public PalmDocPreamble
         if ( hederLength >= 0xE4 ) {
             stream->Seek(242-180, LVSEEK_CUR, NULL);
             stream->Read(&extraDataFlags);
-            if ( cnv.lsf() )
-                cnv.rev(&extraDataFlags);
+            if ( lvByteOrderConv::lsf() )
+                lvByteOrderConv::rev(&extraDataFlags);
 //            if (extraDataFlags) {
 //                CRLog::trace("extraDataFlags=%04x", (int)extraDataFlags);
 //            }
@@ -607,31 +603,30 @@ struct EReaderHeader
             return false;
         if ( bytesRead!=sizeof(EReaderHeader) )
             return false;
-        lvByteOrderConv cnv;
-        if ( cnv.lsf() )
+        if ( lvByteOrderConv::lsf() )
         {
-            cnv.rev(&compression);    //    0-2	compression	Specifies compression and drm. 2 = palmdoc, 10 = zlib. 260 and 272 = DRM
-            cnv.rev(&encoding);       //    6-8	encoding	Always 25152 (0x6240). All text must be encoded as Latin-1 cp1252
-            cnv.rev(&smallPageCount); //    8-10	Number of small pages	The number of small font pages. If page index is not build in then 0.
-            cnv.rev(&largePageCount); //    10-12	Number of large pages	The number of large font pages. If page index is not build in then 0.
-            cnv.rev(&nonTextRecordStart); //12-14	Non-Text record start	The location of the first non text records. record 1 to this value minus 1 are all text records
-            cnv.rev(&numberOfChapters);//    14-16	Number of chapters	The number of chapter index records contained in the file
-            cnv.rev(&smallPageRecordCount); //    16-18	Number of small index	The number of small font page index records contained in the file
-            cnv.rev(&largePageRecordCount); //    18-20	Number of large index	The number of large font page index records contained in the file
-            cnv.rev(&imageCount);        //    20-22	Number of images	The number of images contained in the file
-            cnv.rev(&linkCount);         //    22-24	Number of links	The number of links contained in the file
-            cnv.rev(&metadataAvailable); //    24-26	Metadata avaliable	Is there a metadata record in the file? 0 = None, 1 = There is a metadata record
-            cnv.rev(&footnoteRecordsCount); //    28-30	Number of Footnotes	The number of footnote records in the file
-            cnv.rev(&sidebarRecordsCount); //    30-32	Number of Sidebars	The number of sidebar records in the file
-            cnv.rev(&chapterIndexStart); //    32-34	Chapter index record start	The location of chapter index records. If there are no chapters use the value for the Last data record.
-            cnv.rev(&smallPageIndexStart); //    36-38	Small page index start	The location of small font page index records. If page table is not built in use the value for the Last data record.
-            cnv.rev(&largePageIndexStart); //    38-40	Large page index start	The location of large font page index records. If page table is not built in use the value for the Last data record.
-            cnv.rev(&imageDataRecordStart); //    40-42	Image data record start	The location of the first image record. If there are no images use the value for the Last data record.
-            cnv.rev(&linksRecordStart); //    42-44	Links record start	The location of the first link index record. If there are no links use the value for the Last data record.
-            cnv.rev(&metadataRecordStart); //    44-46	Metadata record start	The location of the metadata record. If there is no metadata use the value for the Last data record.
-            cnv.rev(&footnoteRecordStart); //    48-50	Footnote record start	The location of the first footnote record. If there are no footnotes use the value for the Last data record.
-            cnv.rev(&sidebarRecordStart); //    50-52	Sidebar record start	The location of the first sidebar record. If there are no sidebars use the value for the Last data record.
-            cnv.rev(&lastDataRecord); //    52-54	Last data record	The location of the last data record
+            lvByteOrderConv::rev(&compression);    //    0-2	compression	Specifies compression and drm. 2 = palmdoc, 10 = zlib. 260 and 272 = DRM
+            lvByteOrderConv::rev(&encoding);       //    6-8	encoding	Always 25152 (0x6240). All text must be encoded as Latin-1 cp1252
+            lvByteOrderConv::rev(&smallPageCount); //    8-10	Number of small pages	The number of small font pages. If page index is not build in then 0.
+            lvByteOrderConv::rev(&largePageCount); //    10-12	Number of large pages	The number of large font pages. If page index is not build in then 0.
+            lvByteOrderConv::rev(&nonTextRecordStart); //12-14	Non-Text record start	The location of the first non text records. record 1 to this value minus 1 are all text records
+            lvByteOrderConv::rev(&numberOfChapters);//    14-16	Number of chapters	The number of chapter index records contained in the file
+            lvByteOrderConv::rev(&smallPageRecordCount); //    16-18	Number of small index	The number of small font page index records contained in the file
+            lvByteOrderConv::rev(&largePageRecordCount); //    18-20	Number of large index	The number of large font page index records contained in the file
+            lvByteOrderConv::rev(&imageCount);        //    20-22	Number of images	The number of images contained in the file
+            lvByteOrderConv::rev(&linkCount);         //    22-24	Number of links	The number of links contained in the file
+            lvByteOrderConv::rev(&metadataAvailable); //    24-26	Metadata avaliable	Is there a metadata record in the file? 0 = None, 1 = There is a metadata record
+            lvByteOrderConv::rev(&footnoteRecordsCount); //    28-30	Number of Footnotes	The number of footnote records in the file
+            lvByteOrderConv::rev(&sidebarRecordsCount); //    30-32	Number of Sidebars	The number of sidebar records in the file
+            lvByteOrderConv::rev(&chapterIndexStart); //    32-34	Chapter index record start	The location of chapter index records. If there are no chapters use the value for the Last data record.
+            lvByteOrderConv::rev(&smallPageIndexStart); //    36-38	Small page index start	The location of small font page index records. If page table is not built in use the value for the Last data record.
+            lvByteOrderConv::rev(&largePageIndexStart); //    38-40	Large page index start	The location of large font page index records. If page table is not built in use the value for the Last data record.
+            lvByteOrderConv::rev(&imageDataRecordStart); //    40-42	Image data record start	The location of the first image record. If there are no images use the value for the Last data record.
+            lvByteOrderConv::rev(&linksRecordStart); //    42-44	Links record start	The location of the first link index record. If there are no links use the value for the Last data record.
+            lvByteOrderConv::rev(&metadataRecordStart); //    44-46	Metadata record start	The location of the metadata record. If there is no metadata use the value for the Last data record.
+            lvByteOrderConv::rev(&footnoteRecordStart); //    48-50	Footnote record start	The location of the first footnote record. If there are no footnotes use the value for the Last data record.
+            lvByteOrderConv::rev(&sidebarRecordStart); //    50-52	Sidebar record start	The location of the first sidebar record. If there are no sidebars use the value for the Last data record.
+            lvByteOrderConv::rev(&lastDataRecord); //    52-54	Last data record	The location of the last data record
         }
         if ( compression!=1 && compression!=2 && compression!=10 )
             return false;
@@ -1185,12 +1180,11 @@ public:
                 	CRLog::trace("EXTH record found");
                     lUInt32 hdrLen = 0;
                     lUInt32 recCount = 0;
-                    lvByteOrderConv cnv;
                     stream->Read(&hdrLen);
                     stream->Read(&recCount);
-                    if ( cnv.lsf() ) {
-                        cnv.rev(&hdrLen);
-                        cnv.rev(&recCount);
+                    if ( lvByteOrderConv::lsf() ) {
+                        lvByteOrderConv::rev(&hdrLen);
+                        lvByteOrderConv::rev(&recCount);
                     }
                     LVArray<lUInt8> buf2;
                     lString32 authors;
@@ -1204,9 +1198,9 @@ public:
                         lUInt32 recLen = 0;
                         stream->Read(&recType);
                         stream->Read(&recLen);
-                        if ( cnv.lsf() ) {
-                            cnv.rev(&recType);
-                            cnv.rev(&recLen);
+                        if ( lvByteOrderConv::lsf() ) {
+                            lvByteOrderConv::rev(&recType);
+                            lvByteOrderConv::rev(&recLen);
                         }
                         buf2.reset();
                         if (recLen > 8) {
@@ -1214,10 +1208,10 @@ public:
                             //================================
                             if (recLen == 12 && recType == 201) {
                                 stream->Read(&coverOffset);
-                                cnv.msf(&coverOffset);
+                                lvByteOrderConv::msf(&coverOffset);
                             } else if (recLen == 12 && recType == 202) {
                                 stream->Read(&thumbOffset);
-                                cnv.msf(&thumbOffset);
+                                lvByteOrderConv::msf(&thumbOffset);
                             } else {
                                 buf2.addSpace(recLen);
                                 if (stream->Read(buf2.get(), recLen - 8, NULL) != LVERR_OK)
