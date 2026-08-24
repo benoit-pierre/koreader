@@ -6037,8 +6037,8 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
 static bool IsEmptySpace( const lChar32 * text, int len )
 {
    for (int i=0; i<len; i++)
-      if ( text[i]!=' ' && text[i]!='\r' && text[i]!='\n' && text[i]!='\t')
-         return false;
+       if (text[i] > 0x20) // printable non-space characters.
+           return false;
    return true;
 }
 
@@ -6050,7 +6050,7 @@ bool ldomNode::isWhitespaceText() const
     const lChar8 * text = s8.c_str();
     int len = s8.length();
     for ( int i=0; i<len; i++ )
-        if ( text[i]!=' ' && text[i]!='\r' && text[i]!='\n' && text[i]!='\t' )
+        if (text[i] > 0x20) // printable non-space characters.
             return false;
     return true;
 }
