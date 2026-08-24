@@ -525,8 +525,6 @@ public:
     void setStatusFontFace( const lString8 & newFace );
     /// invalidate formatted data, request render
     void requestRender();
-    /// invalidate document data, request reload
-    void requestReload();
     /// invalidate image cache, request redraw
     void clearImageCache();
 #if CR_ENABLE_PAGE_IMAGE_CACHE==1
@@ -888,11 +886,6 @@ public:
     bool LoadDocument( const lChar32 * fname, int metadataOnly = 0 );
     /// load document from stream
     bool LoadDocument( LVStreamRef stream, int metadataOnly = 0 );
-
-    /// save last file position
-    void savePosition();
-    /// restore last file position
-    void restorePosition();
 
 #ifdef ORIGINAL_FILENAME_PATCH
     void setOriginalFilename( const lString32 & fn ) {
