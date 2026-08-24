@@ -1,0 +1,11 @@
+--- i/spng/spng.c
++++ w/spng/spng.c
+@@ -3803,7 +3803,7 @@
+         unsigned i;
+         for(i=0; i < lut_entries; i++)
+         {
+-            float c = pow((float)i / max, exponent) * max;
++            float c = powf((float)i / max, exponent) * max;
+             if(c > max) c = max;
+ 
+             gamma_lut[i] = (uint16_t)c;
