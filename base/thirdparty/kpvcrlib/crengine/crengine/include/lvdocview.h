@@ -295,8 +295,6 @@ public:
     bool getShowCover() { return  m_showCover; }
     /// sets coverpage display flag
     void setShowCover( bool show ) { m_showCover = show; }
-    /// returns true if page image is available (0=current, -1=prev, 1=next)
-    bool isPageImageReady( int delta );
 
     // property support methods
     /// sets default property values if properties not found, checks ranges
