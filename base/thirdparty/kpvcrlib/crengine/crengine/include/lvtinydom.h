@@ -315,14 +315,6 @@ public:
     virtual void OnFormatProgress(int /*percent*/) { }
     /// document fully loaded and rendered (follows OnFormatEnd(), or OnLoadFileEnd() when loaded from cache)
     virtual void OnDocumentReady() { }
-    /// format progress, called with values 0..100
-    virtual void OnExportProgress(int /*percent*/) { }
-    /// Override to handle external links
-    virtual void OnExternalLink(lString32 /*url*/, ldomNode * /*node*/) { }
-    /// Called when page images should be invalidated (clearImageCache() called in LVDocView)
-    virtual void OnImageCacheClear() { }
-    /// return true if reload will be processed by external code, false to let internal code process it
-    virtual bool OnRequestReload() { return false; }
     /// save cache file started
     virtual void OnSaveCacheFileStart() { }
     /// save cache file finished
