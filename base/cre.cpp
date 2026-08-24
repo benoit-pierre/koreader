@@ -1971,50 +1971,6 @@ static int getLinkFromPosition(lua_State *L) {
 	return 1;
 }
 
-static int getWordFromPosition(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-	int x = luaL_checkint(L, 2);
-	int y = luaL_checkint(L, 3);
-
-	LVDocView *tv = doc->text_view;
-	lvRect margin = tv->getPageMargins();
-	int x_offset = margin.left;
-	int y_offset = tv->GetPos() - (tv->getPageHeaderHeight() + margin.top) * (tv->getViewMode()==DVM_PAGES);
-
-	LVPageWordSelector sel(tv);
-	sel.selectWord(x - x_offset, y + y_offset);
-
-	ldomWordEx * word = sel.getSelectedWord();
-	if (word) {
-		lvRect rect;
-		ldomXRange range = word->getRange();
-		if (range.getRectEx(rect)) {
-			lua_createtable(L, 0, 5); // new word box
-
-			lua_pushstring(L, "word");
-			lua_pushstring(L, LCSTR(word->getText()));
-			lua_rawset(L, -3);
-			lua_pushstring(L, "x0");
-			lua_pushinteger(L, rect.left + x_offset);
-			lua_rawset(L, -3);
-			lua_pushstring(L, "y0");
-			lua_pushinteger(L, rect.top - y_offset);
-			lua_rawset(L, -3);
-			lua_pushstring(L, "x1");
-			lua_pushinteger(L, rect.right + x_offset);
-			lua_rawset(L, -3);
-			lua_pushstring(L, "y1");
-			lua_pushinteger(L, rect.bottom - y_offset);
-			lua_rawset(L, -3);
-		} else {
-			lua_newtable(L); // {}
-		}
-	} else {
-		lua_newtable(L); // {}
-	}
-	return 1;
-}
-
 // Unicode codepoint to use as the image placeholder when includeImages requested when getting text.
 // (passed to ldomXRange::getRangeText(), 0 means no inclusion of images even if requested)
 // This is set as a global variable so all functions use the same char.
@@ -4429,7 +4385,6 @@ static const struct luaL_Reg credocument_meth[] = {
     {"isXPointerInCurrentPage", isXPointerInCurrentPage},
     {"isXPointerInDocument", isXPointerInDocument},
     {"getLinkFromPosition", getLinkFromPosition},
-    {"getWordFromPosition", getWordFromPosition},
     {"getTextFromPositions", getTextFromPositions},
     {"extendXPointersToSentenceSegment", extendXPointersToSentenceSegment},
     {"getWordBoxesFromPositions", getWordBoxesFromPositions},
