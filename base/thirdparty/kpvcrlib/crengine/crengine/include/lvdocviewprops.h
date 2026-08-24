@@ -38,7 +38,6 @@
 #define PROP_EMBEDDED_STYLES         "crengine.doc.embedded.styles.enabled"
 #define PROP_EMBEDDED_FONTS          "crengine.doc.embedded.fonts.enabled"
 #define PROP_NONLINEAR_PAGEBREAK     "crengine.doc.nonlinear.pagebreak.force"
-#define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
 #define PROP_STATUS_LINE             "window.status.line"
 #define PROP_FOOTNOTES               "crengine.footnotes"
 #define PROP_SHOW_TIME               "window.status.clock"
