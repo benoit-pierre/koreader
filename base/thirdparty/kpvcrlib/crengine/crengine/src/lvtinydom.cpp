@@ -20169,8 +20169,8 @@ lString32 ldomNode::getText( lChar32 blockDelimiter, int maxSize ) const
     case NT_ELEMENT:
         {
             lString32 txt;
-            unsigned cc = getChildCount();
-            for ( unsigned i=0; i<cc; i++ ) {
+            int cc = getChildCount();
+            for (int i = 0; i < cc; i++) {
                 ldomNode * child = getChildNode(i);
                 txt += child->getText(blockDelimiter, maxSize);
                 if (maxSize != 0 && txt.length() > maxSize)
@@ -20202,9 +20202,10 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
 {
     ASSERT_NODE_NOT_NULL;
     switch ( TNTYPE ) {
-    case NT_ELEMENT:
 #if BUILD_LITE!=1
     case NT_PELEMENT:
+#endif
+    case NT_ELEMENT:
         {
             lString8 txt;
             int cc = getChildCount();
@@ -20213,16 +20214,19 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
                 txt += child->getText8(blockDelimiter, maxSize);
                 if (maxSize != 0 && txt.length() > maxSize)
                     break;
-                if (i >= getChildCount() - 1)
+                if (i >= cc - 1)
                     break;
+#if BUILD_LITE!=1
                 if ( blockDelimiter && child->isElement() ) {
                     if ( !child->getStyle().isNull() && child->getStyle()->display == css_d_block )
                         txt << blockDelimiter;
                 }
+#endif
             }
             return txt;
         }
         break;
+#if BUILD_LITE!=1
     case NT_PTEXT:
         return getDocument()->_textStorage.getText( _data._ptext_addr );
 #endif
