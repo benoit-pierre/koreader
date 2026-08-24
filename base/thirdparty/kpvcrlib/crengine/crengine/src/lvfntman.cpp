@@ -5765,8 +5765,7 @@ class LVFontSelector {
     // directional fallback search (ascend to 500 then descend for targets in
     // [400,500], etc.) - the two can disagree when no candidate falls within
     // [target,500] for a target in that range.
-    const LVFontFace* pickBestWeight(
-            const LVArray<const LVFontFace*>& cands, int weight) const
+    static const LVFontFace* pickBestWeight(const LVArray<const LVFontFace*>& cands, int weight)
     {
         if (cands.length() == 0) return nullptr;
         if (cands.length() == 1) return cands[0];
@@ -5813,9 +5812,9 @@ class LVFontSelector {
     //            wght and ital/slnt come from the weight/italic CSS properties).
     // computed:  the full axis set to hand to FreeType, including wght derived
     //            from the weight parameter and ital/slnt derived from italic.
-    LVFontVariations computeVariations(const LVFontFace& f,
-                                        const LVFontVariations& requested,
-                                        int weight, bool italic) const
+    static LVFontVariations computeVariations(const LVFontFace& f,
+                                              const LVFontVariations& requested,
+                                              int weight, bool italic)
     {
         LVFontVariations computed;
         // wght and ital/slnt are derived from the weight/italic CSS properties.
@@ -5839,11 +5838,11 @@ class LVFontSelector {
 
 public:
     /// family must be non-null; callers check registry.findFamily()/familyAt() first.
-    LVFontMatch matchFamily(const LVFontFamily* family,
-                             int weight, bool italic,
-                             const LVFontVariations& requested,
-                             int documentId = -1,
-                             int docFragmentIdx = -1) const
+    static LVFontMatch matchFamily(const LVFontFamily* family,
+                                   int weight, bool italic,
+                                   const LVFontVariations& requested,
+                                   int documentId = -1,
+                                   int docFragmentIdx = -1)
     {
         LVFontMatch m;
 
@@ -5888,14 +5887,14 @@ public:
         return m;
     }
 
-    LVFontMatch select(int weight, bool italic,
-                        css_font_family_t family,
-                        const lString8& typeface,
-                        const LVFontVariations& requested,
-                        const LVFontRegistry& registry,
-                        int documentId,
-                        const lString8& preferred_family,
-                        int docFragmentIdx = -1) const
+    static LVFontMatch select(int weight, bool italic,
+                              css_font_family_t family,
+                              const lString8& typeface,
+                              const LVFontVariations& requested,
+                              const LVFontRegistry& registry,
+                              int documentId,
+                              const lString8& preferred_family,
+                              int docFragmentIdx = -1)
     {
         // 1. Try each name in the CSS font-family list in order.
         //    typeface may be a comma-separated list e.g. "Georgia, Times New Roman".
@@ -6050,7 +6049,6 @@ private:
     lString8    _fallbackFontFacesString;  // comma separated list of fallback fonts
     lString8Collection _fallbackFontFaces; // splitted from previous
     LVFontRegistry      _registry;         // physical face registry
-    LVFontSelector      _font_selector;    // font matching/selection (see LVFontSelector)
     LVFontInstanceCache _instance_cache;   // exact-match instance cache
     lString8 _preferred_family;            // primary reading font - step-2 fallback for any generic family
     lString8 _preferred_by_css_family[9];  // per-css-family overrides; indexed by css_font_family_t (max=8)
@@ -6325,7 +6323,7 @@ public:
         return _registry.familyCount();
     }
 
-    bool initSystemFonts()
+    static bool initSystemFonts()
     {
         #if (DEBUG_FONT_SYNTHESIS==1)
             fontMan->RegisterFont(lString8("/usr/share/fonts/liberation/LiberationSans-Regular.ttf"));
@@ -6648,7 +6646,7 @@ public:
         if (!fam)
             return false;
         int weight = bold ? 700 : 400;
-        LVFontMatch m = _font_selector.matchFamily(fam, weight, italic, LVFontVariations());
+        LVFontMatch m = LVFontSelector::matchFamily(fam, weight, italic, LVFontVariations());
         if (!m.valid())
             return false;
         filename     = m.face->file_path;
@@ -6896,8 +6894,8 @@ public:
             if (preferred.empty())
                 preferred = _preferred_family;
         }
-        LVFontMatch m = _font_selector.select(weight, italic, css_family, typeface,
-                                         requested, _registry, documentId, preferred, docFragmentIdx);
+        LVFontMatch m = LVFontSelector::select(weight, italic, css_family, typeface,
+                                               requested, _registry, documentId, preferred, docFragmentIdx);
         if (!m.valid()) {
             CRLog::error("GetFont: no match for typeface='%s' w=%d italic=%d family=%d",
                          typeface.c_str(), weight, (int)italic, (int)css_family);
@@ -6942,7 +6940,7 @@ public:
         return true;
     }
 
-    bool checkForEmojis( FT_Face face )
+    static bool checkForEmojis( FT_Face face )
     {
         if (face==NULL)
             return false; // invalid face
