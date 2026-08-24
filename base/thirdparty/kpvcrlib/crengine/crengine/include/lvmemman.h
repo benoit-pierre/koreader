@@ -37,13 +37,50 @@ inline void crFatalError() { crFatalError( -1, "Unknown fatal error" ); }
 /// set fatal error handler
 void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler );
 
+struct cr_calloc {
+    const size_t _size;
+    cr_calloc(size_t size = 1) : _size(size) {}
+    template <typename T> operator T *() const {
+        T *ptr = reinterpret_cast<T *>(calloc(_size, sizeof (T)));
+        if (__builtin_expect(!!ptr, 1))
+            return ptr;
+        if (_size)
+            crFatalError(-2, "calloc failed");
+        free(ptr);
+        return NULL;
+    }
+};
+
+struct cr_alloc {
+    const size_t _size;
+    cr_alloc(size_t size = 1) : _size(size) {}
+    template <typename T> operator T *() const {
+        T *ptr = reinterpret_cast<T *>(malloc(_size * sizeof (T)));
+        if (__builtin_expect(!!ptr, 1))
+            return ptr;
+        if (_size)
+            crFatalError(-2, "malloc failed");
+        free(ptr);
+        return NULL;
+    }
+};
+
 /// typed realloc with result check (size is counted in T), fatal error if failed
-template <typename T> inline T * cr_realloc( T * ptr, size_t newSize ) {
-    T * newptr = reinterpret_cast<T*>(realloc(ptr, sizeof(T)*newSize));
-    if ( newptr )
+template <typename T> inline T *cr_realloc(T *ptr, size_t newsize, bool preserve=true) {
+    T *newptr;
+    if (preserve) {
+        newptr = reinterpret_cast<T *>(realloc(ptr, newsize * sizeof (T)));
+    } else {
+        free(ptr);
+        ptr = NULL;
+        newptr = reinterpret_cast<T *>(malloc(sizeof (T) * newsize));
+    }
+    if (__builtin_expect(!!newptr, 1))
         return newptr;
-    free(ptr); // to bypass cppcheck warning
-    crFatalError(-2, "realloc failed");
+    if (newsize)
+        crFatalError(-2, "realloc failed");
+    free(ptr);
+    free(newptr);
     return NULL;
 }
 
