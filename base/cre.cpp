@@ -473,10 +473,6 @@ static int newDocView(lua_State *L) {
 	lua_setmetatable(L, -2);
 
 	doc->text_view = new LVDocView(-1, true); // bitsPerPixel=-1, noDefaultDocument=true
-	//doc->text_view->setBackgroundColor(0xFFFFFF);
-	//doc->text_view->setTextColor(0x000000);
-	//doc->text_view->doCommand(DCMD_SET_DOC_FONTS, 1);
-	//doc->text_view->doCommand(DCMD_SET_INTERNAL_STYLES, 1);
 	doc->text_view->setViewMode(view_mode, -1);
 	doc->text_view->Resize(width, height);
 	doc->text_view->setPageHeaderInfo(PGHDR_AUTHOR|PGHDR_TITLE|PGHDR_PAGE_NUMBER|PGHDR_PAGE_COUNT|PGHDR_CHAPTER_MARKS|PGHDR_CLOCK);
@@ -1939,34 +1935,6 @@ static int getHeaderHeight(lua_State *L) {
 	lua_pushinteger(L, doc->text_view->getPageHeaderHeight());
 	return 1;
 }
-
-/*
-static int cursorRight(lua_State *L) {
-	//CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	//LVDocView *tv = doc->text_view;
-
-	//ldomXPointer p = tv->getCurrentPageMiddleParagraph();
-	//lString32 s = p.getText();
-	//lString32 s = p.toString();
-	//printf("~~~~~~~~~~%s\n", UnicodeToLocal(s).c_str());
-
-	//tv->selectRange(*(tv->selectFirstPageLink()));
-	//ldomXRange *r = tv->selectNextPageLink(true);
-	//lString32 s = r->getRangeText();
-	//printf("------%s\n", UnicodeToLocal(s).c_str());
-
-	//tv->selectRange(*r);
-	//tv->updateSelections();
-
-	//LVPageWordSelector sel(doc->text_view);
-	//doc->text_view->doCommand(DCMD_SELECT_FIRST_SENTENCE);
-	//sel.moveBy(DIR_RIGHT, 2);
-	//printf("---------------- %s\n", UnicodeToLocal(sel.getSelectedWord()->getText()).c_str());
-
-	return 0;
-}
-*/
 
 static int getLinkFromPosition(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
@@ -3902,28 +3870,6 @@ static int drawCurrentPage(lua_State *L) {
 	return 2;
 }
 
-/*
-static int drawCoverPage(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-	BlitBuffer *bb = (BlitBuffer*) lua_topointer(L, 2);
-
-	int w = bb->w,
-		h = bb->h;
-	// Set DrawBuf to 8bpp
-	LVGrayDrawBuf drawBuf(w, h, 8, bb->data);
-
-	LVImageSourceRef cover = doc->text_view->getCoverPageImage();
-	if (!cover.isNull())
-		printf("cover size:%d,%d\n", cover->GetWidth(), cover->GetHeight());
-	else
-		printf("cover page is null.\n");
-	LVDrawBookCover(drawBuf, cover, true, lString8("Droid Sans Mono"),
-			lString32("test"), lString32("test"), lString32("test"), 0);
-
-	return 0;
-}
-*/
-
 static int getCoverPageImageData(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 
@@ -4493,10 +4439,7 @@ static const struct luaL_Reg credocument_meth[] = {
     {"gotoPos", gotoPos},
     {"gotoXPointer", gotoXPointer},
     {"zoomFont", zoomFont},
-    //{"cursorLeft", cursorLeft},
-    //{"cursorRight", cursorRight},
     {"drawCurrentPage", drawCurrentPage},
-    //{"drawCoverPage", drawCoverPage},
     {"findText", findText},
     {"findAllText", findAllText},
     {"isXPointerInCurrentPage", isXPointerInCurrentPage},
