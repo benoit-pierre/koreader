@@ -7946,7 +7946,6 @@ public:
         // the new doc fragment to existing entries without reloading the font data.
         if (docFragmentIdx >= 0 && _registry.addDocFragmentToFacesForFile(name8, documentId, docFragmentIdx))
             return true;
-        name.trim(); // Remove any " " appended to avoid url override with duplicates
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
         if (stream.isNull()) // Try again in case it is percent-encoded
             stream = container->OpenStream(DecodeHTMLUrlString(name).c_str(), LVOM_READ);
