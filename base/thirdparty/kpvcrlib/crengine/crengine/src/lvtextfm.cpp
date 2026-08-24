@@ -79,15 +79,14 @@
 
 formatted_line_t * lvtextAllocFormattedLine( )
 {
-    formatted_line_t * pline = (formatted_line_t *)calloc(1, sizeof(*pline));
-    return pline;
+    return cr_calloc();
 }
 
 formatted_line_t * lvtextAllocFormattedLineCopy( formatted_word_t * words, int word_count )
 {
-    formatted_line_t * pline = (formatted_line_t *)calloc(1, sizeof(*pline));
+    formatted_line_t * pline = cr_calloc();
     lUInt32 size = (word_count + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
-    pline->words = (formatted_word_t*)malloc( sizeof(formatted_word_t)*(size) );
+    pline->words = cr_alloc( size );
     memcpy( pline->words, words, word_count * sizeof(formatted_word_t) );
     return pline;
 }
@@ -134,7 +133,7 @@ formatted_line_t * lvtextAddFormattedLineCopy( formatted_text_fragment_t * pbuff
 
 embedded_float_t * lvtextAllocEmbeddedFloat( )
 {
-    embedded_float_t * flt = (embedded_float_t *)calloc(1, sizeof(*flt));
+    embedded_float_t * flt = cr_calloc();
     return flt;
 }
 
@@ -168,7 +167,7 @@ static void lvtextAddOversizedInlineBox( formatted_text_fragment_t * pbuffer, in
 
 formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
 {
-    formatted_text_fragment_t * pbuffer = (formatted_text_fragment_t*)calloc(1, sizeof(*pbuffer));
+    formatted_text_fragment_t * pbuffer = cr_calloc();
     pbuffer->width = width;
     pbuffer->strut_height = 0;
     pbuffer->strut_baseline = 0;
