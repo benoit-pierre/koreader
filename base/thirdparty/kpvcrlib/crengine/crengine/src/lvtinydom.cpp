@@ -9654,7 +9654,7 @@ ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
 }
 
 
-bool FindNextNode( ldomNode * & node, ldomNode * root )
+static bool FindNextNode( ldomNode * & node, ldomNode * root )
 {
     if ( node->getChildCount()>0 ) {
         // first child
