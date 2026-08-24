@@ -187,7 +187,6 @@ else ifeq ($(TARGET), macos)
 	DARWIN = 1
 else ifneq (,$(filter android android-arm android-arm64 android-x86 android-x86_64,$(TARGET)))
   ANDROID=1
-  MONOLIBTIC?=1
   export PATH:=$(ANDROID_TOOLCHAIN)/bin:$(PATH)
   ifneq ($(TARGET), android)
     export ANDROID_ARCH := $(TARGET:android-%=%)
@@ -262,6 +261,8 @@ else ifndef TARGET
 else
   $(error Invalid TARGET: "$(TARGET)")
 endif
+
+MONOLIBTIC ?= $(if $(DARWIN)$(KODEBUG),0,1)
 
 ifdef DARWIN
   USE_CLANG = 1
