@@ -18,12 +18,14 @@
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
 
+#include <stdint.h>
+
 typedef struct {
-   unsigned short indx; /* index into big table */
-   unsigned short used; /* bitmask of used entries */
+   uint16_t indx; /* index into big table */
+   uint16_t used; /* bitmask of used entries */
 } Summary16;
 
-typedef unsigned int ucs4_t;
+typedef uint32_t ucs4_t;
 #if GBK_ENCODING_SUPPORT == 1
 #include "../include/encodings/gbkext1.h"
 #include "../include/encodings/gbkext2.h"
