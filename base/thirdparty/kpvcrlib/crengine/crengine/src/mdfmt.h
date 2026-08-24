@@ -21,7 +21,7 @@
 #ifndef __MDFMT_H_INCLUDED__
 #define __MDFMT_H_INCLUDED__
 
-#include <crsetup.h>
+#include "crsetup.h"
 
 #if (USE_MD4C == 1)
 

@@ -3,6 +3,8 @@
 
 #include "crsetup.h"
 
+#include <stddef.h>
+
 /// auto pointer
 template <class T >
 class LVAutoPtr {

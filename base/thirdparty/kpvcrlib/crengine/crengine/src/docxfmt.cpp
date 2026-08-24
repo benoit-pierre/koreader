@@ -1,10 +1,14 @@
 #include "crsetup.h"
+#include "docxfmt.h"
 
-#include "../include/docxfmt.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/lvopc.h"
+#include "cssdef.h"
+#include "lvopc.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
 #include "odxutil.h"
+
+#include <stddef.h>
 
 #define DOCX_TAG_NAME(itm) docx_el_##itm##_name
 #define DOCX_TAG_ID(itm) docx_el_##itm

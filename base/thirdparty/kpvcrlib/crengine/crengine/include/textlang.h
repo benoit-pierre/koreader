@@ -3,21 +3,22 @@
 
 #include "crsetup.h"
 
+#include "cssdef.h"
+#include "hyphman.h"
+#include "lvptrvec.h"
+#include "lvstring.h"
+
 #if USE_HARFBUZZ==1
-#include <hb.h>
-#include <hb-ft.h>
+# include <hb.h>
 #endif
 
 #if USE_LIBUNIBREAK==1
-    #ifdef __cplusplus
-    extern "C" {
-    #endif
-#include <linebreak.h>
+extern "C" {
 #include <linebreakdef.h>
-    #ifdef __cplusplus
-    }
-    #endif
+}
 #endif
+
+#include <stddef.h>
 
 // Be similar to HyphMan default state with "English_US.pattern"
 #define TEXTLANG_DEFAULT_MAIN_LANG              "en"   // for LVDocView
@@ -165,6 +166,8 @@ inline cjk_type_t getCJKCharType( lChar32 ch ) {
     return cjk_type;
 }
 
+
+struct ldomNode;
 
 class TextLangCfg;
 

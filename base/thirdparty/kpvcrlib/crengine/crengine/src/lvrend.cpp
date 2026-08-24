@@ -12,14 +12,32 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvrend.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include "../include/lvtextfm.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/lvrend.h"
-#include "../include/renderutil.h"
+#include "bookformats.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvdrawbuf.h"
+#include "lvfnt.h"
+#include "lvfntman.h"
+#include "lvimg.h"
+#include "lvmemman.h"
+#include "lvpagesplitter.h"
+#include "lvstream.h"
+#include "lvstsheet.h"
+#include "lvstyles.h"
+#include "lvtextfm.h"
+#include "lvtinydom.h"
+#include "mathml.h"
+#include "renderutil.h"
+#include "textlang.h"
+
+#if USE_LIBUNIBREAK==1
+#include <linebreak.h>
+#endif
+
+#include <stddef.h>
+#include <stdio.h>
 
 // Note about box model/sizing in crengine:
 // https://quirksmode.org/css/user-interface/boxsizing.html says:

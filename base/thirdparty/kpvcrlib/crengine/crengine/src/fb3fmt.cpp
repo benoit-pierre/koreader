@@ -1,8 +1,12 @@
 #include "crsetup.h"
+#include "fb3fmt.h"
 
-#include "../include/fb3fmt.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
+#include "lvopc.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+
+#include <stddef.h>
 
 static const lChar32 * const fb3_BodyContentType = U"application/fb3-body+xml";
 static const lChar32 * const fb3_DescriptionContentType = U"application/fb3-description+xml";

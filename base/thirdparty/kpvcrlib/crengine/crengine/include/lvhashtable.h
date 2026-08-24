@@ -15,9 +15,9 @@
 
 #include "crsetup.h"
 
-#include <stdlib.h>
-#include <string.h>
 #include "lvtypes.h"
+
+#include <string.h>
 
 inline lUInt32 getHash( lUInt16 n )
 {

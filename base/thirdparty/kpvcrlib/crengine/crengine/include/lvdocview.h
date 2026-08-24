@@ -14,14 +14,24 @@
 #define __LV_TEXT_VIEW_H_INCLUDED__
 
 #include "crsetup.h"
-#include "lvtypes.h"
-#include "lvplatform.h"
-#include "lvtinydom.h"
-#include "lvpagesplitter.h"
-#include "lvdrawbuf.h"
+
+#include "bookformats.h"
 #include "hist.h"
-#include "lvthread.h"
+#include "lvarray.h"
 #include "lvdocviewprops.h"
+#include "lvdrawbuf.h"
+#include "lvfntman.h"
+#include "lvimg.h"
+#include "lvpagesplitter.h"
+#include "lvptrvec.h"
+#include "lvref.h"
+#include "lvstream.h"
+#include "lvstring.h"
+#include "lvthread.h"
+#include "lvtinydom.h"
+#include "props.h"
+
+#include <stddef.h>
 
 
 const lChar32 * getDocFormatName( doc_format_t fmt );
@@ -260,8 +270,8 @@ private:
     lUInt32 m_backgroundColor;
     lUInt32 m_textColor;
     lUInt32 m_statusColor;
-    font_ref_t     m_font;
-    font_ref_t     m_infoFont;
+    LVFontRef      m_font;
+    LVFontRef      m_infoFont;
     LVFontRef      m_batteryFont;
     LVContainerRef m_container;
     LVStreamRef    m_stream;
@@ -607,9 +617,9 @@ public:
     /// set page header info mask
     void setPageHeaderInfo( int hdrFlags );
     /// get info line font
-    font_ref_t getInfoFont() { return m_infoFont; }
+    LVFontRef getInfoFont() { return m_infoFont; }
     /// set info line font
-    void setInfoFont( font_ref_t font ) { m_infoFont = font; }
+    void setInfoFont( LVFontRef font ) { m_infoFont = font; }
     /// draw page header to buffer
     virtual void drawPageHeader( LVDrawBuf * drawBuf, const lvRect & headerRc, int pageIndex, int headerInfoFlags, int pageCount );
     /// draw battery state to buffer

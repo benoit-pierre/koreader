@@ -18,6 +18,8 @@
 
 #include "lvtypes.h"
 
+#include <stdlib.h>
+
 #define CR_FATAL_ERROR_UNKNOWN             -1
 #define CR_FATAL_ERROR_INDEX_OUT_OF_BOUND   1
 

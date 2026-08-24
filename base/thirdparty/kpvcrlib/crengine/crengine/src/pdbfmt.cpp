@@ -1,7 +1,23 @@
 #include "crsetup.h"
+#include "pdbfmt.h"
 
-#include "../include/pdbfmt.h"
+#include "bookformats.h"
+#include "crtxtenc.h"
+#include "lvmemman.h"
+#include "lvptrvec.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+#include "props.h"
+
+// Same as lvtinydom...
+#include <zlib.h>
+#define UNPACK_BUF_SIZE 0x40000
+
 #include <ctype.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 // uncomment following line to save PDB content streams to /tmp
 //#define DUMP_PDB_CONTENTS

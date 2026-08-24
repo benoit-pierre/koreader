@@ -5,7 +5,11 @@
 
 #if ENABLE_ANTIWORD==1
 
-#include "lvtinydom.h"
+#include "lvstream.h"
+
+class CacheLoadingCallback;
+class LVDocViewCallback;
+class ldomDocument;
 
 // MS WORD format support using AntiWord library
 bool DetectWordFormat( LVStreamRef stream );

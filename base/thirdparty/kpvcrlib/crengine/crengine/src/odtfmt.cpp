@@ -1,10 +1,15 @@
 #include "crsetup.h"
+#include "odtfmt.h"
 
-#include "../include/odtfmt.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/lvopc.h"
+#include "cssdef.h"
+#include "lvpagesplitter.h"
+#include "lvtinydom.h"
+#include "lvstream.h"
+#include "lvxml.h"
 #include "odxutil.h"
+#include "props.h"
+
+#include <stddef.h>
 
 // If you add new element - update odt_elements_mapping table below
 #define ODT_TAGS \

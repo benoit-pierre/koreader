@@ -1,7 +1,12 @@
 #include "crsetup.h"
-
-#include "../include/fb2def.h"
 #include "odxutil.h"
+
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+
+#include <stddef.h>
 
 ldomNode * docXMLreader::OnTagOpen( const lChar32 * nsname, const lChar32 * tagname)
 {
