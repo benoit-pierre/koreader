@@ -48,137 +48,6 @@ typedef enum {
 #define CR_BATTERY_STATE_CHARGING -1
 // values 0..100 -- battery life percent
 
-#ifndef CR_ENABLE_PAGE_IMAGE_CACHE
-#ifdef ANDROID
-#define CR_ENABLE_PAGE_IMAGE_CACHE 0
-#else
-#define CR_ENABLE_PAGE_IMAGE_CACHE 1
-#endif
-#endif//#ifndef CR_ENABLE_PAGE_IMAGE_CACHE
-
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-/// Page imege holder which allows to unlock mutex after destruction
-class LVDocImageHolder
-{
-private:
-    LVRef<LVDrawBuf> _drawbuf;
-    LVMutex & _mutex;
-	LVDocImageHolder & operator = (LVDocImageHolder&) {
-		// no assignment
-        return *this;
-    }
-public:
-    LVDrawBuf * getDrawBuf() { return _drawbuf.get(); }
-    LVRef<LVDrawBuf> getDrawBufRef() { return _drawbuf; }
-    LVDocImageHolder( LVRef<LVDrawBuf> drawbuf, LVMutex & mutex )
-    : _drawbuf(drawbuf), _mutex(mutex)
-    {
-    }
-    ~LVDocImageHolder()
-    {
-        _drawbuf = NULL;
-        _mutex.unlock();
-    }
-};
-
-typedef LVRef<LVDocImageHolder> LVDocImageRef;
-
-/// page image cache
-class LVDocViewImageCache
-{
-    private:
-        LVMutex _mutex;
-        class Item {
-            public:
-                LVRef<LVDrawBuf> _drawbuf;
-                LVRef<LVThread> _thread;
-                int _offset;
-                int _page;
-                bool _ready;
-                bool _valid;
-        };
-        Item _items[2];
-        int _last;
-    public:
-        /// return mutex
-        LVMutex & getMutex() { return _mutex; }
-        /// set page to cache
-        void set( int offset, int page, LVRef<LVDrawBuf> drawbuf, LVRef<LVThread> thread )
-        {
-            LVLock lock( _mutex );
-            _last = (_last + 1) & 1;
-            _items[_last]._ready = false;
-            _items[_last]._thread = thread;
-            _items[_last]._drawbuf = drawbuf;
-            _items[_last]._offset = offset;
-            _items[_last]._page = page;
-            _items[_last]._valid = true;
-        }
-        /// return page image, wait until ready
-        LVRef<LVDrawBuf> getWithoutLock( int offset, int page )
-        {
-            for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid &&
-                     ( (_items[i]._offset == offset && offset!=-1)
-                      || (_items[i]._page==page && page!=-1)) ) {
-                    if ( !_items[i]._ready ) {
-                        _items[i]._thread->join();
-                        _items[i]._thread = NULL;
-                        _items[i]._ready = true;
-                    }
-                    _last = i;
-                    return _items[i]._drawbuf;
-                }
-            }
-            return LVRef<LVDrawBuf>();
-        }
-        /// return page image, wait until ready
-        LVDocImageRef get( int offset, int page )
-        {
-            _mutex.lock();
-            LVRef<LVDrawBuf> buf = getWithoutLock( offset, page );
-            if ( !buf.isNull() )
-                return LVDocImageRef( new LVDocImageHolder(getWithoutLock( offset, page ), _mutex) );
-            return LVDocImageRef( NULL );
-        }
-        bool has( int offset, int page )
-        {
-            _mutex.lock();
-            for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid && ( (_items[i]._offset == offset && offset!=-1)
-                      || (_items[i]._page==page && page!=-1)) ) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        void clear()
-        {
-            LVLock lock( _mutex );
-            for ( int i=0; i<2; i++ ) {
-                if ( _items[i]._valid && !_items[i]._ready ) {
-                    _items[i]._thread->join();
-                }
-                _items[i]._thread.Clear();
-                _items[i]._valid = false;
-                _items[i]._drawbuf.Clear();
-                _items[i]._offset = -1;
-                _items[i]._page = -1;
-            }
-        }
-        LVDocViewImageCache()
-        : _last(0)
-        {
-            for ( int i=0; i<2; i++ )
-                _items[i]._valid = false;
-        }
-        ~LVDocViewImageCache()
-        {
-            clear();
-        }
-};
-#endif
-
 /// document view mode: pages/scroll
 enum LVDocViewMode
 {
@@ -325,10 +194,6 @@ private:
     bool m_section_bounds_externally_updated;
 
     LVMutex _mutex;
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-    LVDocViewImageCache m_imageCache;
-#endif
-
 
     lString8 m_defaultFontFace;
 	lString8 m_statusFontFace;
@@ -503,14 +368,6 @@ public:
     void requestRender();
     /// invalidate image cache, request redraw
     void clearImageCache();
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-    /// get page image (0=current, -1=prev, 1=next)
-    LVDocImageRef getPageImage( int delta );
-    /// returns true if current page image is ready
-    bool IsDrawed();
-    /// cache page image (render in background if necessary) (0=current, -1=prev, 1=next)
-    void cachePageImage( int delta );
-#endif
     /// return view mutex
     LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
