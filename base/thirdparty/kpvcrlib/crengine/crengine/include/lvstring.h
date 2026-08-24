@@ -801,10 +801,6 @@ public:
     lString32 substr(size_type pos) const { return substr(pos, length()-pos); }
     /// replaces first found occurence of pattern
     bool replace(const lString32 & findStr, const lString32 & replaceStr);
-    /// replaces first found occurence of "$N" pattern with string, where N=index
-    bool replaceParam(int index, const lString32 & replaceStr);
-    /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
-    bool replaceIntParam(int index, int replaceNumber);
 
     /// find position of char inside string, -1 if not found
     int pos(lChar32 ch) const;
@@ -1262,80 +1258,6 @@ template<typename... Args> inline lString32 concat32(Args... args) {
     return str;
 }
 
-/// fast 32-bit string character appender
-template <int BUFSIZE> class lStringBuf32 {
-    lString32 & str;
-    lChar32 buf[BUFSIZE];
-    int pos;
-	lStringBuf32 & operator = (const lStringBuf32 & v)
-	{
-        CR_UNUSED(v);
-		// not available
-		return *this;
-	}
-public:
-    lStringBuf32( lString32 & s )
-    : str(s), pos(0)
-    {
-    }
-    inline void append( lChar32 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-    }
-    inline lStringBuf32& operator << ( lChar32 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-        return *this;
-    }
-    inline void flush()
-    {
-        str.append( buf, pos );
-        pos = 0;
-    }
-    ~lStringBuf32( )
-    {
-        flush();
-    }
-};
-
-/// fast 8-bit string character appender
-template <int BUFSIZE> class lStringBuf8 {
-    lString8 & str;
-    lChar8 buf[BUFSIZE];
-    int pos;
-public:
-    lStringBuf8( lString8 & s )
-    : str(s), pos(0)
-    {
-    }
-    inline void append( lChar8 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-    }
-    inline lStringBuf8& operator << ( lChar8 ch )
-    {
-        buf[ pos++ ] = ch;
-        if ( pos==BUFSIZE )
-            flush();
-        return *this;
-    }
-    inline void flush()
-    {
-        str.append( buf, pos );
-        pos = 0;
-    }
-    ~lStringBuf8( )
-    {
-        flush();
-    }
-};
-
 lString8  UnicodeToTranslit( const lString32 & str );
 /// converts wide unicode string to local 8-bit encoding
 lString8  UnicodeToLocal( const lString32 & str );
@@ -1343,8 +1265,6 @@ lString8  UnicodeToLocal( const lString32 & str );
 lString8  UnicodeToUtf8( const lString32 & str );
 /// converts wide unicode string to utf-8 string
 lString8 UnicodeToUtf8(const lChar32 * s, int count);
-/// converts unicode string to 8-bit string using specified conversion table
-lString8  UnicodeTo8Bit( const lString32 & str, const lChar8 * * table );
 /// converts 8-bit string to unicode string using specified conversion table for upper 128 characters
 lString32 ByteToUnicode( const lString8 & str, const lChar32 * table );
 /// converts 8-bit string in local encoding to wide unicode string
@@ -1359,8 +1279,6 @@ lString32 Utf8ToUnicode( const char * s, int sz );
 void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar32 * dst, int &dstlen);
 /// decodes path like "file%20name" to "file name"
 lString32 DecodeHTMLUrlString( lString32 s );
-/// truncates string by specified size, appends ... if truncated, prefers to wrap whole words
-void limitStringSize(lString32 & str, int maxSize);
 
 int TrimDoubleSpaces(lChar32 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens);
 
@@ -1369,7 +1287,6 @@ lString32 removeSoftHyphens( lString32 s );
 
 
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
-bool splitIntegerList( lString32 s, lString32 delim, int & value1, int & value2 );
 
 /// serialization/deserialization buffer
 class SerialBuf
@@ -1521,41 +1438,9 @@ protected:
     static CRLog * CRLOG;
 };
 
-
 void free_ls_storage();
 
 lUInt64 GetCurrentTimeMillis();
 void CRReinitTimer();
 
-
-
-#ifdef _DEBUG
-#include <stdio.h>
-class DumpFile
-{
-public:
-    FILE * f;
-    DumpFile( const char * fname )
-    : f(NULL)
-    {
-        if ( fname )
-            f = fopen( fname, "at" STDIO_CLOEXEC );
-        if ( !f )
-            f = stdout;
-        fprintf(f, "DumpFile log started\n");
-    }
-    ~DumpFile()
-    {
-        if ( f!=stdout )
-            fclose(f);
-    }
-    operator FILE * () { if (f) fflush(f); return f?f:stdout; }
-};
 #endif
-
-#endif
-
-
-
-
-
