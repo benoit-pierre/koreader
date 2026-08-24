@@ -5606,16 +5606,6 @@ bool ldomDocument::render( LVRendPageList * pages, LVDocViewCallback * callback,
 //    } //bool propsChanged =
     setRenderProps( width, dy, showCover, y0, def_font, def_interline_space, props );
 
-    // update styles
-//    if ( getRootNode()->getStyle().isNull() || getRootNode()->getFont().isNull()
-//        || _docFlags != _hdr.render_docflags
-//        || width!=_hdr.render_dx || dy!=_hdr.render_dy || defStyleHash!=_hdr.stylesheet_hash ) {
-//        CRLog::trace("init format data...");
-//        getRootNode()->recurseElements( initFormatData );
-//    } else {
-//        CRLog::trace("reusing existing format data...");
-//    }
-
     if ( !_rendered ) {
         // We have loaded the document and applied styles: drop this cache
         _styleSheetCache.clear();
