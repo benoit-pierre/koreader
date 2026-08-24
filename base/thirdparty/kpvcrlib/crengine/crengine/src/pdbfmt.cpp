@@ -775,7 +775,7 @@ private:
     CRPropRef m_doc_props;
 
     // c.f., lvtinydom.cpp's legacy ldomUnpack
-    bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
+    static bool zlibUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &dstbuf, lUInt32 & dstsize  )
     {
         lUInt8 tmp[UNPACK_BUF_SIZE]; // 256K buffer for uncompressed data
         int ret;
