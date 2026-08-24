@@ -819,24 +819,6 @@ LVStreamRef LVOpenFileStream( const lChar32 * pathname, int mode );
 */
 LVStreamRef LVOpenFileStream( const lChar8 * pathname, int mode );
 
-/// Open memory mapped file
-/**
-    \param pathname is file name to open (unicode)
-    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
-	\param minSize is minimum file size for R/W mode
-    \return reference to opened stream if success, NULL if error
-*/
-LVStreamRef LVMapFileStream( const lChar32 * pathname, lvopen_mode_t mode, lvsize_t minSize );
-
-/// Open memory mapped file
-/**
-    \param pathname is file name to open (unicode)
-    \param mode is mode file should be opened in (LVOM_READ or LVOM_APPEND only)
-	\param minSize is minimum file size for R/W mode
-    \return reference to opened stream if success, NULL if error
-*/
-LVStreamRef LVMapFileStream( const lChar8 * pathname, lvopen_mode_t mode, lvsize_t minSize );
-
 
 /// Open archieve from stream
 /**
@@ -918,10 +900,6 @@ lString32 LVExtractFilenameWithoutExtension( lString32 pathName );
 void LVAppendPathDelimiter( lString32 & pathName );
 /// appends path delimiter character to end of path, if absent
 void LVAppendPathDelimiter( lString8 & pathName );
-/// removes path delimiter from end of path, if present
-void LVRemoveLastPathDelimiter( lString8 & pathName );
-/// removes path delimiter from end of path, if present
-void LVRemoveLastPathDelimiter( lString32 & pathName );
 /// replaces any found / or \\ separator with specified one
 void LVReplacePathSeparator( lString32 & pathName, lChar32 separator );
 /// removes path delimiter character from end of path, if exists
@@ -952,8 +930,6 @@ bool LVFileExists( const lString8 & pathName );
 bool LVDirectoryExists( const lString32 & pathName );
 /// returns true if specified directory exists
 bool LVDirectoryExists( const lString8 & pathName );
-/// returns true if directory exists and your app can write to directory
-bool LVDirectoryIsWritable(const lString32 & pathName);
 
 
 /// factory to handle filesystem access for paths started with ASSET_PATH_PREFIX (@ sign)
