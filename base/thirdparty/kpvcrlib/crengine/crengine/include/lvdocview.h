@@ -347,7 +347,6 @@ private:
 
     lString8 m_defaultFontFace;
 	lString8 m_statusFontFace;
-    ldomNavigationHistory _navigationHistory;
 
     doc_format_t m_doc_format;
 
@@ -394,8 +393,6 @@ protected:
     int getNextPageOffset();
     /// returns document offset for previous page
     int getPrevPageOffset();
-    /// selects link on page, if any (delta==0 - current, 1-next, -1-previous). returns selected link range, null if no links.
-    virtual ldomXRange * selectPageLink( int delta, bool wrapAround);
     /// create document and set flags
     void createEmptyDocument();
     /// get document rectangle for specified cursor position, returns false if not visible
@@ -450,12 +447,6 @@ public:
     ldomXPointer getCurrentPageMiddleParagraph();
     /// render document, if not rendered
     void checkRender();
-    /// saves current position to navigation history, to be able return back
-    bool savePosToNavigationHistory();
-    /// saves position to navigation history, to be able return back
-    bool savePosToNavigationHistory(lString32 path);
-    /// navigate to history path URL
-    bool navigateTo( lString32 historyPath );
     /// packs current file path and name
     lString32 getNavigationPath();
     /// returns pointer to bookmark/last position containter of currently opened file
@@ -516,32 +507,8 @@ public:
     /// clears selection
     virtual void clearSelection();
 
-
-    /// navigation history
-    ldomNavigationHistory & getNavigationHistory() { return _navigationHistory; }
     /// get list of links
     virtual void getCurrentPageLinks( ldomXRangeList & list );
-    /// selects first link on page, if any. returns selected link range, null if no links.
-    virtual ldomXRange * selectFirstPageLink();
-    /// selects next link on page, if any. returns selected link range, null if no links.
-    virtual ldomXRange * selectNextPageLink( bool wrapAround);
-    /// selects previous link on page, if any. returns selected link range, null if no links.
-    virtual ldomXRange * selectPrevPageLink( bool wrapAround );
-    /// returns selected link on page, if any. null if no links.
-    virtual ldomXRange * getCurrentPageSelectedLink();
-    /// follow link, returns true if navigation was successful
-    virtual bool goLink( lString32 href, bool savePos=true );
-    /// follow selected link, returns true if navigation was successful
-    virtual bool goSelectedLink();
-    /// go back. returns true if navigation was successful
-    virtual bool goBack();
-    /// go forward. returns true if navigation was successful
-    virtual bool goForward();
-    /// check if navigation forward is possible
-    virtual bool canGoBack();
-    /// check if navigation back is possible
-    virtual bool canGoForward();
-
 
     /// create empty document with specified message (e.g. to show errors)
     virtual void createDefaultDocument( lString32 title, lString32 message );
