@@ -334,7 +334,7 @@ inline bool lStr_isRTL( lChar32 c ) {
 }
 
 // must be power of 2
-#define CONST_STRING_BUFFER_SIZE 4096
+#define CONST_STRING_BUFFER_SIZE 32
 #define CONST_STRING_BUFFER_MASK (CONST_STRING_BUFFER_SIZE - 1)
 #define CONST_STRING_BUFFER_HASH_MULT 31
 
