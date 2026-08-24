@@ -4970,9 +4970,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->setHexDef(PROP_BACKGROUND_COLOR, 0xFFFFFF);
 	props->setHexDef(PROP_STATUS_FONT_COLOR, 0xFF000000);
 //	props->setIntDef(PROP_TXT_OPTION_PREFORMATTED, 0);
-	props->setIntDef(PROP_AUTOSAVE_BOOKMARKS, 1);
-	props->setIntDef(PROP_DISPLAY_FULL_UPDATE_INTERVAL, 1);
-	props->setIntDef(PROP_DISPLAY_TURBO_UPDATE_MODE, 0);
 
 	lString8 defFontFace;
 	// static const char * goodFonts[] = { "DejaVu Sans", "FreeSans", "Liberation Sans", "Arial", "Verdana", NULL };
@@ -5031,7 +5028,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
 	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
-	props->limitValueList(PROP_BOOKMARK_ICONS, bool_options_def_false, 2);
 	// props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
@@ -5048,8 +5044,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_PAGE_MARGIN_BOTTOM, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_LEFT, def_margin, sizeof(def_margin)/sizeof(int));
 	props->limitValueList(PROP_PAGE_MARGIN_RIGHT, def_margin, sizeof(def_margin)/sizeof(int));
-	static int def_updates[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8, 10, 14 };
-	props->limitValueList(PROP_DISPLAY_FULL_UPDATE_INTERVAL, def_updates, 11);
 	int fs = props->getIntDef(PROP_STATUS_FONT_SIZE, INFO_FONT_SIZE);
     if (fs < MIN_STATUS_FONT_SIZE)
         fs = MIN_STATUS_FONT_SIZE;
@@ -5137,8 +5131,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
     props->setIntDef(PROP_RENDER_DPI, DEF_RENDER_DPI); // 96 dpi
     props->setIntDef(PROP_RENDER_SCALE_FONT_WITH_DPI, DEF_RENDER_SCALE_FONT_WITH_DPI); // no scale
     props->setIntDef(PROP_RENDER_BLOCK_RENDERING_FLAGS, DEF_RENDER_BLOCK_RENDERING_FLAGS);
-
-    props->setIntDef(PROP_FILE_PROPS_FONT_SIZE, 22);
 
     for (int i=0; def_style_macros[i*2]; i++)
         props->setStringDef(def_style_macros[i * 2], def_style_macros[i * 2 + 1]);
@@ -5348,8 +5340,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                           m_props->getBoolDef(PROP_SHOW_PAGE_NUMBER, true),
                           m_props->getBoolDef(PROP_SHOW_PAGE_COUNT, true)
                           );
-            //} else if ( name==PROP_BOOKMARK_ICONS ) {
-            //    enableBookmarkIcons( value==U"1" );
         } else if (name == PROP_FONT_SIZE) {
 #if USE_LIMITED_FONT_SIZES_SET
             int fontSize = props->getIntDef(PROP_FONT_SIZE, m_font_sizes[0]);
