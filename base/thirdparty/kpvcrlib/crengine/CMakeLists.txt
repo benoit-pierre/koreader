@@ -22,6 +22,60 @@ set(CRE_CSS
     cr3gui/data/fb2.css
 )
 file(GLOB CRE_HYPH_PATS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} cr3gui/data/hyph/*.pattern)
+set(CRE_LINT_HDRS
+    crengine/include/bookformats.h
+    crengine/include/chmfmt.h
+    crengine/include/cp_stats.h
+    crengine/include/crlocks.h
+    crengine/include/crtrace.h
+    crengine/include/crtxtenc.h
+    crengine/include/cssdef.h
+    crengine/include/docxfmt.h
+    crengine/include/dtddef.h
+    crengine/include/epubfmt.h
+    crengine/include/fb2def.h
+    crengine/include/fb3fmt.h
+    crengine/include/gammatbl.h
+    crengine/include/hist.h
+    crengine/include/hyphman.h
+    crengine/include/lstridmap.h
+    crengine/include/lvarray.h
+    crengine/include/lvautoptr.h
+    crengine/include/lvdocview.h
+    crengine/include/lvdocviewprops.h
+    crengine/include/lvdrawbuf.h
+    crengine/include/lvfnt.h
+    crengine/include/lvfntman.h
+    crengine/include/lvhashtable.h
+    crengine/include/lvimg.h
+    crengine/include/lvmemman.h
+    crengine/include/lvopc.h
+    crengine/include/lvpagesplitter.h
+    crengine/include/lvplatform.h
+    crengine/include/lvptrvec.h
+    crengine/include/lvref.h
+    crengine/include/lvrefcache.h
+    crengine/include/lvrend.h
+    crengine/include/lvstream.h
+    crengine/include/lvstring.h
+    crengine/include/lvstsheet.h
+    crengine/include/lvstyles.h
+    crengine/include/lvtextfm.h
+    crengine/include/lvthread.h
+    crengine/include/lvtinydom.h
+    crengine/include/lvtypes.h
+    crengine/include/lvxml.h
+    crengine/include/mathml.h
+    crengine/include/odtfmt.h
+    crengine/include/pdbfmt.h
+    crengine/include/props.h
+    crengine/include/renderutil.h
+    crengine/include/rtfimp.h
+    crengine/include/textlang.h
+    crengine/include/wordfmt.h
+    crengine/src/mdfmt.h
+    crengine/src/odxutil.h
+)
 set(CRE_LIBS)
 set(CRE_SRCS
     crengine/qimagescale/qimagescale.cpp
@@ -84,6 +138,8 @@ function(add_lint_targets F COMPONENT)
         add_cppcheck_target(${F} ${COMPONENT})
     elseif(F MATCHES [[\.css$]])
         add_stylelint_target(${F} ${COMPONENT})
+    elseif(F MATCHES [[\.h$]])
+        add_clangtidy_target(${F} ${COMPONENT})
     elseif(F MATCHES [[\.pattern$]])
         add_xmllint_target(${F} ${COMPONENT})
     else()
@@ -301,7 +357,7 @@ target_link_libraries(crengine PRIVATE ${CRE_LIBS})
 
 # linting {{{
 
-foreach(F IN LISTS CRE_CSS CRE_HYPH_PATS CRE_SRCS)
+foreach(F IN LISTS CRE_CSS CRE_HYPH_PATS CRE_LINT_HDRS CRE_SRCS)
     add_lint_targets(${F} crengine)
 endforeach()
 
