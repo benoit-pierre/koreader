@@ -459,7 +459,6 @@ private:
     bool invert;
     bool smoothscale;
     lUInt8 * __restrict decoded;
-    bool isNinePatch;
 public:
     static int * __restrict GenMap( int src_len, int dst_len )
     {
@@ -467,41 +466,6 @@ public:
         for (int i=0; i<dst_len; i++)
         {
             map[ i ] = i * src_len / dst_len;
-        }
-        return map;
-    }
-    static int * __restrict GenNinePatchMap( int src_len, int dst_len, int frame1, int frame2)
-    {
-        int * __restrict map = new int[ dst_len ];
-        if (frame1 + frame2 > dst_len) {
-            const int total = frame1 + frame2;
-            const int extra = total - dst_len;
-            const int extra1 = frame1 * extra / total;
-            const int extra2 = frame2 * extra / total;
-            frame1 -= extra1;
-            frame2 -= extra2;
-        }
-        int srcm = src_len - frame1 - frame2 - 2;
-        const int dstm = dst_len - frame1 - frame2;
-        if (srcm < 0)
-            srcm = 0;
-        for (int i=0; i<dst_len; i++)
-        {
-            if (i < frame1) {
-                // start
-                map[ i ] = i + 1;
-            } else if (i >= dst_len - frame2) {
-                // end
-                const int rx = i - (dst_len - frame2);
-                map[ i ] = src_len - frame2 + rx - 1;
-            } else {
-                // middle
-                map[ i ] = 1 + frame1 + (i - frame1) * srcm / dstm;
-            }
-//            CRLog::trace("frame[%d, %d] src=%d dst=%d %d -> %d", frame1, frame2, src_len, dst_len, i, map[i]);
-//            if (map[i] >= src_len) {
-//                CRLog::error("Wrong coords");
-//            }
         }
         return map;
     }
@@ -516,28 +480,17 @@ public:
             src_dx = dst_dx;
             src_dy = dst_dy;
         }
-        const CR9PatchInfo * __restrict np = img->GetNinePatchInfo();
-        isNinePatch = false;
-        lvRect ninePatch;
-        if (np) {
-            isNinePatch = true;
-            ninePatch = np->frame;
-        }
         // If smoothscaling was requested, but no scaling was needed, disable the post-processing pass
         if (smoothscale && src_dx == dst_dx && src_dy == dst_dy) {
             smoothscale = false;
             //fprintf( stderr, "Disabling smoothscale because no scaling was needed (%dx%d -> %dx%d)\n", src_dx, src_dy, dst_dx, dst_dy );
         }
-        if ( src_dx != dst_dx || isNinePatch) {
-            if (isNinePatch)
-                xmap = GenNinePatchMap(src_dx, dst_dx, ninePatch.left, ninePatch.right);
-            else if (!smoothscale)
+        if ( src_dx != dst_dx) {
+            if (!smoothscale)
                 xmap = GenMap( src_dx, dst_dx );
         }
-        if ( src_dy != dst_dy || isNinePatch) {
-            if (isNinePatch)
-                ymap = GenNinePatchMap(src_dy, dst_dy, ninePatch.top, ninePatch.bottom);
-            else if (!smoothscale)
+        if ( src_dy != dst_dy ) {
+            if (!smoothscale)
                 ymap = GenMap( src_dy, dst_dy );
         }
         // If we have a smoothscale post-processing pass, we'll need to build a buffer of the *full* decoded image.
@@ -566,10 +519,6 @@ public:
     virtual bool OnLineDecoded( LVImageSource *, int y, lUInt32 * __restrict data )
     {
         //fprintf( stderr, "l_%d ", y );
-        if (isNinePatch) {
-            if (y == 0 || y == src_dy-1) // ignore first and last lines
-                return true;
-        }
         // Defer everything to the post-process pass for smooth scaling, we just have to store the line in our decoded buffer
         if (smoothscale) {
             //fprintf( stderr, "Smoothscale l_%d pass\n", y );
