@@ -236,7 +236,7 @@ public:
     void setLanguage(const lChar32 *lang);
     static lString32 getListStyleCss(css_list_style_type_t listType);
     static void startDocument(ldomDocumentWriter& writer);
-    void endDocument(ldomDocumentWriter& writer);
+    static void endDocument(ldomDocumentWriter& writer);
 };
 
 class odx_Style : public LVRefCounter
