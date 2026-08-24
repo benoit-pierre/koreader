@@ -615,12 +615,8 @@ function CreDocument:getWordFromPosition(pos, do_not_draw_selection)
     local wordbox = {
         page = self._document:getCurrentPage(),
     }
-    -- We use getTextFromPositions() which is more accurate.
-    -- In case some stuff is missing, we could fallback to use
-    -- the less accurate getWordFromPosition().
-    -- But it looks like getTextFromPositions() is just fine, and
-    -- when it fails, it's because there's no word at position.
-    -- So, we'll return nil below in case not all is found
+    -- We use getTextFromPositions(): when it fails, it's because there's no
+    -- word at position.  So, we'll return nil below in case not all is found
     local word_found = false
     local box_found = false
 
@@ -660,32 +656,6 @@ function CreDocument:getWordFromPosition(pos, do_not_draw_selection)
     else
         return nil
     end
-
-    -- If we ever want to fallback to getWordFromPositions()
-    --[[
-    local word = self._document:getWordFromPosition(pos.x, pos.y)
-    logger.warn("CreDocument: get word box", word)
-    if not word_found then
-        wordbox.word = word.word
-    end
-    if not box_found then
-        if word.word then
-            wordbox.sbox = Geom:new{
-                x = word.x0,
-                y = word.y0,
-                w = word.x1 - word.x0,
-                h = word.y1 - word.y0,
-            }
-        else
-            -- dummy box
-            wordbox.sbox = Geom:new{
-                x = pos.x, y = pos.y,
-                w = 20, h = 20,
-            }
-        end
-    end
-    return wordbox
-    ]]--
 end
 
 function CreDocument:getTextFromPositions(pos0, pos1, do_not_draw_selection)
