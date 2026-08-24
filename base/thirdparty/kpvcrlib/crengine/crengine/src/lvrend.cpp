@@ -7512,6 +7512,7 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFloatIds( ldomNode * node,  
         ldomNode * fbox = node->getDocument()->getTinyNode(floatIds[i]); // get node from its dataIndex
         if ( !fbox ) {
             crFatalError(145, "Missing saved float footprint node");
+            continue;
         }
         if ( fbox->getEffectiveNodeId() == el_inlineBox ) {
             int abs_x;
