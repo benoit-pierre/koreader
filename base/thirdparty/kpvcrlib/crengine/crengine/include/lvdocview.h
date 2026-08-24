@@ -21,7 +21,6 @@
 #include "lvdrawbuf.h"
 #include "hist.h"
 #include "lvthread.h"
-#include "lvdocviewcmd.h"
 #include "lvdocviewprops.h"
 
 
@@ -536,8 +535,6 @@ public:
     virtual void selectRanges(ldomXRangeList & ranges);
     /// clears selection
     virtual void clearSelection();
-    /// update selection -- command handler
-    int onSelectionCommand( int cmd, int param );
 
 
     /// navigation history
@@ -879,9 +876,6 @@ public:
     int getPosPercent();
     /// returns position in 1/100 of percents (0..10000)
     int getPosEndPagePercent();
-
-    /// execute command
-    int doCommand( LVDocCmd cmd, int param=0 );
 
     /// set document stylesheet text
     void setStyleSheet( lString8 css_text, bool use_macros=true );
