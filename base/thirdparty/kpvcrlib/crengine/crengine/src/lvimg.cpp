@@ -2036,6 +2036,9 @@ static void lunasvgTextToPathsHelper(lunasvg::external_context_t * xcontext, con
         font_family << node->getFont()->getTypeFace().c_str();
     }
 
+    // Find the containing docFragmentIdx so @font-face declarations are scoped correctly.
+    int docFragmentIdx = (docId != -1 && node) ? node->getDocFragmentIdx() : -1;
+
     // We may get very small or very large font size from SVG, so work with a normal font
     // size that crengine will accept, and scale the coordinates we'll get.
     int font_size = 64;
@@ -2043,7 +2046,7 @@ static void lunasvgTextToPathsHelper(lunasvg::external_context_t * xcontext, con
     LunaSVGGlyphsCollector collector(scale, callback);
 
     LVFontRef font = fontMan->GetFont(font_size, font_spec->weight, font_spec->italic, css_ff_sans_serif,
-                                        font_family, font_spec->features, docId, true);
+                                        font_family, font_spec->features, docId, true, NULL, docFragmentIdx);
 
     TextLangCfg * lang_cfg = NULL;
     if ( font_spec->lang )

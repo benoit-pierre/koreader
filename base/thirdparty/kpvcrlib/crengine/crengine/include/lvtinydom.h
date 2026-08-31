@@ -1312,6 +1312,12 @@ public:
     /// is node an image
     bool isImage() const;
 
+    /// walks up from this node to the nearest DocFragment ancestor and returns
+    /// its sibling index (its position among the root's children), or -1 if
+    /// no DocFragment ancestor is found (non-EPUB documents, or nodes above
+    /// the DocFragment level)
+    int getDocFragmentIdx() const;
+
     /// return real (as in the original HTML) parent/siblings by skipping any internal
     /// boxing element up or down (returns NULL when no more sibling)
     ldomNode * getUnboxedParent( lUInt16 exceptBoxingNodeId=0 ) const;
