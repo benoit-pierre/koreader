@@ -1,0 +1,37 @@
+name: Lint
+
+on:
+  workflow_call:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  lint:
+
+    name: Lint
+
+    runs-on: ubuntu-latest
+    container:
+      image: koreader/kobase:2.0.0-22.04
+
+    env:
+      BASH_ENV: '/home/ko/.bashrc'
+      CLICOLOR_FORCE: '1'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          clean: false
+          fetch-depth: 1
+          show-progress: false
+          submodules: true
+
+      - name: Lint
+        run: ./.ci/check.sh
+
+# vim: foldmethod=marker foldlevel=0
