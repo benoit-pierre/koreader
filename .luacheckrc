@@ -15,7 +15,6 @@ read_globals = {
 }
 
 exclude_files = {
-    "base/ffi/sha2.lua",
     "frontend/luxl.lua",
     "plugins/newsdownloader.koplugin/lib/handler.lua",
     "plugins/newsdownloader.koplugin/lib/LICENSE_LuaXML",
