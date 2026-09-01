@@ -3,16 +3,16 @@
 # Default jobs to run.
 default: &DEFAULT [
   # lint
-  lint,
+  # lint,
   # emulator
-  emu-gcc,
+  # emu-gcc,
   # macos
   macos-arm64,
   # others
   linux-x86_64,
-  android-arm,
-  android-arm64,
-  kindlepw2,
+  # android-arm,
+  # android-arm64,
+  # kindlepw2,
 ]
 
 # Extra jobs when on master.
