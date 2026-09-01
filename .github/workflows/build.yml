@@ -97,8 +97,8 @@ jobs:
       contains('skipped success', needs.emulator.result) &&
       contains('skipped success', needs.macos.result) &&
       contains('skipped success', needs.platform.result)
-    permissions:
-      contents: ${{ inputs.publish && 'write' || 'read' }}
+    # permissions:
+    #   contents: ${{ inputs.publish && 'write' || 'read' }}
     uses: ./.github/workflows/build.release.yml
 
 # vim: foldmethod=marker foldlevel=0
