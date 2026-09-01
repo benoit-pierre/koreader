@@ -29,6 +29,7 @@ jobs:
           clean: false
           fetch-depth: 1
           show-progress: false
+          submodules: true
 
       - name: Lint
         run: ./.ci/check.sh
