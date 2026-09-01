@@ -9,7 +9,8 @@ on:
   pull_request:
   schedule:
     # Every day at 6 AM (UTC, default branch only).
-    - cron: '0 6 * * *'
+    # - cron: '0 6 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       jobs:
