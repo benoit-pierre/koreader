@@ -127,7 +127,7 @@ platform:
     runs-on: ubuntu-24.04-arm
     image: koreader/koappimage:3.0.0-22.04
     target: linux
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     cache_size: 415M
     test: true
     update_target: update-appimage
@@ -150,7 +150,7 @@ platform:
   - id: cervantes
     job: Cervantes
     image: koreader/kocervantes:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -160,7 +160,7 @@ platform:
     id: kindle
     job: Kindle
     image: koreader/kokindle:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     cache_size: 390M
     update_target: update-txz
     artifacts: koreader-*.tar.xz
@@ -185,7 +185,7 @@ platform:
     id: kobo
     job: Kobo
     image: koreader/kokobo:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -201,7 +201,7 @@ platform:
     id: pocketbook
     job: PocketBook
     image: koreader/kopb:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -217,7 +217,7 @@ platform:
     id: remarkable
     job: Remarkable
     image: koreader/koremarkable:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
@@ -230,7 +230,7 @@ platform:
   - id: sony-prstux
     job: Sony PRSTUX
     image: koreader/kodeb:3.0.0-22.04
-    makeflags: PARALLEL_JOBS=5 MONOLIBTIC=1
+    makeflags: PARALLEL_JOBS=5
     update_target: update-txz
     artifacts: koreader-*.tar.xz
 
