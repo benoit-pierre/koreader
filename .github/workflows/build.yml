@@ -1,8 +1,5 @@
 name: Build
 
-permissions:
-  contents: write
-
 on:
   workflow_call:
     inputs: &INPUTS
@@ -101,7 +98,7 @@ jobs:
       contains('skipped success', needs.macos.result) &&
       contains('skipped success', needs.platform.result)
     permissions:
-      contents: write
+      contents: ${{ inputs.publish && 'write' || 'read' }}
     uses: ./.github/workflows/build.release.yml
 
 # vim: foldmethod=marker foldlevel=0
