@@ -22,13 +22,14 @@ master: [
   macos-x86_64,
 ]
 
-# Nightlies.
-nightlies: [
+# Release.
+release: [
   # macos
   macos-.*,
   # others
   linux-*,
   android-.*,
+  cervantes,
   kindle.*,
   kobo.*,
   pocketbook.*,
