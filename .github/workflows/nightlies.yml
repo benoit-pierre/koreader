@@ -1,0 +1,16 @@
+name: Nightlies
+
+on:
+  schedule:
+    # Every day at 6 AM (UTC, default branch only).
+    # - cron: '0 6 * * *'
+    - cron: '0 * * * *'
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
+    with:
+      jobs: release
+      publish: true
+
