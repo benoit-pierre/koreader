@@ -6,6 +6,10 @@ permissions:
 on:
   workflow_call:
     inputs:
+      draft:
+        required: false
+        default: false
+        type: boolean
       repo:
         required: true
         type: string
