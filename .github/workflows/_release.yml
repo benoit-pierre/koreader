@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:
@@ -9,9 +12,6 @@ on:
     secrets:
       GITHUB_TOKEN:
         required: true
-
-permissions:
-  contents: read
 
 defaults:
   run:
