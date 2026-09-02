@@ -5,7 +5,7 @@ on:
     # Every day at 6 AM (UTC, default branch only).
     # - cron: '0 6 * * *'
     - cron: '0 * * * *'
-  workflow_call:
+  workflow_dispatch:
 
 permissions:
   # TODO: make it conditional on `vars.ORIGIN_REPO`?
