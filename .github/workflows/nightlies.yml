@@ -53,7 +53,7 @@ jobs:
     needs: build
     if: |
       !cancelled() &&
-      contains('success', needs.sync.result)
+      contains('success', needs.build.result)
     uses: ./.github/workflows/_release.yml
     secrets:
       # Yep, this is required to allow the use of the `docker` environment
