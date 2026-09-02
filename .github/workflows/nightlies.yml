@@ -41,6 +41,7 @@ jobs:
     needs: sync
     if: |
       !cancelled() &&
+      vars.NIGHTLIES_GH_REPO &&
       github.ref_type != 'tag' &&
       contains('skipped success', needs.sync.result)
     uses: ./.github/workflows/_build.yml
