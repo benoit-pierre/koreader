@@ -16,7 +16,7 @@ jobs:
 
   lint:
     name: Lint
-    uses: ./.github/workflows/_build.lint.yml
+    uses: ./.github/workflows/_lint.yml
 
   build:
     name: Build

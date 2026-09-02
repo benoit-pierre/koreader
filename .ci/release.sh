@@ -6,6 +6,12 @@ CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "${CI_DIR}/common.sh"
 
+[[ -n "${GH_REPO}" ]]
+[[ -n "${GH_TOKEN}" ]]
+[[ $# -eq 1 ]]
+draft="$1"
+shift
+
 run() {
     echo -e "::group::${ANSI_GREEN}$(printf '%q ' "$@")${ANSI_RESET}" 1>&2
     "$@" && code=0 || code=$?
@@ -49,7 +55,7 @@ zsync_make() {
 
 tag=ota
 
-gh repo set-default "${GITHUB_REPOSITORY}"
+# gh repo set-default "${GITHUB_REPOSITORY}"
 
 new_commit="$(git rev-parse HEAD)"
 old_commit="$(gh release view "${tag}" --json targetCommitish | jq -r .targetCommitish || true)"
@@ -98,7 +104,7 @@ if [[ "${delete_release}" -ne 0 ]] && [[ "${create_release}" -ne 0 ]]; then
 fi
 if [[ "${create_release}" -ne 0 ]]; then
     run git tag --force "${tag}"
-    run git push -f "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" "refs/tags/${tag}"
+    run git push -f "${GH_REPO}" "refs/tags/${tag}"
     run gh release create --notes='.' --prerelease --target="${new_commit}" --title="${tag}" "${tag}"
 fi
 artifacts=()

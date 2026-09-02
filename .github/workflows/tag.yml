@@ -1,10 +1,11 @@
 name: Tag
 
+on:
+  push:
+    tags: *
+
 permissions:
   contents: read
-
-on:
-  tag:
 
 jobs:
 
@@ -12,6 +13,8 @@ jobs:
     name: Build
     if: vars.STABLES_GITHUB_REPO
     uses: ./.github/workflows/build.yml
+    with:
+      jobs: release
 
   release:
     name: Release

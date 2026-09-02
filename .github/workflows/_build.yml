@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs: &INPUTS
       jobs:
-        description: 'Run the specified list of job ids'
+        description: 'Run the specified list of jobs'
         default: 'default'
         required: false
         type: string
