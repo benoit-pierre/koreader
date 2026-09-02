@@ -9,7 +9,10 @@ source "${CI_DIR}/common.sh"
 [[ -n "${GH_REPO}" ]]
 [[ -n "${GH_TOKEN}" ]]
 [[ $# -eq 1 ]]
-draft="$1"
+case "$1" in
+    yes | true) draft=1 ;;
+    *) draft='' ;
+esac
 shift
 
 run() {
@@ -105,7 +108,7 @@ fi
 if [[ "${create_release}" -ne 0 ]]; then
     run git tag --force "${tag}"
     run git push -f "${GH_REPO}" "refs/tags/${tag}"
-    run gh release create --notes='.' --prerelease --target="${new_commit}" --title="${tag}" "${tag}"
+    run gh release create ${draft:+--draft} --notes='.' --prerelease --target="${new_commit}" --title="${tag}" "${tag}"
 fi
 artifacts=()
 for a in artifacts/new/*; do
