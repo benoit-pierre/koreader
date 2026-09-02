@@ -43,7 +43,7 @@ jobs:
       !cancelled() &&
       github.ref_type != 'tag' &&
       contains('skipped success', needs.sync.result)
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/_build.yml
     with:
       jobs: release
 

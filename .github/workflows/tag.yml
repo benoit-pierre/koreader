@@ -12,7 +12,7 @@ jobs:
   build:
     name: Build
     if: vars.STABLES_GITHUB_REPO
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/_build.yml
     with:
       jobs: release
 
