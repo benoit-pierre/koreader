@@ -6,11 +6,11 @@ permissions:
 on:
   workflow_call:
     inputs:
-      github_repo:
+      repo:
         required: true
         type: string
     secrets:
-      GITHUB_TOKEN:
+      TOKEN:
         required: true
 
 defaults:
@@ -45,8 +45,8 @@ jobs:
 
       - name: Release
         env:
-          GH_REPO: ${{ inputs.github_repo }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ inputs.repo }}
+          GH_TOKEN: ${{ secrets.TOKEN }}
         run: ./.ci/release.sh ${{ inputs.draft }}
 
 # vim: foldmethod=marker foldlevel=0

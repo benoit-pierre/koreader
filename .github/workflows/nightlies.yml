@@ -55,7 +55,7 @@ jobs:
       # Yep, this is required to allow the use of the `docker` environment
       # secret of the same name in the called workflow… Pretty evident,
       # right? ¯\_(ツ)_/¯
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TOKEN: ${{ secrets.NIGHTLIES_GH_TOKEN }}
     with:
-      github_repo: vars.NIGHTLIES_GITHUB_REPO
+      repo: vars.NIGHTLIES_GH_REPO
       jobs: release
