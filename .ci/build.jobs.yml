@@ -67,7 +67,7 @@ macos: # {{{
 
   - &MACOS
     id: macos-arm64
-    job: "15 ARM64 🔨16.4 🎯11.0"
+    job: "macOS 15 ARM64 🔨16.4 🎯11.0"
     cache: macos.15_ARM64_xcode.16.4_11.0
     runs-on: macos-15
     xcode_version: "16.4"
@@ -80,7 +80,7 @@ macos: # {{{
 
   - <<: *MACOS
     id: macos-x86_64
-    job: "15 x86-64 🔨16.4 🎯10.15"
+    job: "macOS 15 x86-64 🔨16.4 🎯10.15"
     cache: macos.15_x86_64_xcode.16.4_10.15
     runs-on: macos-15-intel
     macosx_deployment_target: "10.15"
