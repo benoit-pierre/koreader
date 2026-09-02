@@ -46,20 +46,13 @@ jobs:
       macos: ${{ steps.generate.outputs.macos }}
       platform: ${{ steps.generate.outputs.platform }}
 
-  lint:
-    name: Lint
-    needs: prepare
-    if: needs.prepare.outputs.lint
-    uses: ./.github/workflows/build.lint.yml
-
   emulator:
     name: Emulator
-    needs: [prepare, lint]
+    needs: prepare
     if: |
       !cancelled() &&
-      needs.prepare.outputs.emulator &&
-      contains('skipped success', needs.lint.result)
-    uses: ./.github/workflows/build.matrix.yml
+      needs.prepare.outputs.emulator
+    uses: ./.github/workflows/_build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.emulator }}
       fail_fast: true
@@ -70,35 +63,20 @@ jobs:
     if: |
       !cancelled() &&
       needs.prepare.outputs.macos &&
-      contains('skipped success', needs.lint.result) &&
       contains('skipped success', needs.emulator.result)
-    uses: ./.github/workflows/build.matrix.yml
+    uses: ./.github/workflows/_build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.macos }}
 
   platform:
     name: Platform
-    needs: [prepare, lint, emulator]
+    needs: [prepare, emulator]
     if: |
       !cancelled() &&
       needs.prepare.outputs.platform &&
-      contains('skipped success', needs.lint.result) &&
       contains('skipped success', needs.emulator.result)
-    uses: ./.github/workflows/build.matrix.yml
+    uses: ./.github/workflows/_build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.platform }}
-
-  release:
-    name: Release
-    needs: [emulator, macos, platform]
-    if: |
-      inputs.publish && !cancelled() &&
-      contains('skipped success', needs.lint.result) &&
-      contains('skipped success', needs.emulator.result) &&
-      contains('skipped success', needs.macos.result) &&
-      contains('skipped success', needs.platform.result)
-    # permissions:
-    #   contents: ${{ inputs.publish && 'write' || 'read' }}
-    uses: ./.github/workflows/build.release.yml
 
 # vim: foldmethod=marker foldlevel=0

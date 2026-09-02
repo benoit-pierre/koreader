@@ -5,12 +5,49 @@ on:
     # Every day at 6 AM (UTC, default branch only).
     # - cron: '0 6 * * *'
     - cron: '0 * * * *'
+  workflow_call:
+
+permissions:
+  # TODO: make it conditional on `vars.ORIGIN_REPO`?
+  contents: write
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
+  
+  sync:
+    name: Synchronize fork
+    if: vars.ORIGIN_REPO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          clean: false
+          fetch-depth: 0
+          fetch-tags: true
+          filter: tree:0
+          show-progress: false
+          sparse-checkout:
+      - name: Pull
+        run: git pull --ff-only --tags ${{ vars.ORIGIN_REPO }} ${{ github.ref }}
+      - name: Push
+        run: git push --tags
+
   build:
     name: Build
+    if: |
+      !cancelled() &&
+      contains('skipped success', needs.sync.result)
+    need: sync
     uses: ./.github/workflows/build.yml
+    secrets:
+      # Yep, this is required to allow the use of the `docker` environment
+      # secret of the same name in the called workflow… Pretty evident,
+      # right? ¯\_(ツ)_/¯
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     with:
+      github_repo: vars.NIGHTLIES_GITHUB_REPO
       jobs: release
-      publish: true
-

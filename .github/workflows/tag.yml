@@ -1,0 +1,28 @@
+name: Tag
+
+permissions:
+  contents: read
+
+on:
+  tag:
+
+jobs:
+
+  build:
+    name: Build
+    if: vars.STABLES_GITHUB_REPO
+    uses: ./.github/workflows/build.yml
+
+  release:
+    name: Release
+    needs: build
+    uses: ./.github/workflows/_release.yml
+    secrets:
+      # Yep, this is required to allow the use of the `docker` environment
+      # secret of the same name in the called workflow… Pretty evident,
+      # right? ¯\_(ツ)_/¯
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      github_repo: vars.STABLES_GITHUB_REPO
+      jobs: release
+      draft: true

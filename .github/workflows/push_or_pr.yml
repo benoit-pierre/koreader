@@ -9,9 +9,16 @@ permissions:
 
 on:
   push:
+    ignore_tags: *
   pull_request:
 
 jobs:
+
+  lint:
+    name: Lint
+    uses: ./.github/workflows/_build.lint.yml
+
   build:
     name: Build
-    uses: ./.github/workflows/build.yml
+    needs: lint
+    uses: ./.github/workflows/_build.yml

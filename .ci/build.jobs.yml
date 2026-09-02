@@ -7,7 +7,7 @@ default: &DEFAULT [
   # emulator
   # emu-gcc,
   # macos
-  macos-arm64,
+  # macos-arm64,
   # others
   linux-x86_64,
   # android-arm,
