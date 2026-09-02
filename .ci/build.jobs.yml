@@ -23,15 +23,15 @@ master: [
 # Release.
 release: [
   # macos
-  macos-.*,
+  # macos-.*,
   # others
   linux-*,
-  android-.*,
-  cervantes,
-  kindle.*,
-  kobo.*,
-  pocketbook.*,
-  remarkable.*,
+  # android-.*,
+  # cervantes,
+  # kindle.*,
+  # kobo.*,
+  # pocketbook.*,
+  # remarkable.*,
 ]
 
 # }}}

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 declare -r DOCKER_IMAGE='koreader/nightswatcher:1.7.0'
 
 CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
