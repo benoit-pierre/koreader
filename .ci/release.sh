@@ -11,7 +11,7 @@ source "${CI_DIR}/common.sh"
 [[ $# -eq 1 ]]
 case "$1" in
     yes | true) draft=1 ;;
-    *) draft='' ;
+    *) draft='' ;;
 esac
 shift
 
