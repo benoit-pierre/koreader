@@ -41,7 +41,6 @@ jobs:
           set -o noglob
           >>"${GITHUB_OUTPUT}" ./.ci/build.prepare.sh ${{ inputs.jobs }}
     outputs:
-      lint: ${{ steps.generate.outputs.lint }}
       emulator: ${{ steps.generate.outputs.emulator }}
       macos: ${{ steps.generate.outputs.macos }}
       platform: ${{ steps.generate.outputs.platform }}
@@ -59,7 +58,7 @@ jobs:
 
   macos:
     name: macOS
-    needs: [prepare, lint, emulator]
+    needs: [prepare, emulator]
     if: |
       !cancelled() &&
       needs.prepare.outputs.macos &&

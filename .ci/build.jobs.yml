@@ -2,8 +2,6 @@
 
 # Default jobs to run.
 default: &DEFAULT [
-  # lint
-  # lint,
   # emulator
   # emu-gcc,
   # macos
@@ -39,10 +37,6 @@ release: [
 # }}}
 
 # Jobs. {{{
-
-lint:
-
-  - id: lint
 
 emulator: # {{{
 
