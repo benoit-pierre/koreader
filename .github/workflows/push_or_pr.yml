@@ -9,7 +9,7 @@ permissions:
 
 on:
   push:
-    ignore_tags: *
+    ignore_tags: '*'
   pull_request:
 
 jobs:
