@@ -58,4 +58,3 @@ jobs:
       TOKEN: ${{ secrets.NIGHTLIES_GH_TOKEN }}
     with:
       repo: vars.NIGHTLIES_GH_REPO
-      jobs: release
