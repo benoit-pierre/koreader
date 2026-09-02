@@ -38,11 +38,11 @@ jobs:
 
   build:
     name: Build
+    needs: sync
     if: |
       !cancelled() &&
       github.ref_type != 'tag' &&
       contains('skipped success', needs.sync.result)
-    need: sync
     uses: ./.github/workflows/build.yml
     with:
       jobs: release
