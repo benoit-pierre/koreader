@@ -20,7 +20,7 @@ def asset_parse:
     "macos-11.0-arm64": "macOS ARM64",
   } as $platform_name
   | "(?<platform>.+)" as $platform_rx
-  | "(?<version>(?<base_version>[0-9]+(\\.[0-9]+)*)(-(?<commit_number>[0-9]+)-g(?<commit_hash>[a-f0-9]+))?)" as $version_rx
+  | "(?<version>(?<base_version>[0-9]+(\\.[0-9]+)*)(-(?<commit_number>[0-9]+)-g(?<commit_hash>[a-f0-9]+))?(_[0-9]{4}-[0-9]{2}-[0-9]{2})?)" as $version_rx
   | "\\.(?<extension>[^.]+(\\.[^.]+)*)$" as $extension_rx
   | $file | (
     # koreader-linux-x86_64-v2023.06.1.tar.xz
