@@ -20,20 +20,20 @@ def asset_parse:
     "macos-11.0-arm64": "macOS ARM64",
   } as $platform_name
   | "(?<platform>.+)" as $platform_rx
-  | "v(?<version>(?<base_version>[0-9]+(\\.[0-9]+)*)(-(?<commit_number>[0-9]+)-g(?<commit_hash>[a-f0-9]+))?)" as $version_rx
+  | "(?<version>(?<base_version>[0-9]+(\\.[0-9]+)*)(-(?<commit_number>[0-9]+)-g(?<commit_hash>[a-f0-9]+))?)" as $version_rx
   | "\\.(?<extension>[^.]+(\\.[^.]+)*)$" as $extension_rx
   | $file | (
     # koreader-linux-x86_64-v2023.06.1.tar.xz
     # koreader-ubuntu-touch-arm-v2015.11-640-g17e9a8e_2018-03-09.targz
     # koreader-android-arm-v2015.11-654-gb7392f7_2018-03-09.apk
-    capture("/?koreader-" + $platform_rx + "-" + $version_rx + $extension_rx)
+    capture("/?koreader-" + $platform_rx + "-v" + $version_rx + $extension_rx)
     # koreader-v2023.06.1-x86_64.AppImage
     # koreader-v2025.10-197-g7c5ee9c1a2_2026-03-13-x86_64.AppImage
     // (
-         capture("/?koreader-" + $version_rx + "-" + $platform_rx + $extension_rx)
+         capture("/?koreader-v" + $version_rx + "-" + $platform_rx + $extension_rx)
          | .platform = "linux-" + .platform
     )
-    # koreader_v2026.09-8-g84cf973-1_amd64.deb
+    # koreader_2026.09-8-g84cf973-1_amd64.deb
     // (
          capture("/?koreader_" + $version_rx + "-1_" + $platform_rx + $extension_rx)
          | .platform = "linux-" + .platform
