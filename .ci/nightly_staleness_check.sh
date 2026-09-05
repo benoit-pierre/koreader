@@ -6,7 +6,7 @@ source "${CI_DIR}/common.sh"
 
 stale='true'
 
-tag_name="$(git describe --tag --exact-match --match='v[0-9]*' 2>/dev/null)" || tag_name='nightly'
+tag_name="$(git describe --tag --exact-match --match='v[0-9]*' 2>/dev/null)" || tag_name='ota'
 old_target="$(gh release view --json targetCommitish --template '{{ .targetCommitish }}' "${tag_name}" || true)"
 new_target="$(git rev-parse HEAD)"
 

@@ -20,7 +20,7 @@ out="$("${CI_DIR}/assets_label.sh" "${assets_dir}"/*)"
 readarray -t assets <<<"${out}"
 
 # Upload them to the OTA release.
-run gh release upload --clobber nightly "${assets[@]}"
+run gh release upload --clobber ota "${assets[@]}"
 
 # And trim old versions.
 "${CI_DIR}/ota_trim.sh"
