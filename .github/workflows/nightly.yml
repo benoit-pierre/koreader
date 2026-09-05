@@ -1,0 +1,69 @@
+name: Nightly
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    # Every day at 6 AM (UTC, default branch only).
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          clean: false
+          fetch-tags: true
+          show-progress: false
+          sparse-checkout: .ci
+      - name: Check staleness
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./.ci/nightly_staleness_check.sh >>"${GITHUB_OUTPUT}"
+    outputs:
+      stale: ${{ steps.check.outputs.stale }}
+  
+  build:
+    name: Build
+    needs: check
+    if: needs.check.outputs.stale
+    uses: ./.github/workflows/_build.yml
+    with:
+      jobs: release
+      all_artifacts: true
+
+  release:
+    name: Release
+    needs: build
+    environment: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          clean: false
+          fetch-tags: true
+          show-progress: false
+          sparse-checkout: .ci
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+          path: assets
+          skip-decompress: true
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: ./.ci/release.sh assets

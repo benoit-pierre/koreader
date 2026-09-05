@@ -11,8 +11,8 @@ on:
         default: 'default'
         required: false
         type: string
-      publish:
-        description: 'Publish a release to GitHub'
+      all_artifacts:
+        description: 'Generate all artifacts'
         default: false
         required: false
         type: boolean
@@ -42,7 +42,7 @@ jobs:
         id: generate
         run: |
           set -o noglob
-          >>"${GITHUB_OUTPUT}" ./.ci/build.prepare.sh ${{ inputs.jobs }}
+          ./.ci/build.prepare.sh ${{ inputs.jobs }} >>"${GITHUB_OUTPUT}"
     outputs:
       emulator: ${{ steps.generate.outputs.emulator }}
       macos: ${{ steps.generate.outputs.macos }}
@@ -58,6 +58,7 @@ jobs:
     with:
       jobs: ${{ needs.prepare.outputs.emulator }}
       fail_fast: true
+      all_artifacts: ${{ inputs.all_artifacts }}
 
   macos:
     name: macOS
@@ -69,6 +70,7 @@ jobs:
     uses: ./.github/workflows/_build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.macos }}
+      all_artifacts: ${{ inputs.all_artifacts }}
 
   platform:
     name: Platform
@@ -80,5 +82,6 @@ jobs:
     uses: ./.github/workflows/_build.matrix.yml
     with:
       jobs: ${{ needs.prepare.outputs.platform }}
+      all_artifacts: ${{ inputs.all_artifacts }}
 
 # vim: foldmethod=marker foldlevel=0

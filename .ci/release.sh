@@ -1,154 +1,83 @@
 #!/usr/bin/env bash
 
-set -x
-
-declare -r DOCKER_IMAGE='koreader/nightswatcher:1.7.0'
-
 CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "${CI_DIR}/common.sh"
 
-[[ -n "${GH_REPO}" ]]
-[[ -n "${GH_TOKEN}" ]]
-[[ $# -eq 1 ]]
-case "$1" in
-    yes | true) draft=1 ;;
-    *) draft='' ;;
-esac
+[[ $# -eq 1 ]] || "1 argument expected, got $#"
+assets_dir="$1"
 shift
 
-run() {
-    echo -e "::group::${ANSI_GREEN}$(printf '%q ' "$@")${ANSI_RESET}" 1>&2
-    "$@" && code=0 || code=$?
-    echo "::endgroup::" 1>&2
-    return "${code}"
-}
+if tag_name="$(git describe --tag --exact-match --match='v[0-9]*' 2>/dev/null)"; then
+    channel='stable'
+    draft=1
+    prerelease=
+    title="${tag_name}"
+else
+    tag_name='nightly'
+    channel='nightly'
+    draft=
+    prerelease=1
+    title='OTA'
+fi
 
-CONTAINER_ID="$(run docker run --detach --tty --volume="${PWD}/artifacts:/artifacts" --workdir=/artifacts/new "${DOCKER_IMAGE}" sh -c 'while true; do sleep 0.5; done')"
-trap 'run docker kill "${CONTAINER_ID}"' EXIT
+target="$(git rev-parse HEAD)"
 
-container_exec() {
-    echo -e "::group::docker exec … ${ANSI_GREEN}$(printf '%q ' "$@")${ANSI_RESET}" 1>&2
-    docker exec --tty "${CONTAINER_ID}" "$@" && code=0 || code=$?
-    echo "::endgroup::"
-    return "${code}" 1>&2
-}
+if out="$(gh release view "${tag_name}" --json 'assets' --template '{{ range .assets }}{{ .name }}{{ "\n" }}{{ end }}')"; then
+    readarray -t old_assets <<<"${out}"
+    mode='edit'
+else
+    old_assets=()
+    mode='create'
+fi
 
-kotasync_make() {
-    txz="$1"
-    mfst="$2"
-    shift 2
-    cmd=(kotasync make)
-    if [[ -f "../old/${mfst}" ]]; then
-        cmd+=(--reorder "../old/${mfst}")
+{
+    echo -e "${ANSI_BLUE}mode      : ${mode}${ANSI_RESET}"
+    echo -e "${ANSI_BLUE}tag_name  : ${tag_name}${ANSI_RESET}"
+    echo -e "${ANSI_BLUE}draft     : ${draft:-0}${ANSI_RESET}"
+    echo -e "${ANSI_BLUE}prerelease: ${prerelease:-0}${ANSI_RESET}"
+    echo -e "${ANSI_BLUE}title     : ${title}${ANSI_RESET}"
+    echo -e "${ANSI_BLUE}target    : ${target}${ANSI_RESET}"
+} 1>&2
+
+if [[ "${channel}" = 'nightly' ]]; then
+    # Generate OTA assets.
+    "${CI_DIR}/ota_generate.sh" "${assets_dir}" "${channel}"
+    # Tag the nightly.
+    run git config user.name 'Github Actions'
+    run git config user.email '<>'
+    run git tag -m '' -f "${tag_name}"
+    run git push -f origin "refs/tags/${tag_name}"
+fi
+
+# Label assets.
+out="$("${CI_DIR}/assets_label.sh" "${assets_dir}"/*)"
+readarray -t assets <<<"${out}"
+
+# Create / update release.
+cmd=(gh release "${mode}" --target="${target}")
+if [[ "${mode}" = 'create' ]]; then
+    cmd+=(${draft:+--draft} ${prerelease:+--prerelease} --title="${title}" --notes='')
+fi
+cmd+=("${tag_name}")
+run "${cmd[@]}"
+
+# Upload assets.
+run gh release upload --clobber "${tag_name}" "${assets[@]}"
+
+# Cleanup:
+if [[ "${channel}" = 'nightly' ]]; then
+    # - nightly: old versions
+    "${CI_DIR}/ota_trim.sh"
+else
+    # - stable: left-overs from previous version
+    out="$(comm -23 <(printf '%s\n' "${old_assets[@]}" | sort) <(printf '%s\n' "${assets[@]}" | sed 's,^.*/,,;s,#.*$,,;' | sort))"
+    if [[ -n "${out}" ]]; then
+        readarray -t old_assets <<<"${out}"
+        for a in "${old_assets[@]}"; do
+            run gh release delete-asset -y "${tag_name}" "${a}"
+        done
     fi
-    cmd+=("${txz}" "${mfst}")
-    container_exec "${cmd[@]}"
-}
-
-zsync_make() {
-    txz="$1"
-    mfst="$2"
-    shift 2
-    tar="${txz%.xz}"
-    tgz="${tar}.gz"
-    container_exec xzcat "${txz}" >"${tar}"
-    container_exec pigz -9 --rsyncable "${tar}"
-    cmd=(zsyncmake "${tgz}" -C -u "${tgz##*/}" -o "${mfst}")
-    container_exec "${cmd[@]}"
-}
-
-tag=ota
-
-# gh repo set-default "${GITHUB_REPOSITORY}"
-
-new_commit="$(git rev-parse HEAD)"
-old_commit="$(gh release view "${tag}" --json targetCommitish | jq -r .targetCommitish || true)"
-if [[ -n "${old_commit}" ]]; then
-    old_commit="$(git rev-parse "${old_commit}")"
 fi
-
-create_release=0
-delete_release=0
-
-if [[ -z "${old_commit}" ]]; then
-    create_release=1
-elif [[ "${old_commit}" != "${new_commit}" ]]; then
-    if gh release view "${tag}" --json assets | jq --exit-status '.assets[]|.name|select(test("\\.kotasync$"))'; then
-        run gh release download "${tag}" --dir artifacts/old --pattern '*.kotasync'
-    fi
-    create_release=1
-    delete_release=1
-fi
-
-pushd artifacts/new || exit
-for a in *; do
-    case "${a}" in
-        koreader-*.AppImage)
-            arch="${a##*-}"
-            arch="${arch%.AppImage}"
-            printf %s "${a}" >"koreader-appimage-${arch}-latest-nightly"
-            ;;
-        koreader-android-*.apk)
-            printf %s "${a}" >"${a%-v[0-9]*}-latest-nightly"
-            ;;
-        koreader-kindlepw2-*.tar.xz)
-            kotasync_make "${a}" "${a%-v[0-9]*}-latest-nightly.kotasync"
-            zsync_make "${a}" "${a%-v[0-9]*}-latest-nightly.zsync"
-            ;;
-    esac
-done
-popd || exit
-
-if [[ "${delete_release}" -ne 0 ]]; then
-    run gh release delete --cleanup-tag --yes "${tag}"
-fi
-if [[ "${delete_release}" -ne 0 ]] && [[ "${create_release}" -ne 0 ]]; then
-    # Workaround for https://github.com/cli/cli/issues/8458…
-    sleep 1
-fi
-if [[ "${create_release}" -ne 0 ]]; then
-    run git tag --force "${tag}"
-    run git push -f "${GH_REPO}" "refs/tags/${tag}"
-    run gh release create ${draft:+--draft} --notes='.' --prerelease --target="${new_commit}" --title="${tag}" "${tag}"
-fi
-artifacts=()
-for a in artifacts/new/*; do
-    case "${a##*/}" in
-        koreader-android-arm-*.apk)
-            a+='#Android ARM APK'
-            ;;
-        koreader-android-arm-*-nightly)
-            a+='#Android ARM OTA'
-            ;;
-        koreader-android-arm64-*.apk)
-            a+='#Android ARM64 APK'
-            ;;
-        koreader-android-arm64-*-nightly)
-            a+='#Android ARM64 OTA'
-            ;;
-        koreader-kindlepw2-*.tar.gz)
-            a+='#KindlePW2 TAR.GZ'
-            ;;
-        koreader-kindlepw2-*.tar.xz)
-            a+='#KindlePW2 TAR.XZ'
-            ;;
-        koreader-kindlepw2-*-nightly.kotasync)
-            a+='#KindlePW2 OTA (KOTASync)'
-            ;;
-        koreader-kindlepw2-*-nightly.zsync)
-            a+='#KindlePW2 OTA (ZSync)'
-            ;;
-        koreader-*-x86_64.AppImage)
-            a+='#Linux x86_64 AppImage'
-            ;;
-        koreader-appimage-*-nightly)
-            a+='#Linux x86_64 OTA'
-            ;;
-    esac
-    artifacts+=("${a}")
-done
-readarray -t artifacts < <(printf '%s\n' "${artifacts[@]}" | sort -t\# -k2)
-run gh release upload "${tag}" "${artifacts[@]}"
 
 # vim: sw=4
