@@ -13,9 +13,9 @@ include "assets_parse";
 | .[0][$stable_keep_count - 1][0].sort_version as $oldest_stable_version
 | (
   # - keep the last $stable_keep_count stables
-  .[0][$stable_keep_count:] // [],
+  .[0] // [] | .[$stable_keep_count:],
   # - keep the last $nightly_keep_count nightlies more recent then the oldest kept stable.
-  .[1] | group_by(.[0].sort_version > $oldest_stable_version) | (.[0], .[1][$nightly_keep_count:])
+  .[1] // [] | group_by(.[0].sort_version > $oldest_stable_version) | (.[0], .[1][$nightly_keep_count:])
 )
 | select(.) | flatten | .[].file
 
