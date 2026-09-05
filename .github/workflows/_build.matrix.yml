@@ -17,6 +17,9 @@ on:
       all_artifacts:
         default: false
         type: boolean
+      test:
+        default: true
+        type: boolean
       # Internal.
       cache_epoch:
         default: 'Noogh4so'
@@ -276,7 +279,7 @@ jobs:
         run: make --assume-old=base all
 
       - name: Test
-        if: matrix.test
+        if: inputs.test && matrix.test
         run: ./base/utils/fake_tty.py make --assume-old=all test
 
       # Generate artifacts. {{{

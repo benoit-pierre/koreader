@@ -20,6 +20,11 @@ on:
         default: false
         required: false
         type: boolean
+      test:
+        description: 'Run tests'
+        default: true
+        required: false
+        type: boolean
   workflow_dispatch:
     inputs: *INPUTS
 
@@ -63,6 +68,7 @@ jobs:
       jobs: ${{ needs.prepare.outputs.emulator }}
       fail_fast: ${{ inputs.fail_fast || true }}
       all_artifacts: ${{ inputs.all_artifacts }}
+      test: ${{ inputs.test }}
 
   macos:
     name: macOS
@@ -76,6 +82,7 @@ jobs:
       jobs: ${{ needs.prepare.outputs.macos }}
       fail_fast: ${{ inputs.fail_fast }}
       all_artifacts: ${{ inputs.all_artifacts }}
+      test: ${{ inputs.test }}
 
   platform:
     name: Platform
@@ -89,5 +96,6 @@ jobs:
       jobs: ${{ needs.prepare.outputs.platform }}
       fail_fast: ${{ inputs.fail_fast }}
       all_artifacts: ${{ inputs.all_artifacts }}
+      test: ${{ inputs.test }}
 
 # vim: foldmethod=marker foldlevel=0
