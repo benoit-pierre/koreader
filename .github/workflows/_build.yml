@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       fail_fast:
-        description: 'Stop all other group jobs on failure'
+        description: 'Stop remaining jobs on failure'
         default: false
         type: boolean
       all_artifacts:
