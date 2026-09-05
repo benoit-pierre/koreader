@@ -6,7 +6,7 @@ source "${CI_DIR}/common.sh"
 
 [[ $# -eq 0 ]] || "no arguments expected, got $#"
 
-out="$(gh release view nightly --json 'assets' --template '{{ range .assets }}{{ .name }}{{ "\n" }}{{ end }}')"
+out="$(gh release view ota --json 'assets' --template '{{ range .assets }}{{ .name }}{{ "\n" }}{{ end }}')"
 readarray -t assets <<<"${out}"
 
 # Trim assets:
@@ -17,7 +17,7 @@ out="$("${CI_DIR}/assets_trim.sh" 1 3 "${assets[@]}")"
 
 # Delete trimmed assets.
 for a in "${assets[@]}"; do
-    run gh release delete-asset -y nightly "${a}"
+    run gh release delete-asset -y ota "${a}"
 done
 
 # vim: sw=4

@@ -14,7 +14,7 @@ if tag_name="$(git describe --tag --exact-match --match='v[0-9]*' 2>/dev/null)";
     prerelease=
     title="${tag_name}"
 else
-    tag_name='nightly'
+    tag_name='ota'
     channel='nightly'
     draft=
     prerelease=1

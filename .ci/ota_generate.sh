@@ -29,7 +29,7 @@ kotasync_make() {
     txz="$1"
     shift 1
     new_kotasync="${txz%.tar.xz}.kotasync"
-    nightly_kotasync="nightly/${txz%-v[0-9]*}-latest-nightly.kotasync"
+    nightly_kotasync="ota/${txz%-v[0-9]*}-latest-nightly.kotasync"
     cmd=(kotasync make)
     if [[ -e "${nightly_kotasync}" ]]; then
         cmd+=(--reorder "${nightly_kotasync}")
@@ -46,9 +46,9 @@ zsync_make() {
 }
 
 # Fetch latest nightly kotasync files.
-if out="$(gh release view --json assets --jq '.assets[].name | select(test("^koreader-.*-latest-nightly\\.kotasync$"))' nightly)" && [[ -n "${out}" ]]; then
-    run gh release download --dir="${assets_dir}/nightly" --pattern='koreader-*-latest-nightly.kotasync' nightly
-    trap 'run rm -rf "${assets_dir}/nightly"' EXIT
+if out="$(gh release view --json assets --jq '.assets[].name | select(test("^koreader-.*-latest-nightly\\.kotasync$"))' ota)" && [[ -n "${out}" ]]; then
+    run gh release download --dir="${assets_dir}/ota" --pattern='koreader-*-latest-nightly.kotasync' nightly
+    trap 'run rm -rf "${assets_dir}/ota"' EXIT
 fi
 
 # Generate kotasync & zync individual files.
