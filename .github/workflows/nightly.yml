@@ -41,6 +41,7 @@ jobs:
     uses: ./.github/workflows/_build.yml
     with:
       jobs: release
+      fail_fast: true
       all_artifacts: true
 
   release:
