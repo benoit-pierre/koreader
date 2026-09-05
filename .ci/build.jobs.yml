@@ -23,15 +23,20 @@ master: [
 # Release.
 release: [
   # macos
-  macos-.*,
+  # macos-.*,
+  macos-arm64,
   # others
-  linux-.*,
-  android-.*,
-  cervantes,
-  kindle.*,
-  kobo.*,
-  pocketbook.*,
-  remarkable.*,
+  # linux-.*,
+  # android-.*,
+  # cervantes,
+  # kindle.*,
+  # kobo.*,
+  # pocketbook.*,
+  # remarkable.*,
+  linux-x86_64,
+  android-arm,
+  android-arm64,
+  kindlepw2,
 ]
 
 # }}}
