@@ -15,6 +15,9 @@ def asset_parse:
     "linux-arm64": "Linux ARM64",
     "linux-armhf": "Linux ARMhf",
     "linux-x86_64": "Linux x86_64",
+    # macOS:
+    "macos-10.15-x86_64": "macOS x86_64",
+    "macos-11.0-arm64": "macOS ARM64",
   } as $platform_name
   | "(?<platform>.+)" as $platform_rx
   | "v(?<version>(?<base_version>[0-9]+(\\.[0-9]+)*)(-(?<commit_number>[0-9]+)-g(?<commit_hash>[a-f0-9]+))?)" as $version_rx
