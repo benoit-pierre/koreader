@@ -37,8 +37,6 @@ release: [
   android-arm,
   android-arm64,
   kindlepw2,
-  kobo,
-  pocketbook,
 ]
 
 # }}}
