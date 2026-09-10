@@ -109,7 +109,7 @@ bool ImportMarkdownDocument(LVStreamRef stream, const lString32& fileName, ldomD
     if (res)
         res = dw == (lvsize_t)gen_preamble.length();
     if (res) {
-        res = LVERR_OK == memStream->Write(htmlData.data(), result_len, &dw);
+        res = LVERR_OK == memStream->Write(htmlData.c_str(), result_len, &dw);
     }
     htmlData.clear();
     if (res)
