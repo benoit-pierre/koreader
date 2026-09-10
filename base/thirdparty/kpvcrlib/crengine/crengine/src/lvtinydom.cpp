@@ -3656,7 +3656,7 @@ void ldomTextStorageChunk::setunpacked( const lUInt8 * buf, int bufsize )
     if ( buf && bufsize ) {
         _bufsize = bufsize;
         _bufpos = bufsize;
-        _buf = (lUInt8 *)malloc( sizeof(lUInt8) * bufsize );
+        _buf = cr_alloc( bufsize );
         _manager->_uncompressedSize += _bufsize;
         memcpy( _buf, buf, bufsize );
     }
