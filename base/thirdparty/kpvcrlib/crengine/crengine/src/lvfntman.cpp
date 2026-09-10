@@ -13,15 +13,22 @@
 */
 
 #include "crsetup.h"
+#include "lvfntman.h"
 
-#include <stdlib.h>
+#include "crlocks.h"
+#include "cssdef.h"
+#include "hyphman.h"
+#include "lvdrawbuf.h"
+#include "lvfnt.h"
+#include "lvstream.h"
+#include "lvstyles.h"
+#include "lvthread.h"
+#include "textlang.h"
+
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
-
-#include "../include/lvfntman.h"
-#include "../include/lvstream.h"
-#include "../include/lvdrawbuf.h"
-#include "../include/lvstyles.h"
-#include "../include/lvthread.h"
+#include <string.h>
 
 // Uncomment for debugging text measurement or drawing
 // #define DEBUG_MEASURE_TEXT
@@ -42,7 +49,7 @@
 #endif
 
 #define GAMMA_TABLES_IMPL
-#include "../include/gammatbl.h"
+#include "gammatbl.h"
 
 #if (USE_FREETYPE==1)
 
@@ -78,6 +85,11 @@
     #include <fontconfig/fontconfig.h>
 #endif
 
+#endif
+
+#include <stdlib.h>
+#if (DEBUG_FONT_MAN==1)
+# include <stdio.h>
 #endif
 
 #if USE_FREETYPE==1

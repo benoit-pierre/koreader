@@ -25,14 +25,11 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvstream.h"
 
-#include "../include/lvstream.h"
-#include "../include/lvptrvec.h"
-#include "../include/crtxtenc.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include "crtxtenc.h"
+#include "lvmemman.h"
+#include "lvplatform.h"
 
 //#define USE_UNRAR 1
 
@@ -43,6 +40,12 @@
 #if (USE_UNRAR==1)
 #include <rar.hpp>
 #endif
+
+#include <assert.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 extern "C" {
@@ -55,7 +58,6 @@ extern "C" {
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #endif
 
 #ifndef USE_ANSI_FILES

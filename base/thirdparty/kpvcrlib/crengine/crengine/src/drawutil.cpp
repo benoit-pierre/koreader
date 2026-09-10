@@ -42,12 +42,13 @@
  */
 
 #include "crsetup.h"
+#include "drawutil.h"
+
+#include "fb2def.h"
+#include "lvrend.h"
+#include "lvtinydom.h"
 
 #include <math.h>
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/lvrend.h"
-#include "../include/drawutil.h"
 
 inline int myMax(int a, int b) { return a > b ? a : b; }
 inline int myMin(int a, int b) { return a < b ? a : b; }

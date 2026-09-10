@@ -1,11 +1,19 @@
 #include "crsetup.h"
 
-#include "../include/lvstream.h"
-//#define CHM_SUPPORT_ENABLED 1
 #if CHM_SUPPORT_ENABLED==1
-#include "../include/chmfmt.h"
-#include "../include/lvxml.h"
+
+#include "chmfmt.h"
+
+#include "crtxtenc.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+#include "props.h"
+
 #include <chm_lib.h>
+
+#include <string.h>
+#include <time.h>
 
 #define DUMP_CHM_DOC 0
 

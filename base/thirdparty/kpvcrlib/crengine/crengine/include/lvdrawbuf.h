@@ -16,6 +16,10 @@
 
 #include "crsetup.h"
 
+#include "lvimg.h"
+
+#include <stdlib.h>
+
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
 extern "C" {
 #include <windows.h>
@@ -24,9 +28,6 @@ extern "C" {
 #include <e32base.h>
 #include <w32std.h>
 #endif
-
-#include "lvtypes.h"
-#include "lvimg.h"
 
 enum cr_rotate_angle_t {
     CR_ROTATE_ANGLE_0 = 0,
