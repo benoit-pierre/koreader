@@ -664,6 +664,9 @@ ifndef DARWIN
   ifdef ANDROID
     LDFLAGS += $(if $(MONOLIBTIC),-static-libstdc++)
   endif
+  ifeq (,$(KODEBUG)$(DARWIN))
+    LDFLAGS += -Wl,-Bsymbolic-functions
+  endif
   # Unfortunately, this needs glibc >= 2.36…
   # ifneq (,$(filter i686-% x86_64-%,$(TARGET_MACHINE)))
   #   LDFLAGS += -Wl,-z,pack-relative-relocs
