@@ -687,6 +687,42 @@ static int getTextLangStatus(lua_State *L) {
 	return 3;
 }
 
+extern "C" {
+#include <sys/resource.h>
+#include <math.h>
+}
+
+static void getUsage(double &user, double &system) {
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage)) {
+        user = NAN;
+        system = NAN;
+    }
+    user = (double)usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / 1000000.0;
+    system = (double)usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / 1000000.0;
+}
+
+template<typename F>
+static void add_usage_prop(CreDocument *doc, const char *prop, F fn) {
+    double time_user, time_system;
+    double start_user, start_system;
+    double end_user, end_system;
+    char prop_key[64];
+    char prop_val[64];
+    getUsage(start_user, start_system);
+    fn();
+    getUsage(end_user, end_system);
+    snprintf(prop_key, sizeof (prop_key), "%s.utime", prop);
+    snprintf(prop_val, sizeof (prop_val), "%f", time_user = end_user - start_user);
+    doc->text_view->propsGetCurrent()->setString(prop_key, prop_val);
+    snprintf(prop_key, sizeof (prop_key), "%s.stime", prop);
+    snprintf(prop_val, sizeof (prop_val), "%f", time_system = end_system - start_system);
+    doc->text_view->propsGetCurrent()->setString(prop_key, prop_val);
+    snprintf(prop_key, sizeof (prop_key), "%s.time", prop);
+    snprintf(prop_val, sizeof (prop_val), "%f", time_user + time_system);
+    doc->text_view->propsGetCurrent()->setString(prop_key, prop_val);
+}
+
 static int loadDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 	const char *file_name = luaL_checkstring(L, 2);
@@ -695,7 +731,9 @@ static int loadDocument(lua_State *L) {
 		only_metadata = lua_toboolean(L, 3);
 	}
 
-	doc->text_view->LoadDocument(file_name, only_metadata);
+	add_usage_prop(doc, "doc.load", [&]() {
+		doc->text_view->LoadDocument(file_name, only_metadata);
+	});
 	doc->dom_doc = doc->text_view->getDocument();
 
 	bool loaded = false;
@@ -706,7 +744,9 @@ static int loadDocument(lua_State *L) {
 
 static int renderDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-	doc->text_view->Render();
+	add_usage_prop(doc, "doc.render", [&]() {
+		doc->text_view->Render();
+	});
 
 	return 0;
 }
