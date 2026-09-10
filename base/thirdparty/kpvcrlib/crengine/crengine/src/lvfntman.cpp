@@ -20,6 +20,7 @@
 #include "hyphman.h"
 #include "lvdrawbuf.h"
 #include "lvfnt.h"
+#include "lvmemman.h"
 #include "lvstream.h"
 #include "lvstyles.h"
 #include "lvthread.h"
@@ -3464,7 +3465,7 @@ public:
     virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px)
     {
         if ( _extra_metric == NULL ) {
-            _extra_metric = (int *)malloc(sizeof(int)*FONT_METRIC_MAX);
+            _extra_metric = cr_alloc(FONT_METRIC_MAX);
             for (int i=0; i<FONT_METRIC_MAX; i++) {
                 _extra_metric[i] = CACHED_SIGNED_METRIC_NOT_SET;
             }
