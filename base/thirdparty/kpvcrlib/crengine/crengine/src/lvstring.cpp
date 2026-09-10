@@ -303,6 +303,21 @@ int lStr_cmp(const lChar8 * dst, const lChar32 * src)
     return _lStr_cmp(dst, src);
 }
 
+// Will return the next power of 2 minus 1 after n + 1:
+//    1 →   3
+//    3 →   7
+//   31 →  63
+// 185 -> 255
+inline int topup(int n) {
+    int v = n + 1;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    return v;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 // lString32
 ////////////////////////////////////////////////////////////////////////////
@@ -327,6 +342,7 @@ void lString32::free()
 
 void lString32::alloc(int sz)
 {
+    sz = topup(sz);
     pchunk = lstring_chunk_t::alloc();
     pchunk->buf32 = cr_alloc(sz + 1);
     pchunk->size = sz;
@@ -512,6 +528,7 @@ void lString32::reserve(size_type n)
     {
         if (pchunk->size < n)
         {
+            n = topup(n);
             pchunk->buf32 = cr_realloc( pchunk->buf32, n+1 );
             pchunk->size = n;
         }
@@ -1433,6 +1450,7 @@ void lString8::free()
 
 void lString8::alloc(int sz)
 {
+    sz = topup(sz);
     pchunk = lstring_chunk_t::alloc();
     pchunk->buf8 = cr_alloc(sz + 1);
     pchunk->size = sz;
@@ -1591,6 +1609,7 @@ void lString8::reserve(size_type n)
     {
         if (pchunk->size < n)
         {
+            n = topup(n);
             pchunk->buf8 = cr_realloc( pchunk->buf8, n+1 );
             pchunk->size = n;
         }
