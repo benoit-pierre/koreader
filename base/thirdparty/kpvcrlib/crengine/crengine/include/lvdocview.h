@@ -460,26 +460,6 @@ public:
     lString32 getNavigationPath();
     /// returns pointer to bookmark/last position containter of currently opened file
     CRFileHistRecord * getCurrentFileHistRecord();
-	/// -1 moveto previous chapter, 0 to current chaoter first pae, 1 to next chapter
-	bool moveByChapter( int delta );
-	/// -1 moveto previous page, 1 to next page
-	bool moveByPage( int delta );
-	/// saves new bookmark
-    CRBookmark * saveRangeBookmark( ldomXRange & range, bmk_type type, lString32 comment );
-	/// export bookmarks to text file
-	bool exportBookmarks( lString32 filename );
-	/// saves current page bookmark under numbered shortcut
-    CRBookmark * saveCurrentPageShortcutBookmark( int number );
-    /// saves current page bookmark under numbered shortcut
-    CRBookmark * saveCurrentPageBookmark( lString32 comment );
-    /// removes bookmark from list, and deletes it, false if not found
-    bool removeBookmark( CRBookmark * bm );
-    /// sets new list of bookmarks, removes old values
-    void setBookmarkList(LVPtrVector<CRBookmark> & bookmarks);
-    /// restores page using bookmark by numbered shortcut
-	bool goToPageShortcutBookmark( int number );
-    /// find bookmark by window point, return NULL if point doesn't belong to any bookmark
-    CRBookmark * findBookmarkByPoint(lvPoint pt);
     /// returns true if coverpage display is on
     bool getShowCover() { return  m_showCover; }
     /// sets coverpage display flag
@@ -643,12 +623,8 @@ public:
     bool IsRendered() { return m_is_rendered; }
     /// returns file list with positions/bookmarks
     CRFileHist * getHistory() { return &m_hist; }
-    /// returns formatted page list
-    LVRendPageList * getPageList() { return &m_pages; }
     /// returns pointer to TOC root node
     LVTocItem * getToc();
-    /// returns pointer to TOC root node
-    bool getFlatToc( LVPtrVector<LVTocItem, false> & items );
     /// update page numbers for items
     void updatePageNumbers( LVTocItem * item );
     /// returns pointer to LVPageMapItems container
@@ -826,15 +802,6 @@ public:
         return getSeries();
     }
 
-#if 0 // unused
-    /// export to WOL format
-    bool exportWolFile( const char * fname, bool flgGray, int levels );
-    /// export to WOL format
-    bool exportWolFile( const lChar32 * fname, bool flgGray, int levels );
-    /// export to WOL format
-    bool exportWolFile( LVStream * stream, bool flgGray, int levels );
-#endif
-
     /// returns book raw text size (size of all the XML/HTML files, unparsed)
     int getRawTextSize() { return m_doc_props->getIntDef(DOC_PROP_RAW_TEXT_SIZE); }
     /// returns book raw text length (accumlated length of all the text elements for all the XML/HTML files)
@@ -988,37 +955,6 @@ public:
     /// Destructor
     virtual ~LVDocView();
 };
-
-class SimpleTitleFormatter {
-    lString32 _text;
-    lString32Collection _lines;
-    lString8 _fontFace;
-    bool _bold;
-    bool _italic;
-    lUInt32 _color;
-    LVFontRef _font;
-    int _lineHeight;
-    int _height;
-    int _width;
-    int _maxWidth;
-    int _maxHeight;
-    int _fntSize;
-public:
-    int getHeight() { return _height; }
-    int getWidth() { return _width; }
-    SimpleTitleFormatter(lString32 text, lString8 fontFace, bool bold, bool italic, lUInt32 color, int maxWidth, int maxHeight, int fntSize = 0);
-
-    bool measure();
-    bool splitLines(const char * delimiter);
-    bool format(int fontSize);
-    bool findBestSize();
-    void draw(LVDrawBuf & buf, lString32 str, int x, int y, int align);
-    void draw(LVDrawBuf & buf, lvRect rc, int halign, int valign);
-};
-
-
-/// draw book cover, either from image, or generated from title/authors
-void LVDrawBookCover(LVDrawBuf & buf, LVImageSourceRef image, bool respectAspectRatio, lString8 fontFace, lString32 title, lString32 authors, lString32 seriesName, int seriesNumber);
 
 /// get balanced and proper HTML from possibly crappy HTML
 bool getBalancedHTML(LVStreamRef stream, lString8 & output, int wflags=0);
