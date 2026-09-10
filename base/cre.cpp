@@ -409,10 +409,6 @@ public:
         callback("OnSaveCacheFileEnd");
     }
     // virtual void OnLoadFileFirstPagesReady() { } // useless
-    // virtual void OnExportProgress(int percent) { } // Export to WOL format
-    // virtual void OnExternalLink(lString32 /*url*/, ldomNode * /*node*/) { }
-    // virtual void OnImageCacheClear() { }
-    // virtual bool OnRequestReload() { return false; }
 };
 
 CreCallbackForwarder * cre_callback_forwarder = NULL;
