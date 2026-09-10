@@ -1102,7 +1102,7 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
     _rowsize = (bpp<=2) ? (_dx * _bpp + 7) / 8 : _dx;
 
     _backgroundColor = GetWhiteColor(); // NOLINT: Call to virtual function during construction
-    _textColor = GetBlackColor();       // NOLINT
+    _textColor = GetBlackColor();
 
     if ( auxdata ) {
         _data = (lUInt8 *) auxdata;
