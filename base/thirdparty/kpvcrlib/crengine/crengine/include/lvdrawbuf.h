@@ -282,6 +282,8 @@ enum DrawBufPixelFormat
     DRAW_BUF_32_BPP = 32  /// color 32bit RGB 888
 };
 
+#if (COLOR_BACKBUFFER==1)
+
 /**
  * 2-bit gray bitmap buffer, partial support for 1-bit buffer
  * Supported pixel formats for LVGrayDrawBuf :
@@ -332,6 +334,8 @@ public:
     virtual ~LVGrayDrawBuf();
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0, int length1, int length2, int direction=0);
 };
+
+#endif
 
 inline lUInt32 RevRGB( lUInt32 cl ) {
     return ((cl<<16)&0xFF0000) | ((cl>>16)&0x0000FF) | (cl&0x00FF00);
