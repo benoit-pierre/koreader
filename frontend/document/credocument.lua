@@ -1025,21 +1025,6 @@ function CreDocument:gotoPage(page, internal)
     self._document:gotoPage(page, internal)
 end
 
-function CreDocument:gotoLink(link)
-    logger.dbg("CreDocument: goto link", link)
-    self._document:gotoLink(link)
-end
-
-function CreDocument:goBack()
-    logger.dbg("CreDocument: go back")
-    self._document:goBack()
-end
-
-function CreDocument:goForward(link)
-    logger.dbg("CreDocument: go forward")
-    self._document:goForward()
-end
-
 function CreDocument:getCurrentPage(internal)
     return self._document:getCurrentPage(internal)
 end
@@ -1901,7 +1886,6 @@ function CreDocument:setupCallCache()
             -- internally 2 other functions that are themselves wrapped
 
             -- gotoXPointer() is for cre internal fixup, we always use gotoPage/Pos
-            -- (goBack, goForward, gotoLink are not used)
 
             -- For some, we prefer no cache (if they cost nothing, return some huge
             -- data that we'd rather not cache, are called with many different args,
