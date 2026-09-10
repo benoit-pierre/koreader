@@ -404,6 +404,7 @@ ifdef KODEBUG
 else
   BASE_CFLAGS += -DNDEBUG
   ifndef DARWIN
+    BASE_CFLAGS += -fno-plt
     BASE_CFLAGS += -fno-semantic-interposition
   endif
 endif
