@@ -30,6 +30,7 @@
 #include "setting.h"
 #include "koptreflow.h"
 #include "leptonica.h"
+/* #include "coz.h" */
 
 void pixmap_to_bmp(WILLUSBITMAP *bmp, unsigned char *pix_data, int ncomp) {
     int i,j;
@@ -171,4 +172,5 @@ end:
     bmp_free(srcgrey);
     bmpregion_free(&region);
     masterinfo_free(masterinfo, k2settings);
+    /* COZ_PROGRESS_NAMED("k2pdfopt_reflow_bmp"); */
 }
