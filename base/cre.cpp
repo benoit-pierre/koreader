@@ -21,10 +21,15 @@
 #define DEBUG_CRENGINE 0
 #endif
 
+// #define USE_COZ
+
 extern "C" {
 #include "blitbuffer.h"
 #include "drawcontext.h"
 #include "cre.h"
+#ifdef USE_COZ
+# include "coz.h"
+#endif
 }
 
 #include "lvdocview.h"
@@ -726,6 +731,9 @@ static int loadDocument(lua_State *L) {
 
 	add_usage_prop(doc, "doc.load", [&]() {
 		doc->text_view->LoadDocument(file_name, only_metadata);
+#ifdef USE_COZ
+		COZ_PROGRESS_NAMED("loadDocument");
+#endif
 	});
 	doc->dom_doc = doc->text_view->getDocument();
 
@@ -739,6 +747,9 @@ static int renderDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 	add_usage_prop(doc, "doc.render", [&]() {
 		doc->text_view->Render();
+#ifdef USE_COZ
+		COZ_PROGRESS_NAMED("renderDocument");
+#endif
 	});
 
 	return 0;
