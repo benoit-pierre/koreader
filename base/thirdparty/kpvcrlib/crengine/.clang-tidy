@@ -22,6 +22,7 @@ Checks: >
   clang-analyzer-unix.StdCLibraryFunctions,
   -clang-diagnostic-vla-cxx-extension,
   misc-redundant-expression,
+  -misc-include-cleaner,
   misc-static-assert,
   readability-duplicate-include,
   readability-inconsistent-declaration-parameter,
@@ -31,6 +32,9 @@ Checks: >
   readability-redundant-nested-if,
   readability-redundant-preprocessor,
   readability-reference-to-constructed-temporary,
-  readability-static-accessed-through-instance,
+  -readability-static-accessed-through-instance,
   readability-trivial-switch,
+CheckOptions:
+  misc-include-cleaner.IgnoreHeaders: 'crsetup.h;lvtypes.h;lvarray.h;lvhashtable.h;lvptrvec.h;lvref.h;lvstring.h'
+  # misc-include-cleaner.MissingIncludes: false
 ...
