@@ -210,13 +210,35 @@ endif
 
 # CI helpers. {{{
 
+define cache_key_includes
+*.[ch]
+*.cpp
+cmake
+CMakeLists.txt
+Makefile
+Makefile.defs
+origin.ldflags
+thirdparty/*/*
+utils/gen_linker_exports.sh
+endef
+
+define cache_key_excludes
+**/.*
+*.lua
+*.md
+ffi-cdecl/ffi-cdecl.h
+ffi-cdecl/include
+utils/bincheck
+endef
+
 define cache_key_cmd
 git -C $(KOR_BASE) ls-files -z
---cached --ignored --exclude-from=$(abspath $1)
+$(patsubst %,'%',$(cache_key_includes))
+$(patsubst %,':!%',$(cache_key_excludes))
 | xargs -0 git -C $(KOR_BASE) ls-tree @
 endef
 
-cache-key: $(KOR_BASE)/Makefile $(KOR_BASE)/cache-key.base
+cache-key: $(KOR_BASE)/Makefile
 	$(strip $(call cache_key_cmd,$(KOR_BASE)/cache-key.base)) | tee $@
 
 # }}}
