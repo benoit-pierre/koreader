@@ -256,7 +256,7 @@ typedef struct
 
 /** \brief Bookmark highlight modes.
 */
-enum {
+enum highlight_mode_e {
     highlight_mode_none = 0,
     highlight_mode_solid = 1,
     highlight_mode_underline = 2
