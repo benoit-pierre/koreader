@@ -1,0 +1,215 @@
+# Sets. {{{
+
+pull_request: &PR [
+  # emulator
+  emu-gcc,
+  # macos
+  # macos-arm64,
+  # others
+  linux-x86_64,
+  android-arm,
+  android-arm64,
+  kindlepw2,
+]
+
+push: [
+  *PR,
+  # emu-clang,
+  # macos-x86_64,
+]
+
+release: [
+  # android-.*,
+  # cervantes,
+  # kindle.*,
+  # kobo.*,
+  # linux-.*,
+  # macos-.*,
+  # pocketbook.*,
+  # remarkable.*,
+  linux-x86_64,
+  android-arm,
+  android-arm64,
+  kindlepw2,
+]
+
+# }}}
+
+# Jobs. {{{
+
+emulator: # {{{
+
+  - id: emu-clang
+    job: Emulator (Clang)
+    image: koreader/kobase-clang:4.0.0-22.04
+    target: ""
+    env: PARALLEL_JOBS=5 USE_CLANG=1
+    test: true
+
+  - &EMU_GCC
+    id: emu-gcc
+    job: Emulator (GCC)
+    image: koreader/kobase:4.0.0-22.04
+    target: ""
+    env: PARALLEL_JOBS=5
+    cache_size: 240M
+    test: true
+
+# }}}
+
+android: # {{{
+
+  - &ANDROID
+    id: android-arm
+    job: Android ARM
+    image: koreader/koandroid:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    cache_size: 260M
+    artifact: apk
+
+  - <<: *ANDROID
+    id: android-arm64
+    job: Android ARM64
+
+  - <<: *ANDROID
+    id: android-x86
+    job: Android x86
+
+  - <<: *ANDROID
+    id: android-x86_64
+    job: Android x86_64
+
+# }}}
+
+cervantes: # {{{
+
+  - id: cervantes
+    job: Cervantes
+    image: koreader/kocervantes:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    artifact: txz
+
+# }}}
+
+kindle: # {{{
+
+  - &KINDLE
+    id: kindle
+    job: Kindle
+    image: koreader/kokindle:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    cache_size: 390M
+    artifact: txz
+
+  - <<: *KINDLE
+    id: kindlehf
+    job: Kindle HF
+
+  - <<: *KINDLE
+    id: kindlepw2
+    job: Kindle PW2
+
+  - <<: *KINDLE
+    id: kindle-legacy
+    job: Kindle Legacy
+
+# }}}
+
+kobo: # {{{
+
+  - &KOBO
+    id: kobo
+    job: Kobo
+    image: koreader/kokobo:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    artifact: txz
+
+  - <<: *KOBO
+    id: kobov5
+    job: Kobo v5
+
+# }}}
+
+linux: # {{{
+
+  - &LINUX
+    id: linux-aarch64
+    job: Linux AArch64
+    runs-on: ubuntu-24.04-arm
+    image: koreader/koappimage:4.0.0-22.04
+    target: linux
+    env: PARALLEL_JOBS=5
+    cache_size: 415M
+    test: true
+    artifact: appimage
+
+  - <<: *LINUX
+    id: linux-armhf
+    job: Linux ARMhf
+    platform: linux/arm/v7
+
+  - <<: *LINUX
+    id: linux-x86_64
+    job: Linux x86_64
+    runs-on:
+
+# }}}
+
+macos: # {{{
+
+  - &MACOS
+    id: macos-arm64
+    job: "macOS 15 ARM64 🔨16.4 🎯11.0"
+    cache: macos.15_ARM64_xcode.16.4_11.0
+    runs-on: macos-15
+    xcode_version: "16.4"
+    macosx_deployment_target: "11.0"
+    env: PARALLEL_JOBS=4
+    cache_size: 256MB
+    target: macos
+    test: true
+    artifact: 7z
+
+  - <<: *MACOS
+    id: macos-x86_64
+    job: "macOS 15 x86-64 🔨16.4 🎯10.15"
+    cache: macos.15_x86_64_xcode.16.4_10.15
+    runs-on: macos-15-intel
+    macosx_deployment_target: "10.15"
+    env: PARALLEL_JOBS=5
+
+# }}}
+
+pocketbook: # {{{
+
+  - &POCKETBOOK
+    id: pocketbook
+    job: PocketBook
+    image: koreader/kopb:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    artifact: txz
+
+  - <<: *POCKETBOOK
+    id: pocketbookhf
+    job: PocketBook HF
+
+# }}}
+
+remarkable: # {{{
+
+  - &REMARKABLE
+    id: remarkable
+    job: reMarkable
+    image: koreader/koremarkable:4.0.0-22.04
+    env: PARALLEL_JOBS=5
+    artifact: txz
+
+  - <<: *REMARKABLE
+    id: remarkable-aarch64
+    job: reMarkable Pro
+
+# }}}
+
+# }}}
+
+# vim: foldmethod=marker foldlevel=0
