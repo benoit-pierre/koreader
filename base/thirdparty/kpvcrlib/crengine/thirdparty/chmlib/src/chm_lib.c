@@ -78,10 +78,10 @@
 #else
 /* basic Linux system includes */
 #define _XOPEN_SOURCE 500
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#ifndef CHM_EXTERNAL_STREAM_SUPPORT
 #include <fcntl.h>
+#include <unistd.h>
+#endif
 /* #include <dmalloc.h> */
 #endif
 
