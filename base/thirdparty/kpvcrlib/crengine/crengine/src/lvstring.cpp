@@ -12,23 +12,10 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvstring.h"
 
-#include "../include/lvstring.h"
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#ifdef LINUX
-#include <sys/time.h>
-#if !defined(__APPLE__)
-#include <malloc.h>
-#endif
-#endif
+#include "lvmemman.h"
+#include "lvplatform.h"
 
 #if (USE_ZLIB==1)
 #include <zlib.h>
@@ -37,6 +24,16 @@
 #if (USE_UTF8PROC==1)
 #include <utf8proc.h>
 #endif
+
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 extern "C" {

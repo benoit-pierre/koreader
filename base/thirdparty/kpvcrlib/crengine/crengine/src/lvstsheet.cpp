@@ -14,12 +14,20 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvstsheet.h"
 
-#include "../include/lvstsheet.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/lvstream.h"
-#include "../include/lvrend.h"   // for -cr-only-if:
+#include "bookformats.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvfntman.h"
+#include "lvrend.h"   // for -cr-only-if:
+#include "lvstream.h"
+#include "lvstyles.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+#include "textlang.h"
+
+#include <string.h>
 
 // define to dump all tokens
 //#define DUMP_CSS_PARSING

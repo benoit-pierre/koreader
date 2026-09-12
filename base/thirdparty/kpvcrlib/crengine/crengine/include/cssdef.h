@@ -19,8 +19,6 @@
 #include "crsetup.h"
 
 #include "lvtypes.h"
-#include "lvref.h"
-#include "lvstring.h"
 
 // The order of items in following enums should match the order in the tables in src/lvstsheet.cpp
 /// display property values

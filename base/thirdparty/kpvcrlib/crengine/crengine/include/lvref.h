@@ -21,11 +21,13 @@
 
 #include "crsetup.h"
 
-#include <cassert>
 #include "lvtypes.h"
 #include "lvmemman.h"
 #include "crlocks.h"
-#include "lvautoptr.h"
+
+#include <assert.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 /// Memory manager pool for ref counting
 /**
