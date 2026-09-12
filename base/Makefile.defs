@@ -765,6 +765,12 @@ endif
 CFLAGS := $(strip $(CFLAGS))
 CXXFLAGS := $(strip $(CXXFLAGS))
 LDFLAGS := $(strip $(LDFLAGS))
+ifdef ASAN
+  CFLAGS += -fsanitize=address
+  CXXFLAGS += -fsanitize=address
+  LDFLAGS += -fsanitize=address
+  export LSAN_OPTIONS := exitcode=0 $(LSAN_OPTIONS)
+endif
 
 # NOTE: We generally want SIMD/ASM juicy stuff everywhere
 WANT_SIMD=1
@@ -1008,6 +1014,7 @@ set(USE_LJ_WPACLIENT   $(USE_LJ_WPACLIENT))
 set(USE_SDL            $(SDL))
 set(WANT_SIMD          $(WANT_SIMD))
 set(GLIBC_VERSION_MAX  $(GLIBC_VERSION_MAX))
+set(ASAN               $(ASAN))
 
 # Platform flags.
 set(ANDROID        $(ANDROID))
