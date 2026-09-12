@@ -98,13 +98,10 @@ update-apk: all
 	# https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission
 	cp -v $(INSTALL_DIR)/koreader/sdcv $(ANDROID_LIBS)/libsdcv$(LIB_EXT)
 	# Assets are compressed manually and stored inside the APK.
-	cd $(INSTALL_DIR)/koreader && \
-	  ./tools/mkrelease.sh \
-	  $(if $(PARALLEL_JOBS),--jobs $(PARALLEL_JOBS)) \
-	  --epoch="$$(git show -s --format='%ci')" \
-	  --options='$(ANDROID_ASSETS_COMPRESSION)' \
-	  $(abspath $(ANDROID_ASSETS)/module/koreader.7z) \
-	  . '-x!libs' '-x!sdcv' $(release_excludes)
+	# NOTE: we start we a fake small archive to run gradle to
+	# avoid busting its cache, speed-up incremental rebuilds.
+	rm -f $(ANDROID_ASSETS)/module/koreader.7z
+	"$$(which 7z)" a -mtm- $(ANDROID_ASSETS)/module/koreader.7z /dev/null
 	$(ANDROID_LAUNCHER_DIR)/gradlew \
 		--project-dir='$(abspath $(ANDROID_LAUNCHER_DIR))' \
 		--project-cache-dir='$(abspath $(ANDROID_LAUNCHER_BUILD)/gradle)' \
@@ -118,6 +115,19 @@ update-apk: all
 		$(GRADLE_FLAGS) \
 		'app:assemble$(ANDROID_ARCH)$(ANDROID_FLAVOR)$(if $(KODEBUG),Debug,Release)'
 	cp $(ANDROID_LAUNCHER_BUILD)/outputs/apk/$(ANDROID_ARCH)$(ANDROID_FLAVOR)/$(if $(KODEBUG),debug,release)/NativeActivity.apk $(ANDROID_APK)
+	# Create the real assets archive.
+	cd $(INSTALL_DIR)/koreader && \
+	  ./tools/mkrelease.sh \
+	  $(if $(PARALLEL_JOBS),--jobs $(PARALLEL_JOBS)) \
+	  --epoch="$$(git show -s --format='%ci')" \
+	  --options='$(ANDROID_ASSETS_COMPRESSION)' \
+	  $(abspath $(ANDROID_LAUNCHER_BUILD)/koreader.7z) \
+	  . '-x!libs' '-x!sdcv' $(release_excludes)
+	# And replace the APK entry with it.
+	"$$(which 7z)" d -tzip $(ANDROID_APK) assets/module/koreader.7z
+	"$$(which 7z)" a -tzip $(ANDROID_APK) -m0=Copy $(ANDROID_LAUNCHER_BUILD)/koreader.7z
+	"$$(which 7z)" rn -tzip $(ANDROID_APK) $(ANDROID_LAUNCHER_BUILD)/koreader.7z assets/module/koreader.7z
+	# And finally, sign the APK.
 	type -P uber-apk-signer >/dev/null && uber-apk-signer --overwrite --apks $(ANDROID_APK) || echo 'WARNING: uber-apk-signer not found, APK is unsigned!'
 
 update: update-apk
