@@ -3215,35 +3215,6 @@ void LVDocView::close() {
     createDefaultDocument(lString32::empty_str, lString32::empty_str);
 }
 
-
-/// create empty document with specified message (to show errors)
-void LVDocView::createHtmlDocument(lString32 code) {
-    Clear();
-    m_showCover = false;
-    createEmptyDocument();
-
-    //ldomDocumentWriter writer(m_doc);
-    ldomDocumentWriterFilter writerFilter(m_doc, false,
-            HTML_AUTOCLOSE_TABLE);
-
-    _pos = 0;
-    _page = 0;
-
-
-    lString8 s = UnicodeToUtf8(lString32(U"\xFEFF<html><body>") + code + "</body>");
-    setDocFormat( doc_format_html);
-    LVStreamRef stream = LVCreateMemoryStream();
-    stream->Write(s.c_str(), s.length(), NULL);
-    stream->SetPos(0);
-    LVHTMLParser parser(stream, &writerFilter);
-    if (!parser.CheckFormat()) {
-        // error - cannot parse
-    } else {
-        parser.Parse();
-    }
-    REQUEST_RENDER("resize")
-}
-
 void LVDocView::createDefaultDocument(lString32 title, lString32 message) {
     Clear();
     m_showCover = false;
