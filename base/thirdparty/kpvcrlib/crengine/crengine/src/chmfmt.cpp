@@ -406,7 +406,7 @@ class CHMUrlStr {
     {
 
     }
-    lUInt32 readInt32( const lUInt8 * & data ) {
+    static lUInt32 readInt32( const lUInt8 * & data ) {
         lUInt32 res = 0;
         res = *(data++);
         res = res | (((lUInt32)(*(data++))) << 8);
@@ -414,7 +414,7 @@ class CHMUrlStr {
         res = res | (((lUInt32)(*(data++))) << 24);
         return res;
     }
-    lString8 readString( const lUInt8 * & data, int maxlen ) {
+    static lString8 readString( const lUInt8 * & data, int maxlen ) {
         lString8 res;
         for ( int i=0; i<maxlen; i++ ) {
             lUInt8 b = *data++;
@@ -525,7 +525,7 @@ class CHMUrlTable {
     {
 
     }
-    lUInt32 readInt32( const lUInt8 * & data ) {
+    static lUInt32 readInt32( const lUInt8 * & data ) {
         lUInt32 res = 0;
         res = *(data++);
         res = res | (((lUInt32)(*(data++))) << 8);
