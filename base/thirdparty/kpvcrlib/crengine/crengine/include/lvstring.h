@@ -482,6 +482,10 @@ public:
     explicit lString8(const value_type * str, size_type count);
     /// fragment copy constructor
     explicit lString8(const lString8 & str, size_type offset, size_type count);
+    /// constructor from UTF-32 c-string
+    explicit lString8(const lChar32 * s);
+    /// constructor from partial UTF-32 c-string
+    explicit lString8(const lChar32 * s, int count);
     /// destructor
     ~lString8() { release(); }
 
@@ -706,13 +710,13 @@ public:
     explicit lString32(size_type size, size_type len = 0) { alloc(size); pchunk->buf32[pchunk->len = len] = 0; }
     /// copy constructor
     lString32(const lString32 & str) : pchunk(str.pchunk) { addref(); }
-    /// constructor from wide c-string
+    /// constructor from UTF-32 c-string
     lString32(const value_type * str);
-    /// constructor from 8bit c-string (ASCII only)
+    /// constructor from UTF-8 c-string
     explicit lString32(const lChar8 * str);
-    /// constructor from 8bit (ASCII only) character array fragment
+    /// constructor from partial UTF-8 c-string
     explicit lString32(const lChar8 * str, size_type count);
-    /// constructor from wide character array fragment
+    /// constructor from partial UTF-32 c-string
     explicit lString32(const value_type * str, size_type count);
     /// constructor from another string substring
     explicit lString32(const lString32 & str, size_type offset, size_type count);
@@ -1263,7 +1267,7 @@ lString8  UnicodeToLocal( const lString32 & str );
 /// converts wide unicode string to utf-8 string
 lString8  UnicodeToUtf8( const lString32 & str );
 /// converts wide unicode string to utf-8 string
-lString8 UnicodeToUtf8(const lChar32 * s, int count);
+lString8 UnicodeToUtf8(const lChar32 * str, int count);
 /// converts 8-bit string to unicode string using specified conversion table for upper 128 characters
 lString32 ByteToUnicode( const lString8 & str, const lChar32 * table );
 /// converts 8-bit string in local encoding to wide unicode string
