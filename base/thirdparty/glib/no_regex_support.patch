@@ -1,11 +1,25 @@
---- i/meson.build
-+++ w/meson.build
-@@ -2201,43 +2201,8 @@
- 
- pcre2_req = '>=10.32'
+diff --git a/glib/meson.build b/glib/meson.build
+index 248f453cb..74c74b4dc 100644
+--- a/glib/meson.build
++++ b/glib/meson.build
+@@ -312,7 +312,6 @@ glib_sources += files(
+   'grcbox.c',
+   'grefcount.c',
+   'grefstring.c',
+-  'gregex.c',
+   'gscanner.c',
+   'gsequence.c',
+   'gshell.c',
+diff --git a/meson.build b/meson.build
+index dc676ed40..62c633028 100644
+--- a/meson.build
++++ b/meson.build
+@@ -2255,43 +2255,8 @@ pcre2_options = [
+   'test=false',
+ ]
  
 -# Pick up pcre from the system, or if "--force-fallback-for libpcre2-8" was specified
--pcre2 = dependency('libpcre2-8', version: pcre2_req, required: false, default_options: ['default_library=static'])
+-pcre2 = dependency('libpcre2-8', version: pcre2_req, required: false, default_options: pcre2_options)
 -if not pcre2.found()
 -  if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl'
 -  # MSVC: Search for the PCRE2 library by the configuration, which corresponds
@@ -21,7 +35,7 @@
 -
 -# Try again with the fallback
 -if not pcre2.found()
--  pcre2 = dependency('libpcre2-8', version: pcre2_req, allow_fallback: true, default_options: ['default_library=static'])
+-  pcre2 = dependency('libpcre2-8', version: pcre2_req, allow_fallback: true, default_options: pcre2_options)
 -  assert(pcre2.type_name() == 'internal')
 -  # static flags are automatically enabled by the subproject if it's built
 -  # with default_library=static
@@ -44,15 +58,5 @@
 +pcre2 = dependency('', required: false)
 +use_pcre2_static_flag = false
  
- # Import the gvdb sources as a subproject to avoid having the copylib in-tree
- # subproject('gvdb')
---- i/glib/meson.build
-+++ w/glib/meson.build
-@@ -314,7 +314,6 @@
-   'grcbox.c',
-   'grefcount.c',
-   'grefstring.c',
--  'gregex.c',
-   'gscanner.c',
-   'gsequence.c',
-   'gshell.c',
+ libm = cc.find_library('m', required : false)
+ 
