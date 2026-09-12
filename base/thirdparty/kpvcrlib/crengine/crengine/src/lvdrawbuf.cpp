@@ -361,7 +361,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
         }
         const int newrowsize = _dy * 2;
         sz = (_dx * newrowsize);
-        lUInt16 * __restrict dst = (lUInt16*) malloc( sz );
+        lUInt16 * __restrict dst = cr_alloc( sz / 2 );
     #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         const bool cw = angle!=CR_ROTATE_ANGLE_90;
     #else
@@ -408,7 +408,7 @@ void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
         }
         const int newrowsize = _dy * 4;
         sz = (_dx * newrowsize);
-        lUInt32 * __restrict dst = (lUInt32*) malloc( sz );
+        lUInt32 * __restrict dst = cr_alloc( sz / 4 );
     #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
         bool cw = angle!=CR_ROTATE_ANGLE_90;
     #else
@@ -1063,7 +1063,7 @@ void LVGrayDrawBuf::Resize( int dx, int dy )
     _dy = dy;
     _rowsize = _bpp<=2 ? (_dx * _bpp + 7) / 8 : _dx;
     if (dx > 0 && dy > 0) {
-        _data = (unsigned char *)calloc(_rowsize * _dy + 1, sizeof(*_data));
+        _data = cr_calloc(_rowsize * _dy + 1);
         _data[_rowsize * _dy] = GUARD_BYTE;
     } else {
         Clear(0);
@@ -1111,7 +1111,7 @@ LVGrayDrawBuf::LVGrayDrawBuf(int dx, int dy, int bpp, void * auxdata )
         _data = (lUInt8 *) auxdata;
         _ownData = false;
     } else if (_dx && _dy) {
-        _data = (lUInt8 *) calloc(_rowsize * _dy + 1, sizeof(*_data));
+        _data = cr_calloc(_rowsize * _dy + 1);
         _data[_rowsize * _dy] = GUARD_BYTE;
     }
     SetClipRect( NULL );
