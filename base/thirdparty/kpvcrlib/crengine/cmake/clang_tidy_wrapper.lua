@@ -26,7 +26,11 @@
 -- This wrapper caches results for clang-tidy.
 -------------------------------------------------------------------------------
 
-require_std("*")
+require_std("bcache")
+require_std("io")
+require_std("os")
+require_std("string")
+require_std("table")
 
 -------------------------------------------------------------------------------
 -- Internal helper functions.
