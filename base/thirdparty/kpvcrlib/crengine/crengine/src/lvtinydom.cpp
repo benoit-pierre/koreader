@@ -19008,7 +19008,7 @@ public:
     }
 
     // dir/filename.{crc32}.cr3
-    lString32 makeFileName( lString32 filename, lUInt32 crc, lUInt32 docFlags )
+    static lString32 makeFileName( lString32 filename, lUInt32 crc, lUInt32 docFlags )
     {
         lString32 fn(filename.length());
         lString8 filename8 = UnicodeToTranslit(filename);
