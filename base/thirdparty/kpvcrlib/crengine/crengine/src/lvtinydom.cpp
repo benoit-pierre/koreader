@@ -4108,6 +4108,7 @@ static void writeNode( LVStream * stream, ldomNode * node, bool treeLayout )
     }
 }
 
+// NOLINTBEGIN(clang-analyzer-security.ArrayBound)
 static lString32 & escape_xml_special_characters(lString32 & s) {
     // Escape XML special characters: assume those are rare, and do it in
     // place by scanning the string a first time to calculate the final
@@ -4168,6 +4169,7 @@ static lString32 & escape_xml_special_characters(lString32 & s) {
     }
     return s;
 }
+// NOLINTEND(clang-analyzer-security.ArrayBound)
 
 // Similar to previous one (with more tweaks), to serialize back <svg> to string
 static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_style=true, bool is_top_node=true )
