@@ -3771,31 +3771,6 @@ static int getNormalizedXPointer(lua_State *L) {
     return 1;
 }
 
-static int gotoLink(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-	const char *pos = luaL_checkstring(L, 2);
-
-	doc->text_view->goLink(lString32(pos), true);
-
-	return 0;
-}
-
-static int goBack(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	doc->text_view->goBack();
-
-	return 0;
-}
-
-static int goForward(lua_State *L) {
-	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
-
-	doc->text_view->goForward();
-
-	return 0;
-}
-
 static int clearSelection(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 
@@ -4471,9 +4446,6 @@ static const struct luaL_Reg credocument_meth[] = {
     {"highlightXPointer", highlightXPointer},
     {"getNormalizedXPointer", getNormalizedXPointer},
     {"getCoverPageImageData", getCoverPageImageData},
-    {"gotoLink", gotoLink},
-    {"goBack", goBack},
-    {"goForward", goForward},
     {"clearSelection", clearSelection},
     {"hasPageMap", hasPageMap},
     {"getPageMap", getPageMap},
