@@ -72,6 +72,59 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          CCACHE_VERSION: '4.14'
+          NINJATRACING_VERSION: '084212eaf68f25c70579958a2ed67fb4ec2a9ca4'
+        run: |
+          . ./.ci/common.sh
+          # python packages
+          run python3 -m pip install --disable-pip-version-check meson ruamel.yaml
+          # ninjatracing
+          run wget -qO ninjatracing.zip "https://github.com/nico/ninjatracing/archive/${NINJATRACING_VERSION}.zip"
+          run unzip -j ninjatracing.zip '*/ninjatracing'
+          run install -m755 ninjatracing /usr/local/bin/
+          run rm ninjatracing*
+          # brew packages
+          packages=(
+              autoconf
+              automake
+              bash
+              binutils
+              coreutils
+              findutils
+              libtool
+              make
+              nasm
+              ninja
+              pkg-config
+              util-linux
+          )
+          # Don't auto-update.
+          run export HOMEBREW_NO_AUTO_UPDATE=1
+          # Don't upgrade already installed formulas.
+          run export HOMEBREW_NO_INSTALL_UPGRADE=1
+          # Remove some installed packages to prevent brew
+          # from attempting (and failing) to upgrade them.
+          run brew uninstall gradle maven
+          run brew install --formula --overwrite --quiet "${packages[@]}"
+          brew_paths=(
+              "$(brew --prefix)/opt/findutils/libexec/gnubin"
+              "$(brew --prefix)/opt/make/libexec/gnubin"
+              "$(brew --prefix)/opt/util-linux/bin"
+          )
+          run printf '%s\n' "${brew_paths[@]}" >>"${GITHUB_PATH}"
+          # ccache
+          run wget -qO ccache.tar.gz "https://github.com/ccache/ccache/releases/download/v${CCACHE_VERSION}/ccache-${CCACHE_VERSION}-darwin.tar.gz"
+          run tar xf ccache.tar.gz -C /usr/local/bin --strip-components=1 "ccache-${CCACHE_VERSION}-darwin/ccache"
+          run rm -rf ccache.tar.gz
+          # xcode
+          run sudo xcode-select -s "/Applications/Xcode_${{ matrix.xcode_version }}.app"
+          run xcodebuild -version
+          run xcode-select -p
+
       - name: Setup build environment
         shell: bash
         run: ./.ci/build_environment_setup.sh '${{ toJSON(matrix) }}'
@@ -193,6 +246,7 @@ jobs:
         run: make bininfo
 
       - name: Checking binaries for missing dependencies
+        if: steps.build-restore.outputs.cache-hit != 'true'
         run: make bincheck
 
       # }}}
