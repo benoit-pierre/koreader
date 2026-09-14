@@ -752,7 +752,7 @@ lString32 & lString32::trim()
     if (pchunk->nref == 1)
     {
         if (firstns>0)
-            lStr_memcpy( pchunk->buf32, pchunk->buf32+firstns, newlen );
+            lStr_memmove( pchunk->buf32, pchunk->buf32+firstns, newlen );
         pchunk->buf32[newlen] = 0;
         pchunk->len = newlen;
     }
@@ -2166,7 +2166,7 @@ lString8 & lString8::trim()
     if (pchunk->nref == 1)
     {
         if (firstns>0)
-            lStr_memcpy( pchunk->buf8, pchunk->buf8+firstns, newlen );
+            lStr_memmove( pchunk->buf8, pchunk->buf8+firstns, newlen );
         pchunk->buf8[newlen] = 0;
         pchunk->len = newlen;
     }
