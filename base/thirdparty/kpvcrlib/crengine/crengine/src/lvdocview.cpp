@@ -2836,43 +2836,6 @@ void LVDocView::clearSelection() {
 	updateSelections();
 }
 
-/// get document rectangle for specified cursor position, returns false if not visible
-bool LVDocView::getCursorDocRect(ldomXPointer ptr, lvRect & rc) {
-	rc.clear();
-	if (ptr.isNull())
-		return false;
-	if (!ptr.getRect(rc)) {
-		rc.clear();
-		return false;
-	}
-	return true;
-}
-
-/// get screen rectangle for specified cursor position, returns false if not visible
-bool LVDocView::getCursorRect(ldomXPointer ptr, lvRect & rc,
-		bool scrollToCursor) {
-	if (!getCursorDocRect(ptr, rc))
-		return false;
-	for (;;) {
-
-		lvPoint topLeft = rc.topLeft();
-		lvPoint bottomRight = rc.bottomRight();
-		if (docToWindowPoint(topLeft) && docToWindowPoint(bottomRight, true)) {
-			rc.setTopLeft(topLeft);
-			rc.setBottomRight(bottomRight);
-			return true;
-		}
-		// try to scroll and convert doc->window again
-		if (!scrollToCursor)
-			break;
-		// scroll
-		goToBookmark(ptr);
-		scrollToCursor = false;
-	};
-	rc.clear();
-	return false;
-}
-
 #define NAVIGATION_FILENAME_SEPARATOR U":"
 bool splitNavigationPos(lString32 pos, lString32 & fname, lString32 & path) {
 	int p = pos.pos(lString32(NAVIGATION_FILENAME_SEPARATOR));
