@@ -6491,16 +6491,6 @@ bool LVCssSelectorRule::checkInnerText( const ldomNode * & node ) const {
     return false;
 }
 
-bool LVCssSelectorRule::quickClassCheck(const lUInt32 *classHashes, size_t size) const {
-    if (_type != cssrt_class)
-        return true;
-    for (size_t i = 0; i < size; ++i) {
-        if (classHashes[i] == _valueHash)
-            return true;
-    }
-    return false;
-}
-
 static bool getOriginalFragmentAttributeValue(const ldomNode *node, lUInt16 attrid, lString32 &original_value) {
     // EPUB/CHM documents are merged into a single DOM, and ldomDocumentFragmentWriter
     // rewrites some attributes with a "_doc_fragment_N_ " prefix so they stay unique.
@@ -7237,7 +7227,14 @@ bool LVCssSelector::check( const ldomNode * node, bool allow_cache ) const
 
 bool LVCssSelector::quickClassCheck(const lUInt32 *classHashes, size_t size) const {
     // pseudo_elem: `LVCssSelector::check()` may move the check to its parent node
-    return !_rules || _pseudo_elem || _rules->quickClassCheck(classHashes, size);
+    if (_quick_check)
+        return true;
+    lUInt32 rulesHash = _rules->_getHash();
+    for (size_t i = 0; i < size; ++i) {
+        if (classHashes[i] == rulesHash)
+            return true;
+    }
+    return false;
 }
 
 bool parse_attr_value( const char * &str, char * buf, bool &parse_trailing_i, char stop_char=']' )
@@ -7789,6 +7786,7 @@ bool LVCssSelector::parse( const char * &str, lxmlDocBase * doc, bool useragent_
     }
 exit:
     _rules = start;
+    _quick_check = !_rules || _pseudo_elem || !_rules->isClass();;
     return res;
 }
 
@@ -7887,6 +7885,7 @@ LVCssSelector::LVCssSelector( LVCssSelector & v )
 , _specificity(v._specificity)
 , _pseudo_elem(v._pseudo_elem)
 , _next(NULL)
+, _quick_check(v._quick_check)
 , _rules(v._rules)
 {
     if ( v._next )
@@ -8047,7 +8046,7 @@ void LVStyleSheet::apply( const ldomNode * node, css_style_rec_t * style ) const
     }
 }
 
-lUInt32 LVCssSelectorRule::getHash() const
+lUInt32 LVCssSelectorRule::updateHash() const
 {
     lUInt32 hash = 0;
     hash = ( ( ( (lUInt32)_type * 31
@@ -8067,7 +8066,7 @@ lUInt32 LVCssSelector::getHash() const
     if (_next)
         nextHash = _next->getHash();
     for (const LVCssSelectorRule * p = _rules.get(); p; p = p->getNext()) {
-        lUInt32 ruleHash = p->getHash();
+        lUInt32 ruleHash = p->updateHash();
         hash = hash * 31 + ruleHash;
     }
     hash = hash * 31 + nextHash;
