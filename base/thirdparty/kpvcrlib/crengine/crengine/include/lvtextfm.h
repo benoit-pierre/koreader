@@ -17,13 +17,13 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
+#include "cssdef.h"
 #include "lvfntman.h"
+#include "lvhashtable.h"
+#include "lvstring.h"
 #include "textlang.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <stddef.h>
 
 // src_text_fragment_t flags
 
@@ -389,9 +389,6 @@ void lvtextAddSourceObject(
                          );
 
 
-#ifdef __cplusplus
-}
-
 class LVDrawBuf;
 class ldomMarkedRangeList;
 struct img_scaling_options_t;
@@ -544,7 +541,5 @@ public:
 
     ~LFormattedText() { lvtextFreeFormatter( m_pbuffer ); }
 };
-
-#endif
 
 #endif

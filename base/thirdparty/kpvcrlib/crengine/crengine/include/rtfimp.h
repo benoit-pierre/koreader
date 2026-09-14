@@ -15,9 +15,11 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvxml.h"
 #include "crtxtenc.h"
+#include "lvstream.h"
+#include "lvxml.h"
+
+#include <stddef.h>
 #include <string.h>
 
 #define PARAM_VALUE_NONE 0x7FFFFFFF
