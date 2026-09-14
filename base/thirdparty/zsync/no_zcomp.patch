@@ -1,0 +1,340 @@
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index b01d8b4..847da0f 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -3,7 +3,6 @@ set(CMAKE_MINIMUM_REQUIRED_VERSION 3.2)
+ include_directories(.)
+ 
+ # include subdirectories in the right order
+-add_subdirectory(zlib)
+ add_subdirectory(librcksum)
+ add_subdirectory(libzsync)
+ 
+diff --git a/lib/libzsync/CMakeLists.txt b/lib/libzsync/CMakeLists.txt
+index 921667a..e8a3ed3 100644
+--- a/lib/libzsync/CMakeLists.txt
++++ b/lib/libzsync/CMakeLists.txt
+@@ -6,13 +6,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE true)
+ enable_testing()
+ 
+ # add actual library
+-add_library(libzsync zsync.c zmap.c sha1.c)
++add_library(libzsync zsync.c sha1.c)
+ 
+ # since the target is called libsomething, one doesn't need CMake's additional lib prefix
+ set_target_properties(libzsync PROPERTIES PREFIX "")
+ 
++target_compile_definitions(libzsync PRIVATE -DNO_ZCOMP)
++
+ # link relevant libraries
+-target_link_libraries(libzsync PRIVATE zsync2_libz PUBLIC librcksum)
++target_link_libraries(libzsync PUBLIC librcksum)
+ 
+ # declare includes
+ target_include_directories(libzsync PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+diff --git a/lib/libzsync/zsync.c b/lib/libzsync/zsync.c
+index 2a6ca55..d69d89f 100644
+--- a/lib/libzsync/zsync.c
++++ b/lib/libzsync/zsync.c
+@@ -50,12 +50,16 @@
+ # include <dmalloc.h>
+ #endif
+ 
++#ifndef NO_ZCOMP
+ #include "zlib/zlib.h"
++#endif
+ 
+ #include "librcksum/rcksum.h"
+ #include "zsync.h"
+ #include "sha1.h"
++#ifndef NO_ZCOMP
+ #include "zmap.h"
++#endif
+ 
+ /* Probably we really want a table of compression methods here. But I've only
+  * implemented SHA1 so this is it for now. */
+@@ -100,19 +104,23 @@ struct zsync_state {
+     char **url;
+     int nurl;
+ 
++#ifndef NO_ZCOMP
+     /* URLs to compressed versions of the target, and the zmap of that compressed version */
+     struct zmap *zmap;
+     char **zurl;
+     int nzurl;
++#endif
+ 
+     char *cur_filename;         /* If we have taken the filename from rcksum, it is here */
+ 
+     /* Hints for the output file, from the .zsync */
+     char *filename;             /* The Filename: header */
++#ifndef NO_ZCOMP
+     char *zfilename;            /* ditto Z-Filename: */
+ 
+     char *gzopts;               /* If we're recompressing the download afterwards, these are the options to gzip(1) */
+     char *gzhead;               /* And this is the header of the gzip file (for the mtime) */
++#endif
+ 
+     time_t mtime;               /* MTime: from the .zsync, or -1 */
+ 
+@@ -128,7 +136,9 @@ static int zsync_read_blocksums(struct zsync_state *zs, FILE * f,
+                                 int rsum_bytes, unsigned int checksum_bytes,
+                                 int seq_matches);
+ //static int zsync_sha1(struct zsync_state *zs, int fh);
++#ifndef NO_ZCOMP
+ static int zsync_recompress(struct zsync_state *zs);
++#endif
+ static time_t parse_822(const char* ts);
+ 
+ /* char*[] = append_ptrlist(&num, &char[], "to add")
+@@ -209,15 +219,19 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+             else if (!strcmp(buf, "Filename")) {
+                 zs->filename = strdup(p);
+             }
++#ifndef NO_ZCOMP
+             else if (!strcmp(buf, "Z-Filename")) {
+                 zs->zfilename = strdup(p);
+             }
++#endif
+             else if (!strcmp(buf, "URL")) {
+                 zs->url = (char **)append_ptrlist(&(zs->nurl), zs->url, strdup(p));
+             }
++#ifndef NO_ZCOMP
+             else if (!strcmp(buf, "Z-URL")) {
+                 zs->zurl = (char **)append_ptrlist(&(zs->nzurl), zs->zurl, strdup(p));
+             }
++#endif
+             else if (!strcmp(buf, "Blocksize")) {
+                 long blocksize = atol(p);
+                 if (blocksize < 0 || (blocksize & (blocksize - 1))) {
+@@ -238,6 +252,7 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+                     return NULL;
+                 }
+             }
++#ifndef NO_ZCOMP
+             else if (zs->blocks && !strcmp(buf, "Z-Map2")) {
+                 int nzblocks;
+                 struct gzblock *zblock;
+@@ -261,6 +276,7 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+                     free(zblock);
+                 }
+             }
++#endif
+             else if (!strcmp(buf, ckmeth_sha1)) {
+                 if (strlen(p) != SHA1_DIGEST_LENGTH * 2) {
+                     fprintf(stderr, "SHA-1 digest from control file is wrong length.\n");
+@@ -273,6 +289,7 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+             else if (!strcmp(buf, "Safe")) {
+                 safelines = strdup(p);
+             }
++#ifndef NO_ZCOMP
+             else if (!strcmp(buf, "Recompress")) {
+                 zs->gzhead = strdup(p);
+                 if (zs->gzhead) {
+@@ -295,6 +312,7 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+                     }
+                 }
+             }
++#endif
+             else if (!strcmp(buf, "MTime")) {
+                 zs->mtime = parse_822(p);
+             }
+@@ -395,14 +413,22 @@ static time_t parse_822(const char* ts) {
+  * Returns true if we think we'll be able to download compressed data to get
+  * the needed data to complete the target file */
+ int zsync_hint_decompress(const struct zsync_state *zs) {
++#ifndef NO_ZCOMP
+     return (zs->nzurl > 0 ? 1 : 0);
++#else
++    return 0;
++#endif
+ }
+ 
+ /* char* = zsync_filename(self)
+  * Returns the suggested filename to be used for the final result of this
+  * zsync.  Malloced string to be freed by the caller. */
+ char *zsync_filename(const struct zsync_state *zs) {
++#ifndef NO_ZCOMP
+     return strdup(zs->gzhead && zs->zfilename ? zs->zfilename : zs->filename);
++#else
++    return strdup(zs->filename);
++#endif
+ }
+ 
+ /* time_t = zsync_mtime(self)
+@@ -453,12 +479,15 @@ void zsync_progress(const struct zsync_state *zs, long long *got,
+  * is returned in *type which tells libzsync in later calls what version of the
+  * target is being retrieved. */
+ const char *const *zsync_get_urls(struct zsync_state *zs, int *n, int *t) {
++#ifndef NO_ZCOMP
+     if (zs->zmap && zs->nzurl) {
+         *n = zs->nzurl;
+         *t = 1;
+         return (const char * const *) zs->zurl;
+     }
+-    else {
++    else
++#endif
++    {
+         *n = zs->nurl;
+         *t = 0;
+         return (const char * const *) zs->url;
+@@ -504,6 +533,7 @@ off_t *zsync_needed_byte_ranges(struct zsync_state * zs, int *num, int type) {
+     case 0:
+         *num = nrange;
+         return byterange;
++#ifndef NO_ZCOMP
+     case 1:
+         {   /* Convert ranges in the uncompressed data to ranges in the compressed data */
+             off_t *zbyterange =
+@@ -517,6 +547,7 @@ off_t *zsync_needed_byte_ranges(struct zsync_state * zs, int *num, int type) {
+             free(byterange);
+             return zbyterange;
+         }
++#endif
+     default:
+         free(byterange);
+         return NULL;
+@@ -602,12 +633,14 @@ int zsync_complete(struct zsync_state *zs) {
+     }
+     close(fh);
+ 
++#ifndef NO_ZCOMP
+     /* Do any requested recompression */
+     if (rc >= 0 && zs->gzhead && zs->gzopts) {
+         if (zsync_recompress(zs) != 0) {
+             return -1;
+         }
+     }
++#endif
+     return rc;
+ }
+ 
+@@ -650,6 +683,7 @@ int zsync_sha1(struct zsync_state *zs, int fh) {
+     }
+ }
+ 
++#ifndef NO_ZCOMP
+ /* zsync_recompress(self)
+  * Called when we have a complete local copy of the uncompressed data, to
+  * perform compression requested in the .zsync.
+@@ -749,6 +783,7 @@ static int zsync_recompress(struct zsync_state *zs) {
+     }
+     return rc;
+ }
++#endif
+ 
+ /* Destructor */
+ char *zsync_end(struct zsync_state *zs) {
+@@ -758,21 +793,29 @@ char *zsync_end(struct zsync_state *zs) {
+     /* Free rcksum object and zmap */
+     if (zs->rs)
+         rcksum_end(zs->rs);
++#ifndef NO_ZCOMP
+     if (zs->zmap)
+         zmap_free(zs->zmap);
++#endif
+ 
+     /* Clear download URLs */
+     for (i = 0; i < zs->nurl; i++)
+         free(zs->url[i]);
++#ifndef NO_ZCOMP
+     for (i = 0; i < zs->nzurl; i++)
+         free(zs->zurl[i]);
++#endif
+ 
+     /* And the rest. */
+     free(zs->url);
++#ifndef NO_ZCOMP
+     free(zs->zurl);
++#endif
+     free(zs->checksum);
+     free(zs->filename);
++#ifndef NO_ZCOMP
+     free(zs->zfilename);
++#endif
+     if (zs->target_dir != NULL)
+         free(zs->target_dir);
+     free(zs);
+@@ -780,6 +823,7 @@ char *zsync_end(struct zsync_state *zs) {
+     return f;
+ }
+ 
++#ifndef NO_ZCOMP
+ /* Next come the methods for accepting data received from the remote copies of
+  * the target and incomporating them into the local copy under construction. */
+ 
+@@ -809,6 +853,7 @@ static void zsync_configure_zstream_for_zdata(const struct zsync_state *zs,
+         updatewindow(zstrm, zstrm->next_out, lookback - zstrm->avail_out);
+     }
+ }
++#endif
+ 
+ /* zsync_submit_data(self, buf[], offset, blocks)
+  * Passes data retrieved from the remote copy of
+@@ -837,7 +882,9 @@ static int zsync_submit_data(struct zsync_state *zs,
+  */
+ struct zsync_receiver {
+     struct zsync_state *zs;     /* The zsync_state that we are downloading for */
++#ifndef NO_ZCOMP
+     struct z_stream_s strm;     /* Decompression object */
++#endif
+     int url_type;               /* Compressed or not */
+     unsigned char *outbuf;      /* Working buffer to keep incomplete blocks of data */
+     off_t outoffset;            /* and the position in that buffer */
+@@ -857,11 +904,13 @@ struct zsync_receiver *zsync_begin_receive(struct zsync_state *zs, int url_type)
+         return NULL;
+     }
+ 
++#ifndef NO_ZCOMP
+     /* Set up new inflate object */
+     zr->strm.zalloc = Z_NULL;
+     zr->strm.zfree = Z_NULL;
+     zr->strm.opaque = NULL;
+     zr->strm.total_in = 0;
++#endif
+ 
+     zr->url_type = url_type;
+     zr->outoffset = 0;
+@@ -929,6 +978,7 @@ static int zsync_receive_data_uncompressed(struct zsync_receiver *zr,
+     return ret;
+ }
+ 
++#ifndef NO_ZCOMP
+ /* zsync_receive_data_compressed(self, buf[], offset, buflen)
+  * Passes data received corresponding to the compressed version of this file at
+  * the given offset; data in buf, buflen bytes.
+@@ -1008,6 +1058,7 @@ static int zsync_receive_data_compressed(struct zsync_receiver *zr,
+     }
+     return ret;
+ }
++#endif
+ 
+ /* zsync_receive_data(self, buf[], offset, buflen)
+  * Passes data received from the source URL at the given offset;
+@@ -1017,19 +1068,24 @@ static int zsync_receive_data_compressed(struct zsync_receiver *zr,
+  */
+ int zsync_receive_data(struct zsync_receiver *zr, const unsigned char *buf,
+                        off_t offset, size_t len) {
++#ifndef NO_ZCOMP
+     if (zr->url_type == 1) {
+         return zsync_receive_data_compressed(zr, buf, offset, len);
+     }
+-    else {
++    else
++#endif
++    {
+         return zsync_receive_data_uncompressed(zr, buf, offset, len);
+     }
+ }
+ 
+ /* Destructor */
+ void zsync_end_receive(struct zsync_receiver *zr) {
++#ifndef NO_ZCOMP
+     if (zr->strm.total_in > 0) {
+         inflateEnd(&(zr->strm));
+     }
++#endif
+     free(zr->outbuf);
+     free(zr);
+ }
