@@ -1411,7 +1411,7 @@ public:
         int extraItems = (m_bufSize - count); // max move backward
         if (extraItems<0)
             extraItems = 0;
-        char * flags = new char[ count ]();
+        char * flags = cr_calloc(count);
 
         //if ( m_stream
         int start = (int)m_pos;
@@ -1474,7 +1474,7 @@ public:
             dstsz -= CACHE_BUF_BLOCK_SIZE - istart;
             istart = 0;
         }
-        delete[] flags;
+        free(flags);
 
         lvsize_t bytesRead = size;
         if ( m_pos + size > m_size )
