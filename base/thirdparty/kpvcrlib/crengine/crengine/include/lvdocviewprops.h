@@ -17,8 +17,6 @@
 #define PROP_BACKGROUND_COLOR        "background.color.default"
 #define PROP_BACKGROUND_IMAGE        "background.image.filename"
 #define PROP_TXT_OPTION_PREFORMATTED "crengine.file.txt.preformatted"
-#define PROP_LOG_FILENAME            "crengine.log.filename"
-#define PROP_LOG_LEVEL               "crengine.log.level"
 #define PROP_LOG_AUTOFLUSH           "crengine.log.autoflush"
 #define PROP_FONT_SIZE               "crengine.font.size"
 #define PROP_FALLBACK_FONT_FACES     "crengine.font.fallback.faces"
@@ -41,10 +39,7 @@
 #define PROP_EMBEDDED_FONTS          "crengine.doc.embedded.fonts.enabled"
 #define PROP_NONLINEAR_PAGEBREAK     "crengine.doc.nonlinear.pagebreak.force"
 #define PROP_DISPLAY_INVERSE         "crengine.display.inverse"
-#define PROP_DISPLAY_FULL_UPDATE_INTERVAL "crengine.display.full.update.interval"
-#define PROP_DISPLAY_TURBO_UPDATE_MODE "crengine.display.turbo.update"
 #define PROP_STATUS_LINE             "window.status.line"
-#define PROP_BOOKMARK_ICONS          "crengine.bookmarks.icons"
 #define PROP_FOOTNOTES               "crengine.footnotes"
 #define PROP_SHOW_TIME               "window.status.clock"
 #define PROP_SHOW_TIME_12HOURS       "window.status.clock.12hours"
@@ -59,7 +54,6 @@
 //#define PROP_FONT_KERNING_ENABLED    "font.kerning.enabled"
 #define PROP_LANDSCAPE_PAGES         "window.landscape.pages"
 #define PROP_PAGES_TWO_VISIBLE_AS_ONE_PAGE_NUMBER         "window.pages.two.visible.as.one.page.number"
-#define PROP_AUTOSAVE_BOOKMARKS      "crengine.autosave.bookmarks"
 
 // Obsolete hyph settings:
 #define PROP_HYPHENATION_DICT        "crengine.hyphenation.directory"
@@ -87,8 +81,6 @@
 #define PROP_FORMAT_MAX_ADDED_LETTER_SPACING_PERCENT "crengine.style.max.added.letter.spacing.percent"
 // CJK char width expansion (% of nominal width)
 #define PROP_FORMAT_CJK_WIDTH_SCALE_PERCENT          "crengine.style.cjk.width.scale.percent"
-
-#define PROP_FILE_PROPS_FONT_SIZE    "cr3.file.props.font.size"
 
 // default is 96 (1 css px = 1 screen px)
 // use 0 for old crengine behaviour (no support for absolute units and 1css px = 1 screen px)
