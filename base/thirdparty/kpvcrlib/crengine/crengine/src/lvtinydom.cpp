@@ -2561,14 +2561,6 @@ bool tinyNodeCollection::openCacheFile()
     return true;
 }
 
-bool tinyNodeCollection::swapToCacheIfNecessary()
-{
-    if ( !_cacheFile || _mapped || _maperror)
-        return false;
-    return createCacheFile();
-    //return swapToCache();
-}
-
 bool tinyNodeCollection::createCacheFile()
 {
     if ( _cacheFile )
@@ -9639,10 +9631,6 @@ void ldomDocumentWriter::OnText( const lChar32 * text, int len, lUInt32 flags )
             _currNode->onText( text, len, flags );
     }
     //logfile << " !t!\n";
-}
-
-void ldomDocumentWriter::OnEncoding( const lChar32 *, const lChar32 *)
-{
 }
 
 ldomDocumentWriter::ldomDocumentWriter(ldomDocument * document, bool headerOnly)
