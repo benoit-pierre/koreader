@@ -14,7 +14,8 @@ class RK3566EPDController : RK35xxEPDController(), EPDInterface {
     }
 
     override fun getWaveformFull(): Int {
-        return EPD_AUTO
+        // Must be EPD_FULL: returning EPD_AUTO made every full refresh a silent no-op.
+        return EPD_FULL
     }
 
     override fun getWaveformPartial(): Int {

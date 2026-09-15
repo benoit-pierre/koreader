@@ -43,6 +43,9 @@ abstract class RK35xxEPDController {
         private const val TAG = "EPD"
 
         const val EPD_AUTO = 0
+        // Value MainActivity.einkUpdate(mode) maps to "EPD_FULL". It only accepts 1..4;
+        // anything else, including EPD_AUTO, is logged as invalid and the refresh is dropped.
+        const val EPD_FULL = 1
 
         @SuppressLint("WrongConstant")
         fun requestEpdMode(view: View): Boolean {
