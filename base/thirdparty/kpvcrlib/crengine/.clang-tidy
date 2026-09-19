@@ -24,6 +24,7 @@ Checks: >
   misc-redundant-expression,
   -misc-include-cleaner,
   -misc-static-assert,
+  readability-convert-member-functions-to-static,
   readability-duplicate-include,
   readability-inconsistent-declaration-parameter,
   readability-misplaced-array-index,
