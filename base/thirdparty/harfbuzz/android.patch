@@ -17,10 +17,10 @@ index 69c85e991..b5b3cb84a 100644
      fprintf (stderr, "harfbuzz ");
      vfprintf (stderr, fmt, ap);
 diff --git a/src/hb.hh b/src/hb.hh
-index 6e7105a2c..063af9e1e 100644
+index 27f400a8e..28d6e46e8 100644
 --- a/src/hb.hh
 +++ b/src/hb.hh
-@@ -496,6 +496,10 @@ static int HB_UNUSED _hb_errno = 0;
+@@ -494,6 +494,10 @@ static int HB_UNUSED _hb_errno = 0;
  #define HB_NO_SETLOCALE 1
  #endif
  
