@@ -452,6 +452,7 @@ private:
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
     explicit lString8(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
+    void _assign(const lChar8 *, size_type);
 public:
     /// default constrictor
     explicit lString8() : pchunk(EMPTY_STR_8) { addref(); }
@@ -681,6 +682,8 @@ private:
     void free();
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
+    template<typename T>
+    void _assign(const T *, size_type);
 public:
     explicit lString32(lstring_chunk_t * chunk) : pchunk(chunk) { addref(); }
     /// empty string constructor
