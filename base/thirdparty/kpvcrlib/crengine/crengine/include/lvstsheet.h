@@ -165,15 +165,15 @@ public:
     LVCssSelectorRef getSubSelectors() const { return _subSelectors; }
     void setSubSelectors(LVCssSelectorRef subSelectors) { _subSelectors = subSelectors; }
     ~LVCssSelectorRule() { if (_next) delete _next; }
-    // A fail-fast check, returning false to rule out a match.
-    bool quickClassCheck(const lUInt32 *classHashes, size_t size) const;
     /// check condition for node
     bool check( const ldomNode * & node, bool allow_cache=true ) const;
     /// check next rules for node
     bool checkNextRules( const ldomNode * node, bool allow_cache=true ) const;
     /// Some selector rule types do the full rules chain check themselves
     bool isFullChecking() const { return _type == cssrt_ancessor || _type == cssrt_predsibling; }
-    lUInt32 getHash() const;
+    bool isClass() const { return _type == cssrt_class; }
+    lUInt32 updateHash() const;
+    lUInt32 _getHash() const { return _valueHash; };
     lUInt32 getWeight() const;
 };
 
@@ -195,6 +195,7 @@ private:
     lUInt32 _specificity;
     int _pseudo_elem; // from enum LVCssSelectorPseudoElement, or 0
     LVCssSelector * _next;
+    bool _quick_check = false;
     LVRef<LVCssSelectorRule> _rules;
 public:
     LVCssSelector( LVCssSelector & v );
@@ -242,6 +243,7 @@ public:
         s->_specificity = _specificity;
         s->_pseudo_elem = _pseudo_elem;
         s->_rules = _rules;
+        s->_quick_check = _quick_check;
         return s;
     }
 };
