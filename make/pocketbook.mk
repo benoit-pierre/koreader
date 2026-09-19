@@ -1,5 +1,5 @@
 POCKETBOOK_DIR = $(PLATFORM_DIR)/pocketbook
-PB_PACKAGE = koreader-pocketbook$(KODEDUG_SUFFIX)-$(VERSION).zip
+PB_PACKAGE = koreader-$(DIST)$(KODEDUG_SUFFIX)-$(VERSION).zip
 
 define UPDATE_PATH_EXCLUDES +=
 tools
