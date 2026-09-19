@@ -65,6 +65,7 @@ local FakeCover = FrameContainer:extend{
     authors = nil,
     -- The *_add should be provided BD wrapped if needed
     filename_add = nil,
+    title_pre = nil,
     title_add = nil,
     authors_add = nil,
     book_lang = nil,
@@ -149,6 +150,9 @@ function FakeCover:init()
     -- Add any _add, which must be already BD wrapped if needed
     if self.filename_add then
         filename = (filename and filename or "") .. self.filename_add
+    end
+    if self.title_pre then
+        title = self.title_add .. (title and title or "")
     end
     if self.title_add then
         title = (title and title or "") .. self.title_add
@@ -546,13 +550,15 @@ function MosaicMenuItem:update()
                 self._has_cover_image = true
             else
                 -- add Series metadata if requested
-                local title_add, authors_add
+                local title_pre, title_add, authors_add
                 local series_mode = BookInfoManager:getSetting("series_mode")
                 if series_mode and bookinfo.series then
                     local series = bookinfo.series_index and bookinfo.series .. " #" .. bookinfo.series_index
                         or bookinfo.series
                     series = BD.auto(series)
-                    if series_mode == "append_series_to_title" then
+                    if series_mode == "prepend_series_to_title" then
+                        title_pre = bookinfo.title and series .. " - " or series
+                    elseif series_mode == "append_series_to_title" then
                         title_add = bookinfo.title and " - " .. series or series
                     elseif series_mode == "append_series_to_authors" then
                         authors_add = bookinfo.authors and " - " .. series or series
@@ -577,6 +583,7 @@ function MosaicMenuItem:update()
                         title = not bookinfo.ignore_meta and bookinfo.title,
                         authors = not bookinfo.ignore_meta and bookinfo.authors,
                         title_add = not bookinfo.ignore_meta and title_add,
+                        title_pre = not bookinfo.ignore_meta and title_pre,
                         authors_add = not bookinfo.ignore_meta and authors_add,
                         book_lang = not bookinfo.ignore_meta and bookinfo.language,
                         file_deleted = self.file_deleted,
