@@ -30,8 +30,8 @@ protected:
     {
     }
     void readRelations();
-    lString32 getTargetPath(const lString32 srcPath, const lString32 targetMode, lString32 target);
-    OpcPart* createPart(OpcPackage* package, lString32 name) {
+    static lString32 getTargetPath(const lString32 srcPath, const lString32 targetMode, lString32 target);
+    static OpcPart* createPart(OpcPackage* package, lString32 name) {
         return new OpcPart(package, name);
     }
 private:
