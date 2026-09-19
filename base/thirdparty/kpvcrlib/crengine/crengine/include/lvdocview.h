@@ -353,8 +353,6 @@ public:
 
     /// create empty document with specified message (e.g. to show errors)
     virtual void createDefaultDocument( lString32 title, lString32 message );
-    /// create empty document with specified message (to show errors)
-    virtual void createHtmlDocument(lString32 code);
 
     /// returns default font face
     lString8 getDefaultFontFace() { return m_defaultFontFace; }
