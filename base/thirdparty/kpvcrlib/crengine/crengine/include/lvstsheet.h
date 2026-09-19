@@ -46,10 +46,14 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
 #include "cssdef.h"
+#include "lvarray.h"
+#include "lvptrvec.h"
+#include "lvref.h"
+#include "lvstring.h"
 #include "lvstyles.h"
-#include "textlang.h"
+
+#include <stddef.h>
 
 class lxmlDocBase;
 struct ldomNode;

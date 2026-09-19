@@ -15,12 +15,12 @@
 #if !defined(__LV_REF_CACHE_H_INCLUDED__)
 #define __LV_REF_CACHE_H_INCLUDED__
 
-#include <assert.h>
+#include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvmemman.h"
-#include "lvref.h"
 #include "lvarray.h"
+
+#include <assert.h>
+#include <stddef.h>
 
 /*
     Object cache

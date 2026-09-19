@@ -13,16 +13,18 @@
 #ifndef __LV_STRING_H_INCLUDED__
 #define __LV_STRING_H_INCLUDED__
 
-#include <assert.h>
-#include <cinttypes>
-#include <math.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
+#include "crsetup.h"
+
 #include "lvtypes.h"
-#include "lvplatform.h"
-#include "lvmemman.h"
+
+#define __STDC_FORMAT_MACROS // for PRId64
+#include <assert.h>
+#include <inttypes.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // (Note: some of these 0x have lowercase hex digit, to avoid
 // 'redefined' warnings as they are already defined in lowercase
