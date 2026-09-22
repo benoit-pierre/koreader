@@ -5,6 +5,7 @@ list(APPEND PATCH_FILES
 
 list(APPEND CFG_CMD COMMAND
     ${MESON_SETUP} --default-library=$<IF:$<BOOL:${MONOLIBTIC}>,static,shared>
+    --unity on -Dunity_size=256
     -Derror_strings=$<IF:$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>,true,false>
     -Dbrotli=enabled
     -Dharfbuzz=disabled
