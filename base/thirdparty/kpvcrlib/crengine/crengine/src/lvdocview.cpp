@@ -214,8 +214,7 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
 #endif
 			, m_section_bounds_valid(false), m_section_bounds_externally_updated(false)
 			, m_doc_format(doc_format_none),
-			m_callback(NULL), m_swapDone(false), m_drawBufferBits(
-					GRAY_BACKBUFFER_BITS) {
+			m_callback(NULL), m_swapDone(false) {
 #if (COLOR_BACKBUFFER==1)
 	m_backgroundColor = 0xFFFFFF;
 	m_textColor = 0x000000;
@@ -343,7 +342,6 @@ void LVDocView::setPageMargins(const lvRect & rc) {
         updateLayout();
         REQUEST_RENDER("setPageMargins")
     } else {
-		clearImageCache();
         m_pageMargins = rc;
     }
 }
@@ -357,8 +355,6 @@ void LVDocView::setPageHeaderInfo(int hdrFlags) {
 	int h = getPageHeaderHeight();
 	if (h != oldH) {
         REQUEST_RENDER("setPageHeaderInfo")
-	} else {
-		clearImageCache();
 	}
 }
 
@@ -484,16 +480,9 @@ void LVDocView::Clear() {
 		m_filename.clear();
 		m_section_bounds_valid = false;
 	}
-	clearImageCache();
 	// Also drop font instances from previous document (see
 	// lvtinydom.cpp ldomDocument::render() for the reason)
 	fontMan->gc();
-}
-
-/// invalidate image cache, request redraw
-void LVDocView::clearImageCache() {
-	if (m_callback != NULL)
-		m_callback->OnImageCacheClear();
 }
 
 /// invalidate formatted data, request render
@@ -502,7 +491,6 @@ void LVDocView::requestRender() {
 	if (!m_doc) // nothing to render when noDefaultDocument=true
 		return;
 	m_is_rendered = false;
-	clearImageCache();
 	m_doc->clearRendBlockCache();
 }
 
@@ -512,7 +500,6 @@ void LVDocView::checkRender() {
 		LVLock lock(getMutex());
 		CRLog::trace("LVDocView::checkRender() : render is required");
 		Render();
-		clearImageCache();
 		m_is_rendered = true;
 		_posIsSet = false;
 		//CRLog::trace("LVDocView::checkRender() compeleted");
@@ -1088,7 +1075,6 @@ bool LVDocView::setBatteryState(int newState) {
 		return false;
 	CRLog::info("New battery state: %d", newState);
 	m_battery_state = newState;
-	clearImageCache();
 	return true;
 }
 
@@ -1114,13 +1100,11 @@ lString32 fitTextWidthWithEllipsis(lString32 text, LVFontRef font, int maxwidth)
 /// substitute page header with custom text (e.g. to be used while loading)
 void LVDocView::setPageHeaderOverride(lString32 s) {
 	m_pageHeaderOverride = s;
-	clearImageCache();
 }
 
 /// substitute page info (curpage / nbpages %) with custom text
 void LVDocView::setPageInfoOverride(lString32 s) {
 	m_pageInfoOverride = s;
-	clearImageCache();
 }
 
 /// draw page header to buffer
@@ -1809,10 +1793,7 @@ bool LVDocView::goToPage(int page, bool internal, bool updatePosBookmark, bool r
 /// returns true if time changed since clock has been last drawed
 bool LVDocView::isTimeChanged() {
 	if ( m_pageHeaderInfo & PGHDR_CLOCK ) {
-		bool res = (m_last_clock != getTimeString());
-		if (res)
-			clearImageCache();
-		return res;
+		return (m_last_clock != getTimeString());
 	}
 	return false;
 }
@@ -2603,7 +2584,6 @@ lString32 LVDocView::getNavigationPath() {
 /// update selection ranges
 void LVDocView::updateSelections() {
     CHECK_RENDER("updateSelections()")
-	clearImageCache();
 	LVLock lock(getMutex());
 	ldomXRangeList ranges(m_doc->getSelections(), true);
     CRLog::trace("updateSelections() : selection count = %d", m_doc->getSelections().length());
@@ -2627,7 +2607,6 @@ void LVDocView::updateBookMarksRanges()
 {
     checkRender();
     LVLock lock(getMutex());
-    clearImageCache();
 
     ldomXRangeList ranges;
     CRFileHistRecord * rec = m_highlightBookmarks ? getCurrentFileHistRecord() : NULL;
@@ -2674,7 +2653,6 @@ void LVDocView::setViewMode(LVDocViewMode view_mode, int visiblePageCount) {
 	if (m_view_mode == view_mode && (visiblePageCount == m_pagesVisible
 			|| visiblePageCount < 1))
 		return;
-	clearImageCache();
 	LVLock lock(getMutex());
 	m_view_mode = view_mode;
 	m_props->setInt(PROP_PAGE_VIEW_MODE, m_view_mode == DVM_PAGES ? 1 : 0);
@@ -2724,7 +2702,6 @@ int LVDocView::getVisiblePageCount() {
 /// set window visible page count (1 or 2)
 void LVDocView::setVisiblePageCount(int n, bool onlyIfSane) {
     //CRLog::trace("setVisiblePageCount(%d) currPages=%d", n, m_pagesVisible);
-    clearImageCache();
 	LVLock lock(getMutex());
     m_pagesVisible_onlyIfSane = onlyIfSane;
     int newCount = (n == 2) ? 2 : 1;
@@ -2932,7 +2909,6 @@ void LVDocView::SetRotateAngle( cr_rotate_angle_t angle )
 	if ( m_rotateAngle==angle )
 	return;
 	m_props->setInt( PROP_ROTATE_ANGLE, ((int)angle) & 3 );
-	clearImageCache();
 	LVLock lock(getMutex());
 	if ( (m_rotateAngle & 1) == (angle & 1) ) {
 		m_rotateAngle = angle;
@@ -2970,7 +2946,6 @@ void LVDocView::Resize(int dx, int dy) {
 		return;
 	}
 
-	clearImageCache();
 	//m_drawbuf.Resize(dx, dy);
 	if (m_doc) {
 		m_doc->setScreenSize(m_dx, m_dy); // only used for CSS @media queries
@@ -3280,7 +3255,6 @@ bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
 //    }
 
 	{
-		clearImageCache();
 		m_filesize = stream->GetSize();
 		m_stream = stream;
 
@@ -4518,39 +4492,6 @@ void LVDocView::getCurrentPageLinks(ldomXRangeList & list) {
 	}
 }
 
-/// returns document offset for next page
-int LVDocView::getNextPageOffset() {
-	LVLock lock(getMutex());
-	checkPos();
-	if (isScrollMode()) {
-		return GetPos() + m_dy;
-	} else {
-		int p = getCurPage(true) + getVisiblePageCount();
-		if (p < m_pages.length())
-			return m_pages[p]->start;
-		if (!p || m_pages.length() == 0)
-			return 0;
-		return m_pages[m_pages.length() - 1]->start;
-	}
-}
-
-/// returns document offset for previous page
-int LVDocView::getPrevPageOffset() {
-	LVLock lock(getMutex());
-	checkPos();
-	if (m_view_mode == DVM_SCROLL) {
-		return GetPos() - m_dy;
-	} else {
-		int p = getCurPage(true);
-		p -= getVisiblePageCount();
-		if (p < 0)
-			p = 0;
-		if (p >= m_pages.length())
-			return 0;
-		return m_pages[p]->start;
-	}
-}
-
 //static int cr_font_sizes[] = { 24, 29, 33, 39, 44 };
 static int cr_interline_spaces[] = { 100, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 160, 180, 200 };
 
@@ -4867,7 +4808,6 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             // and if we use some library function to convert the string to floating point number, then it may fail.
             if (s.atod(gamma, '.')) {
                 fontMan->SetGamma(gamma);
-                clearImageCache();
             } else {
                 CRLog::error("Invalid gamma value (%s)", LCSTR(s));
             }
