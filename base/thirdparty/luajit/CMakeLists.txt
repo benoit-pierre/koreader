@@ -10,7 +10,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND PATCH_CMD COMMAND ${ISED} "s|#CCDEBUG= -g|CCDEBUG= -g|" src/Makefile)
     # To-do: make this auto-trigger when Valgrind is installed
     #list(APPEND PATCH_CMD COMMAND ${ISED} "s|#XCFLAGS+= -DLUAJIT_USE_VALGRIND|XCFLAGS+= -DLUAJIT_USE_VALGRIND|" src/Makefile)
-    if(DEFINED ENV{KODEBUG_LUAJIT_USE_SYSMALLOC})
+    if(ASAN OR DEFINED ENV{KODEBUG_LUAJIT_USE_SYSMALLOC})
         # Could this be helpful on Android?
         list(APPEND PATCH_CMD COMMAND ${ISED} "s|#XCFLAGS+= -DLUAJIT_USE_SYSMALLOC|XCFLAGS+= -DLUAJIT_USE_SYSMALLOC|" src/Makefile)
     endif()
