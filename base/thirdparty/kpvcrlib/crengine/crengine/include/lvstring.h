@@ -433,8 +433,6 @@ public:
     lString8(const lString8 & str) : pchunk(str.pchunk) { addref(); }
     /// constructor from C string
     explicit lString8(const value_type * str);
-    /// constructor from 32-bit C string
-    explicit lString8(const lChar32 * str);
     /// constructor from string of specified length
     explicit lString8(const value_type * str, size_type count);
     /// fragment copy constructor
