@@ -30,12 +30,13 @@
 #include "crsetup.h"
 
 #include "lvtypes.h"
-#include "lvplatform.h"
+#include "lvarray.h"
+#include "lvhashtable.h"
+#include "lvptrvec.h"
 #include "lvref.h"
 #include "lvstring.h"
-#include "lvarray.h"
-#include "lvptrvec.h"
-#include "lvhashtable.h"
+
+#include <stddef.h>
 
 #if LVLONG_FILE_SUPPORT == 1
 typedef   lUInt64   lvsize_t;    ///< file size type

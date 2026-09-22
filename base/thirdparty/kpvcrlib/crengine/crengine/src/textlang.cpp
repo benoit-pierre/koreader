@@ -2,17 +2,28 @@
 // rules here, be sure to also bump FORMATTING_VERSION_ID in src/lvtinydom.cpp
 
 #include "crsetup.h"
+#include "textlang.h"
 
-#include "../include/lvtypes.h"
-#include "../include/lvstring.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#include "../include/textlang.h"
-#include "../include/hyphman.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "hyphman.h"
+#include "lvfnt.h"
+#include "lvtinydom.h"
+
+#if USE_HARFBUZZ==1
+#include <hb.h>
+#endif
+
+#if USE_LIBUNIBREAK==1
+#include <linebreakdef.h>
+#endif
 
 #if (USE_UTF8PROC==1)
 #include <utf8proc.h>
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 // Uncomment to see which lang_tags are seen and lang_cfg created
 // #define DEBUG_LANG_USAGE

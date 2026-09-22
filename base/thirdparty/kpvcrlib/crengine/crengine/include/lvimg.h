@@ -16,9 +16,11 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
 #include "lvref.h"
 #include "lvstream.h"
+#include "lvstring.h"
+
+#include <stddef.h>
 
 class CacheableObject;
 class CacheObjectListener {
