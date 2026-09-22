@@ -12602,7 +12602,7 @@ static int checkEvilRegex(const lChar32* regex)
 static int generateRegex(const lString32 & searchPattern, srell::u32regex & regexp)
 {
     lString32 tmp = removeSoftHyphens(searchPattern);
-    const lChar32 *ptr = tmp.data();
+    const lChar32 *ptr = tmp.c_str();
     if (checkEvilRegex(ptr))
         return REGEX_IS_EVIL;
 
@@ -12687,7 +12687,7 @@ static int findRegex( const lString32 & str, int & pos, int & endpos, lString32 
         old_str = str;
     }
 
-    const lChar32 *str_arr = str_wo_hyph.data() + pos;
+    const lChar32 *str_arr = str_wo_hyph.c_str() + pos;
 
     srell::u32cmatch match;
     int length = 0;
@@ -12754,7 +12754,7 @@ static int findRegexRev( const lString32 & str, int & pos, int & endpos, lString
         old_str = str;
     }
 
-    const lChar32 *str_arr = str_wo_hyph.data();
+    const lChar32 *str_arr = str_wo_hyph.c_str();
 
     srell::u32cmatch match;
     bool found = false;
