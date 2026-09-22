@@ -95,3 +95,7 @@ install(FILES
     ../willuslib/willus.h
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/k2pdfopt
 )
+
+if(PROJECT_PATCH)
+    include(${PROJECT_PATCH})
+endif()
