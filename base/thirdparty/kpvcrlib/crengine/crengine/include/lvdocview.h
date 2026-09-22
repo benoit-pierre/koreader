@@ -154,7 +154,7 @@ private:
     bool m_backgroundTiled;
     bool m_stylesheetUseMacros;
     bool m_stylesheetNeedsUpdate;
-    int m_highlightBookmarks;
+    highlight_mode_e m_highlightBookmarks;
     LVPtrVector<LVBookMarkPercentInfo> m_bookmarksPercents;
 
 protected:
