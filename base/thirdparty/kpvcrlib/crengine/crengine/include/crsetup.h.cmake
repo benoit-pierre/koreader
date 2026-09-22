@@ -68,9 +68,6 @@
 #define USE_LIBUNIBREAK                      @USE_LIBUNIBREAK@
 #define USE_UTF8PROC                         @USE_UTF8PROC@
 
-/// Disable unused code.
-#define CR_ENABLE_PAGE_IMAGE_CACHE           0
-
 #endif//CRSETUP_H_INCLUDED
 
 // vim: ft=cpp
