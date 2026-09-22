@@ -9550,11 +9550,9 @@ void ldomDocumentWriter::OnAttribute( const lChar32 * nsname, const lChar32 * at
         // selectors for a class attribute with multiple classnames (separated by spaces),
         // we append a space now if there is any inside attrvalue (we are provided with it
         // trimmed, so a trailing space will mean there is an inner space)
-        lChar32 * c = (lChar32*)attrvalue;
-        for ( ; *c != 0; c++) {
+        for (const lChar32 * c = attrvalue ; *c != 0; c++) {
             if ( *c == U' ' ) { // There is at least one space
-                lString32 new_value = lString32(attrvalue);
-                new_value.append(U" ");
+                lString32 new_value = concat32(attrvalue, ' ');
                 _currNode->addAttribute( attr_ns, attr_id, new_value.c_str() );
                 return;
             }
@@ -11557,7 +11555,7 @@ lString32 ldomXPointer::toStringV1()
             lString32 name = p->getNodeName();
             lUInt16 id = p->getNodeId();
             if ( !parent )
-                return "/" + name + path;
+                return concat32('/', name, path);
             int index = -1;
             int count = 0;
             for ( int i=0; i<parent->getChildCount(); i++ ) {
@@ -11569,13 +11567,13 @@ lString32 ldomXPointer::toStringV1()
                 }
             }
             if ( count>1 )
-                path = cs32("/") + name + "[" + fmt::decimal(index) + "]" + path;
+                path = concat32('/', name, '[', fmt::decimal(index), ']', path);
             else
-                path = cs32("/") + name + path;
+                path = concat32('/', name, path);
         } else {
             // text
             if ( !parent )
-                return cs32("/text()") + path;
+                return concat32("/text()", path);
             int index = -1;
             int count = 0;
             for ( int i=0; i<parent->getChildCount(); i++ ) {
@@ -11587,9 +11585,9 @@ lString32 ldomXPointer::toStringV1()
                 }
             }
             if ( count>1 )
-                path = cs32("/text()") + "[" + fmt::decimal(index) + "]" + path;
+                path = concat32("/text()", '[', fmt::decimal(index), ']', path);
             else
-                path = "/text()" + path;
+                path = concat32("/text()", path);
         }
         p = parent;
     }
@@ -11650,7 +11648,7 @@ lString32 ldomXPointer::toStringV2()
             // element
             lString32 name = p->getNodeName();
             if ( !parent )
-                return "/" + name + path;
+                return concat32('/', name, path);
             // The following "cosmetic" xpointer string tweak could be costly
             // in some cases. Do it only when an older dom_version is requested
             // (= previously opened books, as frontend may rely on raw string
@@ -11672,13 +11670,13 @@ lString32 ldomXPointer::toStringV2()
                 }
             }
             if ( explicitFirstIndex || count>1 )
-                path = cs32("/") + name + "[" + fmt::decimal(index) + "]" + path;
+                path = concat32('/', name, '[', fmt::decimal(index), ']', path);
             else
-                path = cs32("/") + name + path;
+                path = concat32('/', name, path);
         } else {
             // text
             if ( !parent )
-                return cs32("/text()") + path;
+                return concat32("/text()", path);
             bool explicitFirstIndex = getDocument()->getDOMVersionRequested() >= 20260812;
             int count = 0;
             int index = getElementIndex(parent, p, isTextNode, count);
@@ -11695,9 +11693,9 @@ lString32 ldomXPointer::toStringV2()
                 }
             }
             if ( explicitFirstIndex || count>1 )
-                path = cs32("/text()") + "[" + fmt::decimal(index) + "]" + path;
+                path = concat32("/text()", '[', fmt::decimal(index), ']', path);
             else
-                path = "/text()" + path;
+                path = concat32("/text()", path);
         }
         p = parent;
     }
@@ -11719,7 +11717,7 @@ lString32 ldomXPointer::toStringV2AsIndexes()
     while( p && p!=rootNode ) {
         ldomNode * parent = p->getParentNode();
         if ( !parent )
-            return "/" + (p->isElement() ? p->getNodeName() : cs32("/text()")) + path;
+            return concat32('/', p->isElement() ? p->getNodeName() : U"/text()", path);
 
         while( isBoxingNode(parent) )
             parent = parent->getParentNode();
@@ -11728,7 +11726,7 @@ lString32 ldomXPointer::toStringV2AsIndexes()
         int index = getElementIndex(parent, p, notNull, count);
 
         if( index>0 ) {
-            path = cs32("/") + fmt::decimal(index) + path;
+            path = concat32('/', fmt::decimal(index), path);
         } else {
             CRLog::error("!!! child node not found in a parent");
         }
@@ -11754,7 +11752,7 @@ lString32 extractDocAuthors( ldomDocument * doc, lString32 delimiter, bool short
         delimiter = ", ";
     lString32 authors;
     for ( int i=0; i<16; i++) {
-        lString32 path = cs32("/FictionBook/description/title-info/author[") + fmt::decimal(i+1) + "]";
+        lString32 path = concat32("/FictionBook/description/title-info/author[", fmt::decimal(i+1), ']');
         ldomXPointer pauthor = doc->createXPointer(path);
         if ( !pauthor ) {
             //CRLog::trace( "xpath not found: %s", UnicodeToUtf8(path).c_str() );
@@ -11833,7 +11831,7 @@ lString32 extractDocKeywords( ldomDocument * doc )
     res << doc->createXPointer(U"/FictionBook/description/title-info/date").getText().trim();
     // Genres
     for ( int i=0; i<16; i++) {
-        lString32 path = cs32("/FictionBook/description/title-info/genre[") + fmt::decimal(i+1) + "]";
+        lString32 path = concat32("/FictionBook/description/title-info/genre[", fmt::decimal(i+1), ']');
         ldomXPointer genre = doc->createXPointer(path);
         if ( !genre ) {
             break;
@@ -11860,7 +11858,7 @@ lString32 extractDocDescription( ldomDocument * doc )
     lString32 translators;
     int nbTranslators = 0;
     for ( int i=0; i<16; i++) {
-        lString32 path = cs32("/FictionBook/description/title-info/translator[") + fmt::decimal(i+1) + "]";
+        lString32 path = concat32("/FictionBook/description/title-info/translator[", fmt::decimal(i+1), ']');
         ldomXPointer ptranslator = doc->createXPointer(path);
         if ( !ptranslator ) {
             break;
@@ -11942,7 +11940,7 @@ lString32 extractDocDescription( ldomDocument * doc )
         lString32 docAuthors;
         int nbAuthors = 0;
         for ( int i=0; i<16; i++) {
-            lString32 path = cs32("/FictionBook/description/document-info/author[") + fmt::decimal(i+1) + "]";
+            lString32 path = concat32("/FictionBook/description/document-info/author[", fmt::decimal(i+1), ']');
             ldomXPointer pdocAuthor = doc->createXPointer(path);
             if ( !pdocAuthor ) {
                 break;
@@ -16245,7 +16243,7 @@ static lString32 escapeDocPath( lString32 path )
 lString32 ldomDocumentFragmentWriter::convertId( lString32 id )
 {
     if ( !codeBasePrefix.empty() ) {
-        return codeBasePrefix + "_" + " " + id;//add a space for later
+        return concat32(codeBasePrefix, "_ ", id); //add a space for later
     }
     return id;
 }
@@ -16264,7 +16262,7 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
         lString32 replacement = pathSubstitutions.get(filePathName);
         if (replacement.empty())
             return href;
-        lString32 p = cs32("#") + replacement + "_" + " " + href.substr(1);
+        lString32 p = concat32('#', replacement, "_ ", href.substr(1));
         //CRLog::trace("href %s -> %s", LCSTR(href), LCSTR(p));
         return p;
     }
@@ -16308,7 +16306,7 @@ lString32 ldomDocumentFragmentWriter::convertHref( lString32 href )
     if ( !id.empty() )
         p << '_' << ' ' << id;
 
-    p = cs32("#") + p;
+    p = concat32('#', p);
 
     //CRLog::debug("converted href=%s to %s", LCSTR(href), LCSTR(p) );
 
@@ -18771,7 +18769,7 @@ public:
 
     bool writeIndex()
     {
-        lString32 filename = _cacheDir + "cr3cache.inx";
+        lString32 filename = concat32(_cacheDir, "cr3cache.inx");
         if (_oldStreamSize == 0)
         {
             LVStreamRef oldStream = LVOpenFileStream(filename.c_str(), LVOM_READ);
@@ -18816,7 +18814,7 @@ public:
 
     bool readIndex(  )
     {
-        lString32 filename = _cacheDir + "cr3cache.inx";
+        lString32 filename = concat32(_cacheDir, "cr3cache.inx");
         // read index
         lUInt32 totalSize = 0;
         LVStreamRef instream = LVOpenFileStream( filename.c_str(), LVOM_READ );
@@ -19001,10 +18999,10 @@ public:
         if (goodCount < 2 || badCount > goodCount * 2)
             fn << "_noname";
         if (fn.length() > 25)
-            fn = fn.substr(0, 12) + "-" + fn.substr(fn.length()-12, 12);
+            fn = concat32(fn.substr(0, 12), "-", fn.substr(fn.length()-12, 12));
         char s[16];
         sprintf(s, ".%08x.%d.cr3", (unsigned)crc, (int)docFlags);
-        return fn + lString32( s ); //_cacheDir +
+        return concat32(fn, s); //_cacheDir +
     }
 
     /// open existing cache file stream
@@ -19016,7 +19014,7 @@ public:
         // to a .cr3 cache file, for it to no more be maintained by crengine
         // in its index, thus not subject to _maxSize enforcement, so sure
         // to not be deleted by crengine)
-        lString32 fn_keep = _cacheDir + fn + ".keep";
+        lString32 fn_keep = concat32(_cacheDir, fn, ".keep");
         if ( LVFileExists(fn_keep) ) {
             LVStreamRef stream = LVOpenFileStream( fn_keep.c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );
             if ( !stream.isNull() ) {
@@ -19033,7 +19031,7 @@ public:
             CRLog::error( "ldomDocCache::openExisting - File %s is not found in cache index", UnicodeToUtf8(fn).c_str() );
             return res;
         }
-        lString32 pathname = _cacheDir + fn;
+        lString32 pathname = concat32(_cacheDir, fn);
         res = LVOpenFileStream( pathname.c_str(), LVOM_APPEND|LVOM_FLAG_SYNC );
         if ( !res ) {
             CRLog::error( "ldomDocCache::openExisting - File %s is listed in cache index, but cannot be opened", UnicodeToUtf8(fn).c_str() );
@@ -19045,7 +19043,7 @@ public:
         res = LVCreateBlockWriteStream( res, WRITE_CACHE_BLOCK_SIZE, WRITE_CACHE_BLOCK_COUNT );
 #if TEST_BLOCK_STREAM
 
-        LVStreamRef stream2 = LVOpenFileStream( (_cacheDir + fn + "_c").c_str(), LVOM_APPEND );
+        LVStreamRef stream2 = LVOpenFileStream( concat32(_cacheDir, fn, "_c").c_str(), LVOM_APPEND );
         if ( !stream2 ) {
             CRLog::error( "ldomDocCache::openExisting - file %s is cannot be created", UnicodeToUtf8(fn).c_str() );
             return stream2;
@@ -21434,10 +21432,10 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
             markerWidth  = font->getTextWidth(marker.c_str(), marker.length(), lang_cfg);
             markerWidth += font->getTextWidth(suffix.c_str(), suffix.length(), lang_cfg);
             // Make out the single final marker string
-            marker = U"\x2068" + marker + U"\x2069" + suffix; // FSI + marker + PDI + suffix
+            marker = concat32(U'\x2068', marker, U'\x2069', suffix); // FSI + marker + PDI + suffix
         }
         else {
-            marker = marker + suffix;
+            marker = concat32(marker, suffix);
             markerWidth  = font->getTextWidth(marker.c_str(), marker.length(), lang_cfg);
         }
         res = true;

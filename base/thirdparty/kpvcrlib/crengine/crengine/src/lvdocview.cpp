@@ -1726,7 +1726,7 @@ lString32 fitTextWidthWithEllipsis(lString32 text, LVFontRef font, int maxwidth)
 		return text;
 	int len;
 	for (len = text.length() - 1; len > 1; len--) {
-        lString32 s = text.substr(0, len) + "...";
+        lString32 s = concat32(text.substr(0, len), "...");
 		w = font->getTextWidth(s.c_str(), s.length());
 		if (w <= maxwidth)
 			return s;
@@ -1977,7 +1977,7 @@ void LVDocView::drawPageHeader(LVDrawBuf * drawbuf, const lvRect & headerRc,
 						text = text.substr(0, text.length() - 1);
 				}
 			} else {
-				text = authors + "  " + title;
+				text = concat32(authors, "  ", title);
 			}
 		} else if (phi & PGHDR_AUTHOR) {
 			text = authors;
@@ -3478,7 +3478,7 @@ bool LVDocView::goLink(lString32 link, bool savePos) {
 			// TODO: setup properties
 			// go to anchor
 			if (!id.empty())
-                goLink(cs32("#") + id);
+                goLink(concat32('#', id));
 			clearImageCache();
 			requestRender();
 			return true;
@@ -3528,7 +3528,7 @@ lString32 LVDocView::getNavigationPath() {
 	LVAppendPathDelimiter(fpath);
 	lString32 s = fpath + fname;
 	if (!m_arc.isNull())
-        s = cs32("/") + s;
+        s = concat32('/', s);
 	return s;
 }
 
