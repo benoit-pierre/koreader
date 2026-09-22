@@ -1,0 +1,19 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.14...3.31.0)
++cmake_minimum_required(VERSION 3.17.5...3.31.0)
+ message(STATUS "Using CMake version ${CMAKE_VERSION}")
+ 
+ if(POLICY CMP0169)
+@@ -114,8 +114,8 @@
+ Default is no prefix (empty prefix).")
+ 
+ # Add multi-choice option
+-set(WITH_SANITIZER AUTO CACHE STRING "Enable sanitizer support")
+-set_property(CACHE WITH_SANITIZER PROPERTY STRINGS "None" "Memory" "Address" "Undefined" "Thread")
++set(WITH_SANITIZER OFF CACHE STRING "Enable sanitizer support")
++set_property(CACHE WITH_SANITIZER PROPERTY STRINGS "OFF" "Memory" "Address" "Undefined" "Thread")
+ 
+ if(BASEARCH_ARM_FOUND)
+     cmake_dependent_option(WITH_ARMV6 "Build with ARMv6 SIMD" ON "NOT ARCH MATCHES \"aarch64\"" OFF)
