@@ -392,6 +392,9 @@ private:
     union {
         lChar8  * buf8;  // z-string
         lChar32 * buf32; // z-string
+#if (LDOM_USE_OWN_MEM_MAN == 1)
+        lstring_chunk_t * next;
+#endif
     };
     lInt32 size;   // 0 for free chunk
     lInt32 len;    // count of chars in string
@@ -1434,7 +1437,9 @@ protected:
     static CRLog * CRLOG;
 };
 
+#if (LDOM_USE_OWN_MEM_MAN == 1)
 void free_ls_storage();
+#endif
 
 lUInt64 GetCurrentTimeMillis();
 void CRReinitTimer();
