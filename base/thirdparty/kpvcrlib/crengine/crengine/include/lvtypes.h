@@ -12,6 +12,7 @@
 
 #include "crsetup.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef _WIN32
@@ -20,30 +21,20 @@
 #include <sys/time.h>
 #endif
 
-#ifdef _WIN32
-typedef long lInt32;            ///< signed 32 bit int
-typedef unsigned long lUInt32;  ///< unsigned 32 bit int
-#else
-typedef int lInt32;            ///< signed 32 bit int
-typedef unsigned int lUInt32;  ///< unsigned 32 bit int
-#endif
+typedef int32_t lInt32;    ///< signed 32 bit int
+typedef uint32_t lUInt32;  ///< unsigned 32 bit int
 
-typedef short int lInt16;           ///< signed 16 bit int
-typedef unsigned short int lUInt16; ///< unsigned 16 bit int
+typedef int16_t lInt16;    ///< signed 16 bit int
+typedef uint16_t lUInt16;  ///< unsigned 16 bit int
 
-typedef signed char lInt8;          ///< signed 8 bit int
-typedef unsigned char lUInt8;       ///< unsigned 8 bit int
+typedef int8_t lInt8;      ///< signed 8 bit int
+typedef uint8_t lUInt8;    ///< unsigned 8 bit int
 
-typedef char32_t lChar32;           ///< 32 bit char
-typedef char lChar8;                ///< 8 bit char
+typedef char32_t lChar32;  ///< 32 bit char
+typedef char lChar8;       ///< 8 bit char
 
-#if defined(_WIN32) && !defined(CYGWIN)
-typedef __int64 lInt64;             ///< signed 64 bit int
-typedef unsigned __int64 lUInt64;   ///< unsigned 64 bit int
-#else
-typedef long long int lInt64;       ///< signed 64 bit int
-typedef unsigned long long int lUInt64; ///< unsigned 64 bit int
-#endif
+typedef int64_t lInt64;    ///< signed 64 bit int
+typedef uint64_t lUInt64;  ///< unsigned 64 bit int
 
 /// point
 class lvPoint {
