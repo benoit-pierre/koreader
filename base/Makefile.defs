@@ -1010,6 +1010,7 @@ set(WANT_SIMD          $(WANT_SIMD))
 set(GLIBC_VERSION_MAX  $(GLIBC_VERSION_MAX))
 set(KEEP_DEBUG         $(and $(filter -g%,$(BASE_CFLAGS)),1))
 set(ASAN               $(ASAN))
+set(KEEP_DEBUG         $(and $(filter -g%,$(BASE_CFLAGS)),1))
 
 # Platform flags.
 set(ANDROID        $(ANDROID))
