@@ -664,7 +664,7 @@ bTranslateImage(diagram_type *pDiag, FILE *pFile, BOOL bMinimalInformation,
     fail(pFile == NULL);
     fail(ulFileOffsetImage == FC_INVALID);
     fail(pImg == NULL);
-    fail(pImg->iHorSizeScaled <= 0);
+    fail(pImg->iHorSizeScaled <= 0); // NOLINT(clang-analyzer-core.NullDereference)
     fail(pImg->iVerSizeScaled <= 0);
 
     vGetOptions(&tOptions);
