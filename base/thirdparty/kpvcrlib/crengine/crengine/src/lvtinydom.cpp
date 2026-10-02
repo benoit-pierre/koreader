@@ -9619,7 +9619,7 @@ void ldomDocumentWriter::OnText( const lChar32 * text, int len, lUInt32 flags )
              return;
         #if MATHML_SUPPORT==1
             if ( _currNode->_insideMathML ) {
-                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                lString32 math_text = getMathMLAdjustedText(_currNode->getElement(), text, len);
                 if ( !math_text.empty() ) {
                     _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
                     _currNode->onText( math_text.c_str(), math_text.length(), flags );
@@ -17695,7 +17695,7 @@ void ldomDocumentWriterFilter::OnText( const lChar32 * text, int len, lUInt32 fl
         }
         #if MATHML_SUPPORT==1
             if ( _currNode->_insideMathML ) {
-                lString32 math_text = _mathMLHelper.getMathMLAdjustedText(_currNode->getElement(), text, len);
+                lString32 math_text = getMathMLAdjustedText(_currNode->getElement(), text, len);
                 if ( !math_text.empty() ) {
                     _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, el_NULL);
                     _currNode->onText( math_text.c_str(), math_text.length(), flags, insert_before_last_child );
