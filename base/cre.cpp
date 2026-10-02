@@ -726,10 +726,7 @@ static void add_usage_prop(CreDocument *doc, const char *prop, F fn) {
 static int loadDocument(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 	const char *file_name = luaL_checkstring(L, 2);
-	bool only_metadata = false;
-	if (lua_isboolean(L, 3)) {
-		only_metadata = lua_toboolean(L, 3);
-	}
+	int only_metadata = luaL_optint(L, 3, 0);
 
 	add_usage_prop(doc, "doc.load", [&]() {
 		doc->text_view->LoadDocument(file_name, only_metadata);
@@ -860,6 +857,14 @@ static int getDocumentProps(lua_State *L) {
 
 	lua_pushstring(L, "identifiers");
 	lua_pushstring(L, UnicodeToLocal(doc->text_view->getIdentifiers()).c_str());
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "raw_text_size");
+	lua_pushinteger(L, doc->text_view->getRawTextSize());
+	lua_rawset(L, -3);
+
+	lua_pushstring(L, "raw_text_length");
+	lua_pushinteger(L, doc->text_view->getRawTextLength());
 	lua_rawset(L, -3);
 
 	return 1;
