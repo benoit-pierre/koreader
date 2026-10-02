@@ -20,76 +20,18 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef _LINUX
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE
-#endif
-#include <signal.h>
-#include <unistd.h>
-#endif
-
 static char file_to_remove_on_crash[2048] = "";
 
 void crSetFileToRemoveOnFatalError(const char * filename) {
 	strcpy(file_to_remove_on_crash, filename == NULL ? "" : filename);
 }
 
-#ifdef _LINUX
-static struct sigaction old_sa[NSIG];
-
-void cr_sigaction(int signal, siginfo_t *info, void *reserved)
-{
-    CR_UNUSED2(info, reserved);
-	if (file_to_remove_on_crash[0])
-		unlink(file_to_remove_on_crash);
-	old_sa[signal].sa_handler(signal);
-}
-#endif
-
-static bool signals_are_set = false;
-void crSetSignalHandler()
-{
-#ifdef _LINUX
-	if (signals_are_set)
-		return;
-	signals_are_set = true;
-	struct sigaction handler;
-	memset(&handler, 0, sizeof (handler));
-	handler.sa_sigaction = cr_sigaction;
-	handler.sa_flags = SA_RESETHAND;
-#define CATCHSIG(X) sigaction(X, &handler, &old_sa[X])
-	CATCHSIG(SIGILL);
-	CATCHSIG(SIGABRT);
-	CATCHSIG(SIGBUS);
-	CATCHSIG(SIGFPE);
-	CATCHSIG(SIGSEGV);
-//	CATCHSIG(SIGSTKFLT);
-	CATCHSIG(SIGPIPE);
-#endif
-}
-
-/// default fatal error handler: uses exit()
-void lvDefFatalErrorHandler (int errorCode, const char * errorText )
-{
-    fprintf( stderr, "FATAL ERROR #%d: %s\n", errorCode, errorText );
-    // Uncomment to force a real crash when using gdb and wanting to see a backtrce
-    // int * a = 0; *a = 1;
-    exit( errorCode );
-}
-
-lv_FatalErrorHandler_t * lvFatalErrorHandler = &lvDefFatalErrorHandler;
-
 void crFatalError( int code, const char * errorText )
 {
 	if (file_to_remove_on_crash[0])
 		LVDeleteFile(Utf8ToUnicode(lString8(file_to_remove_on_crash)));
-    lvFatalErrorHandler( code, errorText );
-}
-
-/// set fatal error handler
-void crSetFatalErrorHandler( lv_FatalErrorHandler_t * handler )
-{
-    lvFatalErrorHandler = handler;
+    fprintf( stderr, "FATAL ERROR #%d: %s\n", code, errorText );
+    abort();
 }
 
 ref_count_rec_t ref_count_rec_t::null_ref(NULL);
