@@ -1435,12 +1435,13 @@ int lString32HashedCollection::find( const lChar32 * s )
     if ( hash[n].index!=-1 )
     {
         const lString32 & str = at( hash[n].index );
-        if ( str == s )
+        int l = lStr_len( s );
+        if ( str.length() == l && !lStr_memcmp(str.c_str(), s, l) )
             return hash[n].index;
         HashPair * p = hash[n].next;
         for ( ;p ;p = p->next ) {
             const lString32 & str = at( p->index );
-            if ( str==s )
+            if ( str.length() == l && !lStr_memcmp(str.c_str(), s, l) )
                 return p->index;
         }
     }
@@ -1479,12 +1480,13 @@ int lString32HashedCollection::add( const lChar32 * s )
     if ( hash[n].index!=-1 )
     {
         const lString32 & str = at( hash[n].index );
-        if ( str == s )
+        int l = lStr_len( s );
+        if ( str.length() == l && !lStr_memcmp(str.c_str(), s, l) )
             return hash[n].index;
         HashPair * p = hash[n].next;
         for ( ;p ;p = p->next ) {
             const lString32 & str = at( p->index );
-            if ( str==s )
+            if ( str.length() == l && !lStr_memcmp(str.c_str(), s, l) )
                 return p->index;
         }
     }
