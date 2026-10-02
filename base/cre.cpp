@@ -359,10 +359,10 @@ public:
         lua_pcall(_L, 2, 0, 0);
     }
     virtual void OnLoadFileStart( lString32 filename ) {
-        callback("OnLoadFileStart", UnicodeToLocal(filename).c_str());
+        callback("OnLoadFileStart", LCSTR(filename));
     }
     virtual void OnLoadFileFormatDetected( doc_format_t fileFormat) {
-        callback("OnLoadFileFormatDetected", UnicodeToLocal(getDocFormatName(fileFormat)).c_str());
+        callback("OnLoadFileFormatDetected", LCSTR(getDocFormatName(fileFormat)));
     }
     virtual void OnLoadFileProgress( int percent) {
         callback("OnLoadFileProgress", percent);
@@ -371,7 +371,7 @@ public:
         callback("OnLoadFileEnd");
     }
     virtual void OnLoadFileError(lString32 message) {
-        callback("OnLoadFileError", UnicodeToLocal(message).c_str());
+        callback("OnLoadFileError", LCSTR(message));
     }
     virtual void OnNodeStylesUpdateStart() {
         callback("OnNodeStylesUpdateStart");
@@ -549,7 +549,7 @@ static int setUserHyphenationDict(lua_State *L) {
 static int getHyphenationForWord(lua_State *L) {
     const char *word = luaL_checkstring(L, 1);
     lString32 hyphenation = UserHyphDict::getHyphenation(word);
-    lua_pushstring(L, UnicodeToLocal(hyphenation).c_str());
+    lua_pushstring(L, LCSTR(hyphenation));
     return 1;
 }
 
@@ -561,7 +561,7 @@ static int softHyphenateText(lua_State *L) {
     // We provide use_default_hyph_method=true, to use the hyph dict for
     // that language, even if hyphenation is disabled in crengine
     lString32 hyphenated_text = lang_cfg->softHyphenateText(utext, true);
-    lua_pushstring(L, UnicodeToLocal(hyphenated_text).c_str());
+    lua_pushstring(L, LCSTR(hyphenated_text));
     return 1;
 }
 
@@ -597,7 +597,7 @@ static int getStringProperty(lua_State *L) {
     lString32 value;
     CRPropRef props = doc->text_view->propsGetCurrent();
     props->getString(propName, value);
-    lua_pushstring(L, UnicodeToLocal(value).c_str());
+    lua_pushstring(L, LCSTR(value));
     return 1;
 }
 
@@ -635,14 +635,14 @@ static int getHyphDictList(lua_State *L) {
 	HyphDictionaryList *list = HyphMan::getDictList();
 	lua_createtable(L, list->length(), 0);
 	for(int i = 0; i < list->length(); i++) {
-		lua_pushstring(L, UnicodeToLocal(list->get(i)->getId()).c_str());
+		lua_pushstring(L, LCSTR(list->get(i)->getId()));
 		lua_rawseti(L, -2, i+i);
 	}
 	return 1;
 }
 
 static int getSelectedHyphDict(lua_State *L) {
-	lua_pushstring(L, UnicodeToLocal(HyphMan::getSelectedDictionary()->getId()).c_str());
+	lua_pushstring(L, LCSTR(HyphMan::getSelectedDictionary()->getId()));
 	lua_pushinteger(L, TextLangMan::getMainLangHyphMethod()->getLeftHyphenMin());
 	lua_pushinteger(L, TextLangMan::getMainLangHyphMethod()->getRightHyphenMin());
 	return 3;
@@ -655,19 +655,19 @@ static int setHyphDictionary(lua_State *L) {
 }
 
 static int getTextLangStatus(lua_State *L) {
-	lua_pushstring(L, UnicodeToLocal(TextLangMan::getMainLang()).c_str());
-	lua_pushstring(L, UnicodeToLocal(TextLangMan::getMainLangHyphMethod()->getId()).c_str());
+	lua_pushstring(L, LCSTR(TextLangMan::getMainLang()));
+	lua_pushstring(L, LCSTR(TextLangMan::getMainLangHyphMethod()->getId()));
 	LVPtrVector<TextLangCfg> *list = TextLangMan::getLangCfgList();
 	lua_createtable(L, 0, list->length());
 	for(int i = 0; i < list->length(); i++) {
                 TextLangCfg * lang_cfg = list->get(i);
 		// Key
-		lua_pushstring(L, UnicodeToLocal(lang_cfg->getLangTag()).c_str());
+		lua_pushstring(L, LCSTR(lang_cfg->getLangTag()));
 		// Value: table
 		lua_createtable(L, 0, 3);
 
 		lua_pushstring(L, "hyph_dict_name");
-		lua_pushstring(L, UnicodeToLocal(lang_cfg->getDefaultHyphMethod()->getId()).c_str());
+		lua_pushstring(L, LCSTR(lang_cfg->getDefaultHyphMethod()->getId()));
 		lua_rawset(L, -3);
 
 		lua_pushstring(L, "hyph_nb_patterns");
@@ -796,30 +796,30 @@ static int getCacheFilePath(lua_State *L) {
     lString32 cache_path = doc->dom_doc->getCacheFilePath();
     if (cache_path.empty())
         return 0;
-    lua_pushstring(L, UnicodeToLocal(cache_path).c_str());
+    lua_pushstring(L, LCSTR(cache_path));
     return 1;
 }
 
 static int getStatistics(lua_State *L) {
     CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
     lString32 stats = doc->dom_doc->getStatistics();
-    lua_pushstring(L, UnicodeToLocal(stats).c_str());
+    lua_pushstring(L, LCSTR(stats));
     return 1;
 }
 
 static int getUnknownEntities(lua_State *L) {
     CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
     lString32Collection unknown_entities = doc->dom_doc->getUnknownEntities();
-    lua_pushstring(L, UnicodeToLocal(unknown_entities[0]).c_str());
-    lua_pushstring(L, UnicodeToLocal(unknown_entities[1]).c_str());
-    lua_pushstring(L, UnicodeToLocal(unknown_entities[2]).c_str());
+    lua_pushstring(L, LCSTR(unknown_entities[0]));
+    lua_pushstring(L, LCSTR(unknown_entities[1]));
+    lua_pushstring(L, LCSTR(unknown_entities[2]));
     return 3;
 }
 
 static int getDocumentFormat(lua_State *L) {
     CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
     lString32 docformat = getDocFormatName(doc->text_view->getDocFormat());
-    lua_pushstring(L, UnicodeToLocal(docformat).c_str());
+    lua_pushstring(L, LCSTR(docformat));
     return 1;
 }
 
@@ -828,31 +828,31 @@ static int getDocumentProps(lua_State *L) {
 
 	lua_createtable(L, 0, 6);
 	lua_pushstring(L, "title");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getTitle()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getTitle()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "authors");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getAuthors()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getAuthors()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "language");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getLanguage()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getLanguage()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "series");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getSeries()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getSeries()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "description");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getDescription()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getDescription()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "keywords");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getKeywords()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getKeywords()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "identifiers");
-	lua_pushstring(L, UnicodeToLocal(doc->text_view->getIdentifiers()).c_str());
+	lua_pushstring(L, LCSTR(doc->text_view->getIdentifiers()));
 	lua_rawset(L, -3);
 
 	lua_pushstring(L, "raw_text_size");
@@ -1053,7 +1053,7 @@ static int getXPointer(lua_State *L) {
 	CreDocument *doc = (CreDocument*) luaL_checkudata(L, 1, "credocument");
 
 	ldomXPointer xp = doc->text_view->getBookmark();
-	lua_pushstring(L, UnicodeToLocal(xp.toString()).c_str());
+	lua_pushstring(L, LCSTR(xp.toString()));
 
 	return 1;
 }
@@ -1066,7 +1066,7 @@ static int getPageXPointer(lua_State *L) {
 		internal = lua_toboolean(L, 3);
 	}
 	ldomXPointer xp = doc->text_view->getPageBookmark(pageno - 1, true, internal);
-	lua_pushstring(L, UnicodeToLocal(xp.toString()).c_str());
+	lua_pushstring(L, LCSTR(xp.toString()));
 
 	return 1;
 }
@@ -1137,7 +1137,7 @@ static int getEmbeddedFontList(lua_State *L) {
     for (int i = 0; i < registered_list.length(); i++) {
         lString32 name = registered_list[i];
         bool instantiated = instantiated_list.contains(name);
-        lua_pushstring(L, UnicodeToLocal(name).c_str());
+        lua_pushstring(L, LCSTR(name));
         lua_pushboolean(L, instantiated);
         lua_rawset(L, -3);
     }
@@ -1167,8 +1167,8 @@ static int walkTableOfContent(lua_State *L, LVTocItem *toc, int *count) {
 		// is not yet available, but getPath() is. So let's use it, which avoids
 		// having to build the XPointers until they are needed to update page numbers.
 		lua_pushstring(L, "xpointer");
-		// lua_pushstring(L, UnicodeToLocal( toc_tmp->getXPointer().toString()).c_str());
-		lua_pushstring(L, UnicodeToLocal(toc_tmp->getPath()).c_str());
+		// lua_pushstring(L, LCSTR( toc_tmp->getXPointer().toString()));
+		lua_pushstring(L, LCSTR(toc_tmp->getPath()));
 		lua_rawset(L, -3);
 
 		lua_pushstring(L, "depth");
@@ -1176,7 +1176,7 @@ static int walkTableOfContent(lua_State *L, LVTocItem *toc, int *count) {
 		lua_rawset(L, -3);
 
 		lua_pushstring(L, "title");
-		lua_pushstring(L, UnicodeToLocal(toc_tmp->getName()).c_str());
+		lua_pushstring(L, LCSTR(toc_tmp->getName()));
 		lua_rawset(L, -3);
 
 		/* set Toc entry to Toc table */
@@ -1328,7 +1328,7 @@ static int getPageMap(lua_State *L) {
         // is not yet available, but getPath() is. So let's use it, which avoids
         // having to build the XPointers until they are needed to update page numbers.
         lua_pushstring(L, "xpointer");
-        lua_pushstring(L, UnicodeToLocal(item->getPath()).c_str());
+        lua_pushstring(L, LCSTR(item->getPath()));
         lua_rawset(L, -3);
 
         lua_pushstring(L, "doc_y");
@@ -1336,7 +1336,7 @@ static int getPageMap(lua_State *L) {
         lua_rawset(L, -3);
 
         lua_pushstring(L, "label");
-        lua_pushstring(L, UnicodeToLocal(item->getLabel()).c_str());
+        lua_pushstring(L, LCSTR(item->getLabel()));
         lua_rawset(L, -3);
 
         // add item to returned table
@@ -1352,7 +1352,7 @@ static int getPageMapSource(lua_State *L) {
     lString32 source = pagemap->getSource();
     if ( source.empty() )
         return 0;
-    lua_pushstring(L, UnicodeToLocal(source).c_str());
+    lua_pushstring(L, LCSTR(source));
     return 1;
 }
 
@@ -1364,7 +1364,7 @@ static int getPageMapFirstPageLabel(lua_State *L) {
     int nb = pagemap->getChildCount();
     if ( !nb )
         return 0;
-    lua_pushstring(L, UnicodeToLocal(pagemap->getChild(0)->getLabel()).c_str());
+    lua_pushstring(L, LCSTR(pagemap->getChild(0)->getLabel()));
     return 1;
 }
 
@@ -1376,7 +1376,7 @@ static int getPageMapLastPageLabel(lua_State *L) {
     int nb = pagemap->getChildCount();
     if ( !nb )
         return 0;
-    lua_pushstring(L, UnicodeToLocal(pagemap->getChild(nb-1)->getLabel()).c_str());
+    lua_pushstring(L, LCSTR(pagemap->getChild(nb-1)->getLabel()));
     return 1;
 }
 
@@ -1418,7 +1418,7 @@ static int getPageMapCurrentPageLabel(lua_State *L) {
         idx = 0;
     else if (idx >= nb)
         idx = nb - 1;
-    lua_pushstring(L, UnicodeToLocal(pagemap->getChild(idx)->getLabel()).c_str());
+    lua_pushstring(L, LCSTR(pagemap->getChild(idx)->getLabel()));
     // Push index and count as we have them, they might be of use to compute "pages left"
     lua_pushinteger(L, idx+1);
     lua_pushinteger(L, nb);
@@ -1457,7 +1457,7 @@ static int getPageMapXPointerPageLabel(lua_State *L) {
         idx = 0;
     else if (idx >= nb)
         idx = nb - 1;
-    lua_pushstring(L, UnicodeToLocal(pagemap->getChild(idx)->getLabel()).c_str());
+    lua_pushstring(L, LCSTR(pagemap->getChild(idx)->getLabel()));
     return 1;
 }
 
@@ -1536,7 +1536,7 @@ static int getPageMapVisiblePageLabels(lua_State *L) {
         lua_rawset(L, -3);
 
         lua_pushstring(L, "xpointer");
-        lua_pushstring(L, UnicodeToLocal(item->getPath()).c_str());
+        lua_pushstring(L, LCSTR(item->getPath()));
         lua_rawset(L, -3);
 
         lua_pushstring(L, "doc_y");
@@ -1544,7 +1544,7 @@ static int getPageMapVisiblePageLabels(lua_State *L) {
         lua_rawset(L, -3);
 
         lua_pushstring(L, "label");
-        lua_pushstring(L, UnicodeToLocal(item->getLabel()).c_str());
+        lua_pushstring(L, LCSTR(item->getLabel()));
         lua_rawset(L, -3);
 
         // add item to returned table
@@ -1571,7 +1571,7 @@ static int getFontFaces(lua_State *L) {
 	lua_createtable(L, face_list.length(), 0);
 	for (i = 0; i < face_list.length(); i++)
 	{
-		lua_pushstring(L, UnicodeToLocal(face_list[i]).c_str());
+		lua_pushstring(L, LCSTR(face_list[i]));
 		lua_rawseti(L, -2, i+1);
 	}
 
@@ -1952,9 +1952,9 @@ static int getLinkFromPosition(lua_State *L) {
 	ldomXPointer p = doc->text_view->getNodeByPoint(pt, true, forTextSelection);
 	ldomXPointer a_p;
 	lString32 href = p.getHRef(a_p);
-	lua_pushstring(L, UnicodeToLocal(href).c_str());
+	lua_pushstring(L, LCSTR(href));
 	if (!a_p.isNull()) { // return xpointer to <a> itself
-		lua_pushstring(L, UnicodeToLocal(a_p.toString()).c_str());
+		lua_pushstring(L, LCSTR(a_p.toString()));
 		return 2;
 	}
 	return 1;
@@ -1981,7 +1981,7 @@ static int getWordFromPosition(lua_State *L) {
 			lua_createtable(L, 0, 5); // new word box
 
 			lua_pushstring(L, "word");
-			lua_pushstring(L, UnicodeToLocal(word->getText()).c_str());
+			lua_pushstring(L, LCSTR(word->getText()));
 			lua_rawset(L, -3);
 			lua_pushstring(L, "x0");
 			lua_pushinteger(L, rect.left + x_offset);
@@ -2067,7 +2067,7 @@ static int getTextFromXPointers(lua_State *L) {
 		r.setFlags(rangeFlags);
 		tv->selectRange(r);
 		lString32 selText = r.getRangeText('\n', includeImages?imageReplacementChar:0);
-		lua_pushstring(L, UnicodeToLocal(selText).c_str());
+		lua_pushstring(L, LCSTR(selText));
         return 1;
     }
     return 0;
@@ -2118,8 +2118,8 @@ static int getTextFromPositions(lua_State *L) {
     bool swapped = r.getStart().compare(startp) < 0;
     bool not_panning = r.getStart() == r.getEnd();
 
-    // printf(" before step1 start %s\n", UnicodeToLocal(r.getStart().toString()).c_str());
-    // printf(" before step1 end   %s\n", UnicodeToLocal(r.getEnd().toString()).c_str());
+    // printf(" before step1 start %s\n", LCSTR(r.getStart().toString()));
+    // printf(" before step1 end   %s\n", LCSTR(r.getEnd().toString()));
 
     // A xpointer references a char in a text node: it points to the start of its glyph.
     // The 'end' of a selection, being the end of the last glyph, must have its xpointer
@@ -2201,8 +2201,8 @@ static int getTextFromPositions(lua_State *L) {
     if (r.getEnd().getChar() != 0 ) { // (=0 when end of text node)
         r.getEnd().setOffset(r.getEnd().getOffset()+1);
     }
-    // printf("  after step1 start %s\n", UnicodeToLocal(r.getStart().toString()).c_str());
-    // printf("  after step1 end   %s\n", UnicodeToLocal(r.getEnd().toString()).c_str());
+    // printf("  after step1 start %s\n", LCSTR(r.getStart().toString()));
+    // printf("  after step1 end   %s\n", LCSTR(r.getEnd().toString()));
 
     // Step 2: grab complete words on each side
     if ( !grabWords ) {
@@ -2236,8 +2236,8 @@ static int getTextFromPositions(lua_State *L) {
             r.getEnd().nextVisibleWordEnd(true);
         }
     }
-    // printf("  after step2 start %s\n", UnicodeToLocal(r.getStart().toString()).c_str());
-    // printf("  after step2 end   %s\n", UnicodeToLocal(r.getEnd().toString()).c_str());
+    // printf("  after step2 start %s\n", LCSTR(r.getStart().toString()));
+    // printf("  after step2 end   %s\n", LCSTR(r.getEnd().toString()));
 
     if (r.isNull())
         return 0;
@@ -2265,20 +2265,20 @@ static int getTextFromPositions(lua_State *L) {
 
     lua_createtable(L, 0, 3);
     lua_pushstring(L, "text");
-    lua_pushstring(L, UnicodeToLocal(selText).c_str());
+    lua_pushstring(L, LCSTR(selText));
     lua_rawset(L, -3);
     lua_pushstring(L, "pos0");
-    lua_pushstring(L, UnicodeToLocal(r.getStart().toString()).c_str());
+    lua_pushstring(L, LCSTR(r.getStart().toString()));
     lua_rawset(L, -3);
     lua_pushstring(L, "pos1");
-    lua_pushstring(L, UnicodeToLocal(r.getEnd().toString()).c_str());
+    lua_pushstring(L, LCSTR(r.getEnd().toString()));
     lua_rawset(L, -3);
     /* We don't need these:
     lua_pushstring(L, "title");
-    lua_pushstring(L, UnicodeToLocal(titleText).c_str());
+    lua_pushstring(L, LCSTR(titleText));
     lua_rawset(L, -3);
     lua_pushstring(L, "context");
-    lua_pushstring(L, UnicodeToLocal(posText).c_str());
+    lua_pushstring(L, LCSTR(posText));
     lua_rawset(L, -3);
     lua_pushstring(L, "percent");
     lua_pushnumber(L, 1.0*page/(pages-1));
@@ -2291,7 +2291,7 @@ static int getTextFromPositions(lua_State *L) {
         lua_createtable(L, imageNodes.length(), 0);
         for (int i = 0; i < imageNodes.length(); i++) {
             ldomNode * node = imageNodes[i];
-            lua_pushstring(L, UnicodeToLocal(ldomXPointerEx(node, 0).toString()).c_str());
+            lua_pushstring(L, LCSTR(ldomXPointerEx(node, 0).toString()));
             lua_rawseti(L, -2, i+1);
         }
         lua_rawset(L, -3);
@@ -2389,13 +2389,13 @@ static int extendXPointersToSentenceSegment(lua_State *L) {
     lString32 text = r.getRangeText( '\n', includeImages?imageReplacementChar:0);
     lua_createtable(L, 0, 3);
     lua_pushstring(L, "text");
-    lua_pushstring(L, UnicodeToLocal(text).c_str());
+    lua_pushstring(L, LCSTR(text));
     lua_rawset(L, -3);
     lua_pushstring(L, "pos0");
-    lua_pushstring(L, UnicodeToLocal(r.getStart().toString()).c_str());
+    lua_pushstring(L, LCSTR(r.getStart().toString()));
     lua_rawset(L, -3);
     lua_pushstring(L, "pos1");
-    lua_pushstring(L, UnicodeToLocal(r.getEnd().toString()).c_str());
+    lua_pushstring(L, LCSTR(r.getEnd().toString()));
     lua_rawset(L, -3);
     return 1;
 }
@@ -2506,7 +2506,7 @@ static int getNextVisibleWordStart(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.nextVisibleWordStart()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2519,7 +2519,7 @@ static int getNextVisibleWordEnd(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.nextVisibleWordEnd()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2532,7 +2532,7 @@ static int getPrevVisibleWordStart(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.prevVisibleWordStart()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2546,7 +2546,7 @@ static int getPrevVisibleWordEnd(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.prevVisibleWordEnd()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2559,7 +2559,7 @@ static int getNextVisibleChar(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.nextVisibleChar()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2572,7 +2572,7 @@ static int getPrevVisibleChar(lua_State *L){
     if (nodep.isNull())
         return 0;
     if (nodep.prevVisibleChar()) {
-        lua_pushstring(L, UnicodeToLocal(nodep.toString()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toString()));
         return 1;
     }
     return 0;
@@ -2735,13 +2735,13 @@ static int getNearestWordFromPosition(lua_State *L) {
     if (word) {
         lua_createtable(L, 0, 3);
         lua_pushstring(L, "text");
-        lua_pushstring(L, UnicodeToLocal(word->getText()).c_str());
+        lua_pushstring(L, LCSTR(word->getText()));
         lua_rawset(L, -3);
         lua_pushstring(L, "pos0");
-        lua_pushstring(L, UnicodeToLocal(word->getRange().getStart().toString()).c_str());
+        lua_pushstring(L, LCSTR(word->getRange().getStart().toString()));
         lua_rawset(L, -3);
         lua_pushstring(L, "pos1");
-        lua_pushstring(L, UnicodeToLocal(word->getRange().getEnd().toString()).c_str());
+        lua_pushstring(L, LCSTR(word->getRange().getEnd().toString()));
         lua_rawset(L, -3);
         return 1;
     }
@@ -2760,7 +2760,7 @@ static int getLangTagForTextFromPosition(lua_State *L) {
         return 0;
     TextLangCfg * lang_cfg = TextLangMan::getTextLangCfg(p.getNode());
     if ( lang_cfg ) {
-        lua_pushstring(L, UnicodeToLocal(lang_cfg->getLangTag()).c_str());
+        lua_pushstring(L, LCSTR(lang_cfg->getLangTag()));
         return 1;
     }
     return 0;
@@ -2833,7 +2833,7 @@ static int getHTMLFromXPointer(lua_State *L) {
     lua_pushstring(L, html.c_str());
     lua_createtable(L, cssFiles.length(), 0);
     for (int i = 0; i < cssFiles.length(); i++) {
-        lua_pushstring(L, UnicodeToLocal(cssFiles[i]).c_str());
+        lua_pushstring(L, LCSTR(cssFiles[i]));
         lua_rawseti(L, -2, i+1);
     }
     lua_pushstring(L, extra.c_str());
@@ -2862,7 +2862,7 @@ static int getHTMLFromXPointers(lua_State *L) {
     lua_pushstring(L, html.c_str());
     lua_createtable(L, cssFiles.length(), 0);
     for (int i = 0; i < cssFiles.length(); i++) {
-        lua_pushstring(L, UnicodeToLocal(cssFiles[i]).c_str());
+        lua_pushstring(L, LCSTR(cssFiles[i]));
         lua_rawseti(L, -2, i+1);
     }
     lua_pushstring(L, extra.c_str());
@@ -2909,7 +2909,7 @@ static int getPageLinks(lua_State *L) {
 		for ( int i=0; i<linkCount; i++ ) {
 			ldomXPointer a_xpointer;
 			lString32 link = links[i]->getHRef(a_xpointer);
-			lString8 link8 = UnicodeToLocal( link );
+			lString8 link8 = UnicodeToUtf8(link);
 			bool isInternal = link8[0] == '#';
 
 			if ( internalLinksOnly && !isInternal )
@@ -2922,11 +2922,9 @@ static int getPageLinks(lua_State *L) {
 			lvPoint end_pt ( currSel.getEnd().toPoint() );
 
 			#if DEBUG_CRENGINE
-				lString32 txt = links[i]->getRangeText();
-				lString8 txt8 = UnicodeToLocal( txt );
 				CRLog::debug("# link %d start %d %d end %d %d '%s' %s\n", i,
 				start_pt.x, start_pt.y, end_pt.x, end_pt.y,
-				txt8.c_str(), link8.c_str());
+				LCSTR(links[i]->getRangeText()), link8.c_str());
 			#endif
 
 			lua_createtable(L, 0, 6); // new link
@@ -2946,7 +2944,7 @@ static int getPageLinks(lua_State *L) {
 
 			if (!a_xpointer.isNull()) { // xpointer to <a> itself
 				lua_pushstring(L, "a_xpointer");
-				lua_pushstring(L, UnicodeToLocal(a_xpointer.toString()).c_str());
+				lua_pushstring(L, LCSTR(a_xpointer.toString()));
 				lua_rawset(L, -3);
 			}
 
@@ -3199,7 +3197,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
                 // a child to process next sibling
                 if (nextChildIndex == 0) {
                     // printf("%d %d %s %s\n", item->getLevel(), item->getIndex(),
-                    //   UnicodeToLocal(item->getPath()).c_str(), UnicodeToLocal(item->getName()).c_str());
+                    //   LCSTR(item->getPath()), LCSTR(item->getName()));
                     // TOC entries already had their #someId translated to a DOM xpath
                     if (item->getPath() == targetXpath) {
                         reason = "target also appears in TOC";
@@ -3430,7 +3428,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
         // Check parents
         ldomNode * n = targetNode;
         while ( n && !n->isNull() ) {
-            // printf("< %s\n", UnicodeToLocal(ldomXPointerEx(n, 0).toString()).c_str());
+            // printf("< %s\n", LCSTR(ldomXPointerEx(n, 0).toString()));
             if ( n->getNodeId() >= el_h1 && n->getNodeId() <= el_h6 ) {
                 reason = "target is, or is inside, a <h1>...<h6>";
                 return false;
@@ -3442,7 +3440,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
         ldomXPointerEx endXP = targetXP; // copy
         endXP.lastInnerNode();
         while (!curXP.isNull() && curXP.compare(endXP) <= 0) {
-            // printf("> %s\n", UnicodeToLocal(curXP.toString()).c_str());
+            // printf("> %s\n", LCSTR(curXP.toString()));
             lUInt16 id = curXP.getNode()->getNodeId();
             if ( id >= el_h1 && id <= el_h6 ) {
                 reason = "target contains a <h1>...<h6>";
@@ -3547,7 +3545,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
             ldomXPointerEx notAfter;
             lString32 extStopReason;
             extStopReason = "End of document met";
-            // printf("[start: %s\n", UnicodeToLocal(curPos.toString()).c_str());
+            // printf("[start: %s\n", LCSTR(curPos.toString()));
             while (true) {
                 ldomNode * newFinalNode = curPos.getFinalNode();
                 if (newFinalNode != curFinalNode) {
@@ -3581,10 +3579,10 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
                 }
                 if ( pb_after == css_pb_always || pb_after == css_pb_left || pb_after == css_pb_right ) {
                     ldomXPointerEx tmpPos = curPos;
-                    // printf("[pbafter at %s\n", UnicodeToLocal(notAfter.toString()).c_str());
+                    // printf("[pbafter at %s\n", LCSTR(notAfter.toString()));
                     if ( tmpPos.nextOuterElement() ) {
                         notAfter = tmpPos;
-                        // printf("[notAfter %s\n", UnicodeToLocal(notAfter.toString()).c_str());
+                        // printf("[notAfter %s\n", LCSTR(notAfter.toString()));
                     }
                 }
                 // When we meet another final block containing a node with an ID= attribute,
@@ -3593,7 +3591,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
                 // different ID, which could mean there are multiple terms or synonyms...)
                 lString32 id = node->getAttributeValue("id");
                 if ( !id.empty() ) {
-                    // printf("id=%s\n", UnicodeToLocal(id).c_str());
+                    // printf("id=%s\n", LCSTR(id));
                     extStopReason = "node with 'id=' attr met";
                     break;
                 }
@@ -3610,7 +3608,7 @@ static bool _isLinkToFootnote(CreDocument *doc, const lString32 source_xpointer,
                     extStopReason = "end of document met";
                     break;
                 }
-                // printf("[...: %s\n", UnicodeToLocal(curPos.toString()).c_str());
+                // printf("[...: %s\n", LCSTR(curPos.toString()));
                 if ( !notAfter.isNull() && curPos.compare(notAfter) >= 0 ) {
                     extStopReason = "page-break-after met";
                     if ( curFinalNode && !curFinalNode->isNull() )
@@ -3707,15 +3705,15 @@ static int isLinkToFootnote(lua_State *L) {
             flags, max_text_size, reason, extendedStopReason, extendedRange);
     int stackLength = 2;
     lua_pushboolean(L, isFootnote);
-    lua_pushstring(L, UnicodeToLocal(reason).c_str());
+    lua_pushstring(L, LCSTR(reason));
     if (!extendedStopReason.empty()) {
         stackLength += 1;
-        lua_pushstring(L, UnicodeToLocal(extendedStopReason).c_str());
+        lua_pushstring(L, LCSTR(extendedStopReason));
     }
     if (!extendedRange.isNull()) {
         stackLength += 2;
-        lua_pushstring(L, UnicodeToLocal(extendedRange.getStart().toString()).c_str());
-        lua_pushstring(L, UnicodeToLocal(extendedRange.getEnd().toString()).c_str());
+        lua_pushstring(L, LCSTR(extendedRange.getStart().toString()));
+        lua_pushstring(L, LCSTR(extendedRange.getEnd().toString()));
     }
     return stackLength;
 }
@@ -3757,7 +3755,7 @@ static int getNormalizedXPointer(lua_State *L) {
     }
     else {
         // Force the use of toStrinV2() to get a normalized xpointer
-        lua_pushstring(L, UnicodeToLocal(nodep.toStringV2()).c_str());
+        lua_pushstring(L, LCSTR(nodep.toStringV2()));
     }
     return 1;
 }
@@ -4010,10 +4008,10 @@ static int findText(lua_State *L) {
                 ldomXRange * range = matches[i];
                 lua_createtable(L, 0, 2); // new match
                 lua_pushstring(L, "start");
-                lua_pushstring(L, UnicodeToLocal(range->getStart().toString()).c_str());
+                lua_pushstring(L, LCSTR(range->getStart().toString()));
                 lua_rawset(L, -3);
                 lua_pushstring(L, "end");
-                lua_pushstring(L, UnicodeToLocal(range->getEnd().toString()).c_str());
+                lua_pushstring(L, LCSTR(range->getEnd().toString()));
                 lua_rawset(L, -3);
 
                 lua_rawseti(L, -2, i+1);
@@ -4051,14 +4049,14 @@ static int findAllText(lua_State *L) {
                 ldomXRange * range = matches[i];
                 lua_createtable(L, 0, 7); // new match
                 lua_pushstring(L, "start");
-                lua_pushstring(L, UnicodeToLocal(range->getStart().toString()).c_str());
+                lua_pushstring(L, LCSTR(range->getStart().toString()));
                 lua_rawset(L, -3);
                 lua_pushstring(L, "end");
-                lua_pushstring(L, UnicodeToLocal(range->getEnd().toString()).c_str());
+                lua_pushstring(L, LCSTR(range->getEnd().toString()));
                 lua_rawset(L, -3);
                 if ( getMatchedText ) {
                     lua_pushstring(L, "matched_text");
-                    lua_pushstring(L, UnicodeToLocal(range->getRangeText('\n')).c_str());
+                    lua_pushstring(L, LCSTR(range->getRangeText('\n')));
                     lua_rawset(L, -3);
 
                     ldomXPointerEx start = range->getStart();
@@ -4067,10 +4065,10 @@ static int findAllText(lua_State *L) {
                         ldomXRange rp(start, range->getStart());
                         lString32 prefix = rp.getRangeText('\n');
                         lua_pushstring(L, "matched_word_prefix");
-                        lua_pushstring(L, UnicodeToLocal(prefix).c_str());
+                        lua_pushstring(L, LCSTR(prefix));
                         lua_rawset(L, -3);
                         lua_pushstring(L, "matched_word_prefix_start");
-                        lua_pushstring(L, UnicodeToLocal(start.toString()).c_str());
+                        lua_pushstring(L, LCSTR(start.toString()));
                         lua_rawset(L, -3);
                     }
 
@@ -4080,10 +4078,10 @@ static int findAllText(lua_State *L) {
                         ldomXRange rn(range->getEnd(), end);
                         lString32 suffix = rn.getRangeText('\n');
                         lua_pushstring(L, "matched_word_suffix");
-                        lua_pushstring(L, UnicodeToLocal(suffix).c_str());
+                        lua_pushstring(L, LCSTR(suffix));
                         lua_rawset(L, -3);
                         lua_pushstring(L, "matched_word_suffix_end");
-                        lua_pushstring(L, UnicodeToLocal(end.toString()).c_str());
+                        lua_pushstring(L, LCSTR(end.toString()));
                         lua_rawset(L, -3);
                     }
 
@@ -4096,7 +4094,7 @@ static int findAllText(lua_State *L) {
                         ldomXRange rp(prev, start);
                         lString32 prevText = rp.getRangeText('\n');
                         lua_pushstring(L, "prev_text");
-                        lua_pushstring(L, UnicodeToLocal(prevText).c_str());
+                        lua_pushstring(L, LCSTR(prevText));
                         lua_rawset(L, -3);
 
                         // nextVisibleWordEnd() (used here and above) may end up on the root node
@@ -4115,7 +4113,7 @@ static int findAllText(lua_State *L) {
                         ldomXRange rn(end, next);
                         lString32 nextText = rn.getRangeText('\n');
                         lua_pushstring(L, "next_text");
-                        lua_pushstring(L, UnicodeToLocal(nextText).c_str());
+                        lua_pushstring(L, LCSTR(nextText));
                         lua_rawset(L, -3);
                     }
                 }
