@@ -229,7 +229,7 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
 
 
 void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
-   lvfont_handle   font,     /* handle of font to draw string */
+   LVFont *        font,     /* handle of font to draw string */
    TextLangCfg *   lang_cfg,
    const lChar32 * text,     /* pointer to unicode text string */
    lUInt32         len,      /* number of chars in text, 0 for auto(strlen) */
