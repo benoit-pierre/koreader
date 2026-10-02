@@ -30,7 +30,6 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
 #include "cssdef.h"
 
 #if !defined(__DTD_DEF_H_INCLUDED__)

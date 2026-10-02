@@ -17,29 +17,32 @@
 
 #include "crsetup.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <math.h>
-#include "lvtypes.h"
-#include "lvplatform.h"
-#include "lvfnt.h"
 #include "cssdef.h"
-#include "lvstring.h"
-#include "lvref.h"
+#include "lvarray.h"
 #include "lvptrvec.h"
-#include "hyphman.h"
-#include "lvdrawbuf.h"
+#include "lvref.h"
+#include "lvstream.h"
+#include "lvstring.h"
 #include "textlang.h"
 
-#if !defined(__SYMBIAN32__) && defined(_WIN32)
-extern "C" {
-#include <windows.h>
-}
+#if USE_HARFBUZZ==1
+#include <hb.h>
 #endif
 
 #if USE_GLYPHCACHE_HASHTABLE==1
 #include "lvhashtable.h"
 #define GLYPHCACHE_TABLE_SZ         256
+#endif
+
+#include <math.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if !defined(__SYMBIAN32__) && defined(_WIN32)
+extern "C" {
+#include <windows.h>
+}
 #endif
 
 struct LVFontGlyphCacheItem;

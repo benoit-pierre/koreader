@@ -12,21 +12,25 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvtextfm.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "../include/lvfnt.h"
-#include "../include/lvtextfm.h"
-#include "../include/lvdrawbuf.h"
-#include "../include/fb2def.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvdrawbuf.h"
+#include "lvfnt.h"
+#include "lvfntman.h"
+#include "lvimg.h"
+#include "lvmemman.h"
+#include "lvpagesplitter.h"
+#include "lvrend.h"
+#include "lvstyles.h"
+#include "lvtinydom.h"
+#include "mathml.h"
+#include "renderutil.h"
+#include "textlang.h"
 
-#ifdef __cplusplus
-#include "../include/lvimg.h"
-#include "../include/lvtinydom.h"
-#include "../include/lvrend.h"
-#include "../include/textlang.h"
-#include "../include/renderutil.h"
+#if (USE_LIBUNIBREAK==1)
+#include "linebreak.h"
 #endif
 
 #if USE_HARFBUZZ==1
@@ -36,6 +40,11 @@
 #if (USE_FRIBIDI==1)
 #include <fribidi.h>
 #endif
+
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #define SPACE_WIDTH_SCALE_PERCENT 100
 #define MIN_SPACE_CONDENSING_PERCENT 50
@@ -360,8 +369,6 @@ int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_pr
     }
     return 0;
 }
-
-#ifdef __cplusplus
 
 void LFormattedText::AddSourceObject(
             lUInt32         flags,     /* text context flags */
@@ -6804,5 +6811,3 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
     }
     delete absmarks;
 }
-
-#endif

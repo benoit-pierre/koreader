@@ -13,16 +13,11 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvimg.h"
 
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#define XMD_H
-
-#include "../include/lvimg.h"
-#include "../include/lvtinydom.h"
+#include "lvdrawbuf.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
 
 #if (USE_LIBPNG==1)
 #include <png.h>
@@ -33,18 +28,8 @@
 #endif
 
 #if (USE_LIBJPEG==1)
-
-//#include "../../wxWidgets/src/jpeg/jinclude.h"
-extern "C" {
 #include <jpeglib.h>
-}
-
 #include <jerror.h>
-
-#if !defined(HAVE_WXJPEG_BOOLEAN)
-typedef boolean wxjpeg_boolean;
-#endif
-
 #endif
 
 #if (USE_LIBWEBP==1)
@@ -74,6 +59,13 @@ typedef boolean wxjpeg_boolean;
 # include <stb_image_write.h> // for svg to png conversion
 #endif
 #endif
+
+#include <errno.h>
+#include <setjmp.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static lUInt32 NEXT_CACHEABLE_OBJECT_ID = 1;
 CacheableObject::CacheableObject() : _callback(NULL), _cache(NULL)
@@ -171,7 +163,7 @@ static void cr_init_source (j_decompress_ptr cinfo)
  * the front of the buffer rather than discarding it.
  */
 
-static wxjpeg_boolean cr_fill_input_buffer (j_decompress_ptr cinfo)
+static boolean cr_fill_input_buffer (j_decompress_ptr cinfo)
 {
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr *) cinfo->src;
     lvsize_t bytesRead = 0;
@@ -236,7 +228,7 @@ static void cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
  * provided by the JPEG library.  That method assumes that no backtracking
  * is possible.
  */
-static wxjpeg_boolean cr_resync_to_restart (j_decompress_ptr, int)
+static boolean cr_resync_to_restart (j_decompress_ptr, int)
 {
     return FALSE;
 }

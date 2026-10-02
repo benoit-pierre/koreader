@@ -23,7 +23,11 @@
 
 #include "crsetup.h"
 
-#include "lvtinydom.h"
+#include "lvfntman.h"
+#include "lvstyles.h"
+
+class ldomDocument;
+struct ldomNode;
 
 struct InitialLetterInlineBoxMetrics
 {

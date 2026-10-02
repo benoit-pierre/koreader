@@ -113,13 +113,17 @@ Current limitations:
 
 #if MATHML_SUPPORT==1
 
-#include "../include/lvtypes.h"
-#include "../include/lvstring.h"
-#include "../include/lvtinydom.h"
-#include "../include/lvrend.h"
-#include "../include/lvstsheet.h"
-#include "../include/fb2def.h"
-#include "../include/mathml.h"
+#include "mathml.h"
+
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvfntman.h"
+#include "lvtinydom.h"
+#include "lvrend.h"
+#include "lvstsheet.h"
+#include "lvstyles.h"
+
+#include <stddef.h>
 
 // ====================================================================
 // Known Open Type Math fonts
