@@ -7,113 +7,172 @@ Currently, this is a LuaJIT FFI wrapper for lodepng lib.
 ]]
 
 local ffi = require("ffi")
-require("ffi/lodepng_h")
+local posix = require("ffi/posix")
 
-local lodepng = ffi.loadlib("lodepng")
+require "ffi/libspng_h"
+
+local spng = ffi.loadlib("spng", "0")
+local C = ffi.C
 
 local Png = {}
 
+local spng_strerror = function(err)
+    return ffi.string(spng.spng_strerror(err))
+end
+
 function Png.encodeToFile(filename, mem, w, h, n)
 
-    -- We'll always want 8-bits per component
-    local bitdepth = 8
+    local ihdr = ffi.new("struct spng_ihdr")
 
+    ihdr.width = w
+    ihdr.height = h
+    -- We'll always want 8-bits per component
+    ihdr.bit_depth = 8
     -- Devise the output color type based on the number of components passed
-    local colortype
     if n == 1 then
-        colortype = lodepng.LCT_GREY
+        ihdr.color_type = spng.SPNG_COLOR_TYPE_GRAYSCALE
     elseif n == 2 then
-        colortype = lodepng.LCT_GREY_ALPHA
+        ihdr.color_type = spng.SPNG_COLOR_TYPE_GRAYSCALE_ALPHA
     elseif n == 3 then
-        colortype = lodepng.LCT_RGB
+        ihdr.color_type = spng.SPNG_COLOR_TYPE_TRUECOLOR
     elseif n == 4 then
-        colortype = lodepng.LCT_RGBA
+        ihdr.color_type = spng.SPNG_COLOR_TYPE_TRUECOLOR_ALPHA
     else
         return false, "passed an invalid number of color components"
     end
 
-    local err = lodepng.lodepng_encode_file(filename, mem, w, h, colortype, bitdepth)
-    if err ~= 0 then
-        return false, ffi.string(lodepng.lodepng_error_text(err))
-    else
-        return true
+    local ctx, err
+
+    ctx = spng.spng_ctx_new(spng.SPNG_CTX_ENCODER)
+    assert(ctx ~= nil)
+    ctx = ffi.gc(ctx, spng.spng_ctx_free)
+
+    local fp = C.fopen(filename, "wb")
+    if fp == nil then
+        return false, posix.strerror()
     end
+    fp = ffi.gc(fp, C.fclose)
+
+    err = spng.spng_set_png_file(ctx, fp)
+    if err ~= 0 then
+        return false, spng_strerror(err)
+    end
+
+    err = spng.spng_set_option(ctx, spng.SPNG_IMG_COMPRESSION_LEVEL, 5)
+    if err ~= 0 then
+        return false, spng_strerror(err)
+    end
+
+    err = spng.spng_set_ihdr(ctx, ihdr)
+    if err ~= 0 then
+        return false, spng_strerror(err)
+    end
+
+    err = spng.spng_encode_image(ctx, mem, w * h * n, spng.SPNG_FMT_PNG, spng.SPNG_ENCODE_FINALIZE)
+    if err ~= 0 then
+        return false, spng_strerror(err)
+    end
+
+    spng.spng_ctx_free(ffi.gc(ctx, nil))
+    C.fclose(ffi.gc(fp, nil))
+
+    return true
 end
 
 function Png.decodeFromFile(filename, req_n)
-    -- Read the file
-    local fh = io.open(filename, "rb")
-    if not fh then
-        return false, "couldn't open PNG file"
+
+    local ctx, err
+
+    ctx = spng.spng_ctx_new(0)
+    assert(ctx ~= nil)
+    ctx = ffi.gc(ctx, spng.spng_ctx_free)
+
+    local fp = C.fopen(filename, "rb")
+    if fp == nil then
+        return false, posix.strerror()
     end
-    local fdata = fh:read("*a")
-    fh:close()
+    fp = ffi.gc(fp, C.fclose)
 
-    local ptr = ffi.new("unsigned char*[1]")
-    local width = ffi.new("int[1]")
-    local height = ffi.new("int[1]")
-    local state = ffi.new("LodePNGState[1]")
-    local out_n = req_n
-
-    -- Init the state
-    lodepng.lodepng_state_init(state);
-    -- We'll always want 8-bits per component
-    state[0].info_raw.bitdepth = 8
-
-    -- Inspect the PNG data first, to see if we can avoid a color-type conversion
-    local err = lodepng.lodepng_inspect(width, height, state, ffi.cast("const unsigned char*", fdata), #fdata);
+    err = spng.spng_set_png_file(ctx, fp)
     if err ~= 0 then
-        return false, ffi.string(lodepng.lodepng_error_text(err))
+        return false, spng_strerror(err)
     end
+
+    local ihdr = ffi.new("struct spng_ihdr")
+    err = spng.spng_get_ihdr(ctx, ihdr)
+    if err ~= 0 then
+        return false, spng_strerror(err)
+    end
+
+    local out_fmt, out_n
 
     -- Try to keep grayscale PNGs as-is if we requested so...
     if req_n == 1 then
-        if state[0].info_png.color.colortype == lodepng.LCT_GREY or state[0].info_png.color.colortype == lodepng.LCT_GREY_ALPHA then
-            state[0].info_raw.colortype = lodepng.LCT_GREY
-        elseif state[0].info_png.color.colortype == lodepng.LCT_PALETTE and state[0].info_png.color.palettesize <= 16 then
-            -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
-            -- Just expand it to grayscale so BB knows what to do with it ;).
-            -- NOTE: A properly encoded image targeting eInk should actually be both dithered down to the 16c eInk palette,
-            --       AND flagged color-type 0 (Grayscale) too! Those already fall under the first branch ;).
-            --       As such, this only affects stuff explicitly encoded color-type 3 (Paletted sRGB).
-            state[0].info_raw.colortype = lodepng.LCT_GREY
+        if ihdr.color_type == spng.SPNG_COLOR_TYPE_GRAYSCALE then
+            out_fmt = spng.SPNG_FMT_PNG
+        elseif ihdr.color_type == spng.SPNG_COLOR_TYPE_GRAYSCALE_ALPHA then
+            out_fmt = spng.SPNG_FMT_G8
+        -- elseif ihdr.color_type == spng.SPNG_COLOR_TYPE_INDEXED and state[0].info_png.color.palettesize <= 16 then
+        --     -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
+        --     -- Just expand it to grayscale so BB knows what to do with it ;).
+        --     -- NOTE: A properly encoded image targeting eInk should actually be both dithered down to the 16c eInk palette,
+        --     --       AND flagged color-type 0 (Grayscale) too! Those already fall under the first branch ;).
+        --     --       As such, this only affects stuff explicitly encoded color-type 3 (Paletted sRGB).
+        --     out_fmt = spng.SPNG_FMT_G8
         else
-            state[0].info_raw.colortype = lodepng.LCT_RGB
+            out_fmt = spng.SPNG_FMT_RGB8
             -- Don't forget to update out_n so the caller is aware of the conversion
             out_n = 3
         end
     elseif req_n == 2 then
-        if state[0].info_png.color.colortype == lodepng.LCT_GREY or state[0].info_png.color.colortype == lodepng.LCT_GREY_ALPHA then
-            state[0].info_raw.colortype = lodepng.LCT_GREY_ALPHA
-        elseif state[0].info_png.color.colortype == lodepng.LCT_PALETTE and state[0].info_png.color.palettesize <= 16 then
-            -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
-            -- Just expand it to grayscale w/ alpha so BB knows what to do with it ;).
-            state[0].info_raw.colortype = lodepng.LCT_GREY_ALPHA
+        if ihdr.color_type == spng.SPNG_COLOR_TYPE_GRAYSCALE_ALPHA then
+            out_fmt = spng.SPNG_FMT_PNG
+        elseif ihdr.color_type == spng.SPNG_COLOR_TYPE_GRAYSCALE then
+            out_fmt = spng.SPNG_FMT_GA8
+        -- elseif ihdr.color_type == lodepng.LCT_PALETTE and state[0].info_png.color.palettesize <= 16 then
+        --     -- If input is sRGB, but paletted to 16c or less, assume it's the eInk palette, and honor it.
+        --     -- Just expand it to grayscale w/ alpha so BB knows what to do with it ;).
+        --     out_fmt = spng.SPNG_FMT_GA8
         else
-            state[0].info_raw.colortype = lodepng.LCT_RGBA
+            out_fmt = spng.SPNG_FMT_RGBA8
             -- Don't forget to update out_n so the caller is aware of the conversion
             out_n = 4
         end
     elseif req_n == 3 then
-        state[0].info_raw.colortype = lodepng.LCT_RGB
+        out_fmt = spng.SPNG_FMT_RGB8
     elseif req_n == 4 then
-        state[0].info_raw.colortype = lodepng.LCT_RGBA
+        out_fmt = spng.SPNG_FMT_RGBA8
     else
         return false, "requested an invalid number of color components"
     end
 
-    err = lodepng.lodepng_decode(ptr, width, height, state, ffi.cast("const unsigned char*", fdata), #fdata)
-    lodepng.lodepng_state_cleanup(state)
+    local out_size = ffi.new("size_t[1]")
+
+    err = spng.spng_decoded_image_size(ctx, out_fmt, out_size)
     if err ~= 0 then
-        return false, ffi.string(lodepng.lodepng_error_text(err))
-    else
-        return true, {
-            width = width[0],
-            height = height[0],
-            data = ptr[0],
-            ncomp = out_n,
-        }
+        return false, spng_strerror(err)
     end
+
+    local out_ptr = C.malloc(out_size[0])
+    if out_ptr == nil then
+        return false, posix.strerror()
+    end
+
+    err = spng.spng_decode_image(ctx, out_ptr, out_size[0], out_fmt, spng.SPNG_DECODE_TRNS)
+    if err ~= 0 then
+        C.free(out_ptr)
+        return false, spng_strerror(err)
+    end
+
+    spng.spng_ctx_free(ffi.gc(ctx, nil))
+    C.fclose(ffi.gc(fp, nil))
+
+    return true, {
+        width = ihdr.width,
+        height = ihdr.height,
+        data = out_ptr,
+        ncomp = out_n or req_n,
+    }
 end
 
 return Png
