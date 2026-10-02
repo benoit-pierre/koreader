@@ -10,9 +10,9 @@ on:
     # NOTE: stable tags only.
     tags:
       - "v*"
-  schedule:
-    # Every day at 2:45 AM (UTC, default branch only).
-    - cron: '45 2 * * *'
+  # schedule:
+  #   # Every day at 2:45 AM (UTC, default branch only).
+  #   - cron: '45 2 * * *'
   workflow_dispatch:
 
 concurrency:
