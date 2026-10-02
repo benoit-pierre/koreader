@@ -899,6 +899,8 @@ public:
     lString32 & trim();
     /// trims duplicate space characters inside string and (optionally) at end and beginning of string
     lString32 & trimDoubleSpaces( bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens=false );
+    /// trim soft-hyphens
+    lString32 & trimSoftHyphens();
     /// converts to integer
     int atoi() const;
     /// converts to integer, returns true if success
@@ -1288,7 +1290,9 @@ lString32 DecodeHTMLUrlString( lString32 s );
 int TrimDoubleSpaces(lChar32 * buf, int len,  bool allowStartSpace, bool allowEndSpace, bool removeEolHyphens);
 
 /// remove soft-hyphens from string
-lString32 removeSoftHyphens( lString32 s );
+inline lString32 removeSoftHyphens( const lString32 s ) {
+    return lString32(s).trimSoftHyphens();
+}
 
 
 #define LCSTR(x) (UnicodeToUtf8(x).c_str())
