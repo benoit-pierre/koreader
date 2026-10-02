@@ -29,13 +29,11 @@
 
 #include "lvtypes.h"
 #include "lvplatform.h"
-#include "lvmemman.h"
 #include "lvstring.h"
 #include "lstridmap.h"
 #include "lvxml.h"
 #include "dtddef.h"
 #include "lvstyles.h"
-#include "lvdrawbuf.h"
 #include "lvstsheet.h"
 #include "lvpagesplitter.h"
 #include "lvptrvec.h"
