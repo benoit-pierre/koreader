@@ -44,8 +44,6 @@ extern "C" {
 }
 #endif
 
-#define LS_DEBUG_CHECK
-
 
 static lChar8 empty_str_8[] = {0};
 static lstring_chunk_t empty_chunk_8(empty_str_8);
@@ -2914,22 +2912,6 @@ lString8 UnicodeToUtf8( const lString32 & str )
     return UnicodeToUtf8(str.c_str(), str.length());
 }
 
-lString8 UnicodeTo8Bit( const lString32 & str, const lChar8 * * table )
-{
-    lString8 buf;
-    buf.reserve( str.length() );
-    for (int i=0; i < str.length(); i++) {
-        lChar32 ch = str[i];
-        const lChar8 * p = table[ (ch>>8) & 255 ];
-        if ( p ) {
-            buf += p[ ch&255 ];
-        } else {
-            buf += '?';
-        }
-    }
-    return buf;
-}
-
 lString32 ByteToUnicode( const lString8 & str, const lChar32 * table )
 {
     lString32 buf;
@@ -5455,23 +5437,6 @@ bool lString32::split2( lChar32 delim, lString32 & value1, lString32 & value2 )
     return true;
 }
 
-bool splitIntegerList( lString32 s, lString32 delim, int &value1, int &value2 )
-{
-    if ( s.empty() )
-        return false;
-    lString32 s1, s2;
-    if ( !s.split2( delim, s1, s2 ) )
-        return false;
-    int n1, n2;
-    if ( !s1.atoi(n1) )
-        return false;
-    if ( !s2.atoi(n2) )
-        return false;
-    value1 = n1;
-    value2 = n2;
-    return true;
-}
-
 lString8 & lString8::replace(size_type p0, size_type n0, const lString8 & str) {
     lString8 s1 = substr( 0, p0 );
     lString8 s2 = length() - p0 - n0 > 0 ? substr( p0+n0, length()-p0-n0 ) : lString8::empty_str;
@@ -5505,19 +5470,6 @@ bool lString32::replace(const lString32 & findStr, const lString32 & replaceStr)
         return false;
     *this = replace( p, findStr.length(), replaceStr );
     return true;
-}
-
-const lString32 cstr32_dollar("$");
-
-bool lString32::replaceParam(int index, const lString32 & replaceStr)
-{
-    return replace( cstr32_dollar + fmt::decimal(index), replaceStr );
-}
-
-/// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
-bool lString32::replaceIntParam(int index, int replaceNumber)
-{
-    return replaceParam( index, lString32::itoa(replaceNumber));
 }
 
 /// decodes path like "file%20name%C3%A7" to "file nameç"
@@ -5569,22 +5521,6 @@ lString32 DecodeHTMLUrlString( lString32 s )
         return res;
     }
     return s;
-}
-
-void limitStringSize(lString32 & str, int maxSize) {
-    if (str.length() < maxSize)
-		return;
-	int lastSpace = -1;
-	for (int i = str.length() - 1; i > 0; i--)
-		if (str[i] == ' ') {
-			while (i > 0 && str[i - 1] == ' ')
-				i--;
-			lastSpace = i;
-			break;
-		}
-	int split = lastSpace > 0 ? lastSpace : maxSize;
-	str = str.substr(0, split);
-    str += "...";
 }
 
 /// remove soft-hyphens from string
