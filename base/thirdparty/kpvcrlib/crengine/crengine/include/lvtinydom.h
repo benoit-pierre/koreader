@@ -1284,8 +1284,6 @@ public:
     /// formats final block
     int renderFinalBlock( LFormattedTextRef & frmtext, RenderRectAccessor * fmt, int width,
                               BlockFloatFootprint * float_footprint=NULL );
-    /// formats final block again after change, returns true if size of block is changed
-    bool refreshFinalBlock();
 #endif
     /// replace node with r/o persistent implementation
     ldomNode * persist();
