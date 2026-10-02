@@ -1898,7 +1898,7 @@ public:
         resizeImage( width, height, maxw, maxh, arbitraryImageScaling, maxScale );
     }
 
-    void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
+    static void resizeImage( int & width, int & height, int maxw, int maxh, bool arbitraryImageScaling, int maxScaleMult )
     {
         if (width <= 0 || height <= 0) {
             // Reject nonsensical values (and avoids the potential for an FPE if 0)
@@ -4906,7 +4906,7 @@ public:
     }
     #endif
 
-    bool isLeftPunctuation(lChar32 c) {
+    static bool isLeftPunctuation(lChar32 c) {
         // Opening quotation marks and dashes that we don't want a followup space to
         // have its width changed
         // (We don't use CH_PROP_PUNCT_OPEN as we consider a few more non-punctuation chars.)
