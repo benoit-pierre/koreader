@@ -2575,6 +2575,8 @@ lInt64 lString8::atoi64() const
     return (sgn>0)?n:-n;
 }
 
+const lString8 cstr8_zero("0");
+
 // constructs string representation of integer
 lString8 lString8::itoa( int n )
 {
@@ -2582,7 +2584,7 @@ lString8 lString8::itoa( int n )
     int i=0;
     int negative = 0;
     if (n==0)
-        return cs8("0");
+        return cstr8_zero;
     else if (n<0)
     {
         negative = 1;
@@ -2607,7 +2609,7 @@ lString8 lString8::itoa( unsigned int n )
     lChar8 buf[16];
     int i=0;
     if (n==0)
-        return cs8("0");
+        return cstr8_zero;
     for ( ; n; n/=10 )
     {
         buf[i++] = '0' + (n%10);
@@ -2626,7 +2628,7 @@ lString8 lString8::itoa( lInt64 n )
     int i=0;
     int negative = 0;
     if (n==0)
-        return cs8("0");
+        return cstr8_zero;
     else if (n<0)
     {
         negative = 1;
@@ -2651,6 +2653,8 @@ lString32 lString32::itoa( int n )
     return itoa( (lInt64)n );
 }
 
+const lString32 cstr32_zero("0");
+
 // constructs string representation of integer
 lString32 lString32::itoa( lInt64 n )
 {
@@ -2658,7 +2662,7 @@ lString32 lString32::itoa( lInt64 n )
     int i=0;
     int negative = 0;
     if (n==0)
-        return cs32("0");
+        return cstr32_zero;
     else if (n<0)
     {
         negative = 1;
@@ -2956,7 +2960,7 @@ lString32 lString32::itoa( lUInt64 n )
     lChar32 buf[24];
     int i=0;
     if (n==0)
-        return cs32("0");
+        return cstr32_zero;
     for ( ; n; n/=10 )
     {
         buf[i++] = (lChar32)('0' + (n%10));
@@ -5845,9 +5849,11 @@ bool lString32::replace(const lString32 & findStr, const lString32 & replaceStr)
     return true;
 }
 
+const lString32 cstr32_dollar("$");
+
 bool lString32::replaceParam(int index, const lString32 & replaceStr)
 {
-    return replace( cs32("$") + fmt::decimal(index), replaceStr );
+    return replace( cstr32_dollar + fmt::decimal(index), replaceStr );
 }
 
 /// replaces first found occurence of "$N" pattern with itoa of integer, where N=index
