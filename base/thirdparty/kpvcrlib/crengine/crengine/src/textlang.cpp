@@ -1261,11 +1261,11 @@ lString32 & TextLangCfg::getClosingQuote( bool update_level ) {
     return ((_quote_nesting_level+1) % 2) ? _close_quote1 : _close_quote2;
 }
 
-int TextLangCfg::getHyphenHangingPercent() {
+int TextLangCfg::getHyphenHangingPercent() { // NOLINT(readability-convert-member-functions-to-static)
     return 70; // 70%
 }
 
-int TextLangCfg::getHangingPercent( bool right_hanging, bool rtl_line, bool & check_font, const lChar32 * text, int pos, int next_usable ) {
+int TextLangCfg::getHangingPercent( bool right_hanging, bool rtl_line, bool & check_font, const lChar32 * text, int pos, int next_usable ) { // NOLINT(readability-convert-member-functions-to-static)
     // We get provided with the BiDi re-ordered m_text (so, visually
     // ordered) and the index of char: if needed, we can look at
     // previous or next chars for context to decide how much to hang
