@@ -205,7 +205,7 @@ class LVThread {
             // fake: simulate execution here
             run();
         }
-        bool stopped()
+        bool stopped() // NOLINT(readability-convert-member-functions-to-static)
         {
             return true;
         }
@@ -229,11 +229,11 @@ class LVMutex {
         ~LVMutex()
         {
         }
-        bool lock()
+        bool lock() // NOLINT(readability-convert-member-functions-to-static)
         {
             return true;
         }
-        bool trylock()
+        bool trylock() // NOLINT(readability-convert-member-functions-to-static)
         {
             return true;
         }
