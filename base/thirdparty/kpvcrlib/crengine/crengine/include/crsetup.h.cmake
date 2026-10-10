@@ -24,6 +24,7 @@
 #define USE_GIF                              @USE_GIF@
 #define USE_LIBJPEG                          @USE_LIBJPEG@
 #define USE_LIBPNG                           @USE_LIBPNG@
+#define USE_LIBSPNG                          @USE_LIBSPNG@
 #define USE_LIBWEBP                          @USE_LIBWEBP@
 #define USE_LUNASVG                          @USE_LUNASVG@
 #define USE_NANOSVG                          @USE_NANOSVG@
