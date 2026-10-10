@@ -1,6 +1,7 @@
 list(APPEND PATCH_FILES
     cmake_tweaks.patch
     no_messing_with_debug_flags.patch
+    use_libspng.patch
 )
 # Make sure we use the old fmemopen symbol on ARM Linux when building against
 # glibc >= 2.22 (c.f. base#421 & #2188).
@@ -36,7 +37,7 @@ list(APPEND CMAKE_ARGS
     -DSTRICT_CONF=TRUE
     # Yes please.
     -DENABLE_PNG=TRUE
-    -DENABLE_ZLIB=TRUE
+    -DENABLE_ZLIB=FALSE
     # No thank you.
     -DENABLE_GIF=FALSE
     -DENABLE_JPEG=FALSE
