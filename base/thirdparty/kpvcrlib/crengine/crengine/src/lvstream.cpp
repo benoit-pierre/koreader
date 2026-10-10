@@ -2797,7 +2797,7 @@ class LVTCRStream : public LVNamedStream
         void set( const char * s, int sz )
         {
             if ( sz>0 ) {
-                str = (char *)malloc( sz + 1 );
+                str = cr_alloc( sz + 1 );
                 memcpy( str, s, sz );
                 str[sz] = 0;
                 len = sz;
