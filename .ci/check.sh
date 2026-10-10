@@ -50,6 +50,10 @@ elif grep -q '^xgettext: warning:' <<<"${gettext_output}"; then
 fi
 
 echo -e "\n${ANSI_GREEN}Luacheck results${ANSI_RESET}"
-luacheck ${PARALLEL_JOBS:+-j "${PARALLEL_JOBS}"} -q {reader,setupkoenv,datastorage}.lua frontend plugins spec platform/remarkable/qtfb_keep_alive.lua || exit_code=1
+luacheck ${PARALLEL_JOBS:+-j "${PARALLEL_JOBS}"} -q base/{ffi,ffi-cdecl,spec} {reader,setupkoenv,datastorage}.lua frontend plugins spec platform/remarkable/qtfb_keep_alive.lua || exit_code=1
+
+echo -e "\n${ANSI_GREEN}CMakeLint results${ANSI_RESET}"
+mapfile -t cmake_files < <(git ls-files '*.cmake' '*/CMakeLists.txt')
+cmakelint "${cmake_files[@]}" || exit_code=1
 
 exit ${exit_code}
