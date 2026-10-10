@@ -3,8 +3,8 @@
 
 #include "crsetup.h"
 
-#include "../include/lvtinydom.h"
-
+#include "lvstream.h"
+#include "lvtinydom.h"
 
 bool DetectDocXFormat( LVStreamRef stream );
 bool ImportDocXDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback );

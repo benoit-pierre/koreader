@@ -18,8 +18,9 @@
 
 #include "crsetup.h"
 
-#include <stdlib.h>
 #include "lvmemman.h"
+
+#include <stdlib.h>
 
 /** \brief template which implements vector of pointer
 
