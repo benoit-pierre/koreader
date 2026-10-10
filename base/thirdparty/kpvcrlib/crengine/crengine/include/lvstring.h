@@ -637,8 +637,6 @@ public:
 
     /// returns C-string
     const value_type * c_str() const { return pchunk->buf8; }
-    /// returns C-string
-    const value_type * data() const { return pchunk->buf8; }
 
     /// append string
     lString8 & operator += ( lString8 s ) { return append(s); }
@@ -904,8 +902,6 @@ public:
     bool atod( double &d, char dp = '.' ) const;
     /// returns constant c-string pointer
     const value_type * c_str() const { return pchunk->buf32; }
-    /// returns constant c-string pointer, same as c_str()
-    const value_type * data() const { return pchunk->buf32; }
     /// appends string
     lString32 & operator += ( lString32 s ) { return append(s); }
     /// appends c-string
