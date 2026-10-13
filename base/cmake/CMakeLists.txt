@@ -240,7 +240,7 @@ declare_project(
     fribidi
     harfbuzz
     libjpeg-turbo
-    libpng
+    libspng
     libunibreak
     libwebp
     lunasvg
