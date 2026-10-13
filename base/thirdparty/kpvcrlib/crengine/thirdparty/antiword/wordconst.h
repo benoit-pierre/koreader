@@ -14,9 +14,10 @@
  * on this and Linux/Unix doesn't mind.
  */
 #if !defined(BOOL)
-#define BOOL int
-#define TRUE 1
-#define FALSE 0
+#include <stdbool.h>
+#define BOOL bool
+#define TRUE true
+#define FALSE false
 #endif /* !BOOL */
 
 /* Block sizes */
