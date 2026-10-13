@@ -780,7 +780,7 @@ public:
         lString32 name = m_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
         lString32 number = m_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
         if ( !name.empty() && !number.empty() )
-            name << " #" << number;
+            return concat32(name, " #", number);
         return name;
     }
     /// returns book series name and number (series name #1)
@@ -823,7 +823,7 @@ public:
             lString32 name = m_alt_doc_props->getStringDef(DOC_PROP_SERIES_NAME);
             lString32 number = m_alt_doc_props->getStringDef(DOC_PROP_SERIES_NUMBER);
             if ( !name.empty() && !number.empty() )
-                name << " #" << number;
+                return concat32(name, " #", number);
             return name;
         }
         return getSeries();
