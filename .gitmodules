@@ -1,6 +1,3 @@
-[submodule "platform/android/luajit-launcher"]
-	path = platform/android/luajit-launcher
-	url = https://github.com/koreader/android-luajit-launcher.git
 [submodule "test"]
 	path = test
 	url = https://github.com/koreader/test-data.git
