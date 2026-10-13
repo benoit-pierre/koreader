@@ -18,9 +18,10 @@
 
 #include "crsetup.h"
 
-#include <stdlib.h>
-#include <assert.h>
 #include "lvref.h"
+
+#include <assert.h>
+#include <stddef.h>
 
 /** \brief template which implements vector of pointer
 

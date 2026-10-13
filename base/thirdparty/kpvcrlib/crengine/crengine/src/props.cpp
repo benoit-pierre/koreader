@@ -10,8 +10,10 @@
 */
 
 #include "crsetup.h"
+#include "props.h"
 
-#include "../include/props.h"
+#include "lvstream.h"
+
 #include <stdio.h>
 
 

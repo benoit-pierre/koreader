@@ -16,12 +16,13 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
 #include "cssdef.h"
-#include "lvmemman.h"
+#include "lvstring.h"
+#include "lvref.h"
 #include "lvrefcache.h"
-#include "lvtextfm.h"
 #include "lvfntman.h"
+
+#include <stddef.h>
 
 /* bit position (in 'lUInt32[] important' and 'lUInt32[] importance' bitmaps)
  * of each css_style_rec_tag properties to flag its '!important' status */
