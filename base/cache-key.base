@@ -1,0 +1,24 @@
+# Includes.
+*.[ch]
+*.cpp
+*.patch
+/base/CMakeLists.txt
+/base/Makefile
+/base/Makefile.defs
+/base/cmake
+/base/luafilesystem
+/base/origin.ldflags
+/base/thirdparty/*/*
+/base/utils/gen_linker_exports.sh
+
+# Excludes.
+!*.lua
+!/base/ffi-cdecl/**
+!/base/test-runner/**
+!/base/utils/bincheck/*
+
+# Exceptions.
+/base/ffi-cdecl/koptcontext_cdecl.c
+/base/ffi-cdecl/wrap-mupdf_cdecl.c
+
+# vim: ft=gitignore
