@@ -1,35 +1,24 @@
 # Sets. {{{
 
-release: &RELEASE [
-  android-.*,
-  bookeen,
-  cervantes,
-  kindle.*,
-  kobo.*,
-  linux-.*,
-  macos-.*,
-  pocketbook.*,
-  remarkable.*,
+release: [
+  linux-x86_64,
+  android-arm,
+  android-arm64,
+  kindlepw2,
 ]
 
 pull_request: &PR [
   # emulator
-  emu-.*,
+  emu-gcc,
   # platform
   android-arm,
   android-arm64,
-  cervantes,
   kindlepw2,
-  kobo,
-  linux-armhf,
-  macos-arm64,
-  pocketbook,
-  remarkable-aarch64,
+  linux-x86_64,
 ]
 
 push: [
   *PR,
-  *RELEASE,
 ]
 
 # }}}
