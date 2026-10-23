@@ -603,38 +603,6 @@ public:
         _size = 0;
         _count = 0;
     }
-    /// copies range to beginning of array
-    void trim( int pos, int count, int reserved )
-    {
-        assert(pos >= 0 && count > 0 && pos+count <= _count);
-        int i;
-        int new_sz = count;
-        if (new_sz < reserved)
-            new_sz = reserved;
-        T* new_array = (T*)malloc( new_sz * sizeof( T ) );
-        if (_array)
-        {
-            for ( i=0; i<count; i++ )
-            {
-                new_array[i] = _array[ pos + i ];
-            }
-            free( _array );
-        }
-        _array = new_array;
-        _count = count;
-        _size = new_sz;
-    }
-    /// removes several items from vector
-    void erase( int pos, int count )
-    {
-        assert(pos >= 0 && count > 0 && pos+count <= _count);
-        int i;
-        for (i=pos+count; i<_count; i++)
-        {
-            _array[i-count] = _array[i];
-        }
-        _count -= count;
-    }
 
     /// adds new item to end of vector
     void add( LVRef<T> item )
