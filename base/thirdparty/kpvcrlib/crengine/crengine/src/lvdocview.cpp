@@ -492,9 +492,6 @@ void LVDocView::Clear() {
 
 /// invalidate image cache, request redraw
 void LVDocView::clearImageCache() {
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-	m_imageCache.clear();
-#endif
 	if (m_callback != NULL)
 		m_callback->OnImageCacheClear();
 }
@@ -548,102 +545,6 @@ void LVDocView::checkPos() {
 	}
 }
 
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-/// returns true if current page image is ready
-bool LVDocView::IsDrawed()
-{
-	return isPageImageReady( 0 );
-}
-
-/// returns true if page image is available (0=current, -1=prev, 1=next)
-bool LVDocView::isPageImageReady( int delta )
-{
-	if ( !m_is_rendered || !_posIsSet )
-	return false;
-	LVDocImageRef ref;
-	if ( isPageMode() ) {
-		int p = _page;
-		if ( delta<0 )
-		p--;
-		else if ( delta>0 )
-		p++;
-		//CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
-		ref = m_imageCache.get( -1, p );
-	} else {
-		int offset = _pos;
-		if ( delta<0 )
-		offset = getPrevPageOffset();
-		else if ( delta>0 )
-		offset = getNextPageOffset();
-		//CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
-		ref = m_imageCache.get( offset, -1 );
-	}
-	return ( !ref.isNull() );
-}
-
-/// get page image
-LVDocImageRef LVDocView::getPageImage( int delta )
-{
-	checkPos();
-	// find existing object in cache
-	LVDocImageRef ref;
-	int p = -1;
-	int offset = -1;
-	if ( isPageMode() ) {
-		p = _page;
-		if ( delta<0 )
-		p--;
-		else if ( delta>0 )
-		p++;
-		if ( p<0 || p>=m_pages.length() )
-		return ref;
-		ref = m_imageCache.get( -1, p );
-		if ( !ref.isNull() ) {
-			//CRLog::trace("getPageImage: + page [%d] found in cache", offset);
-			return ref;
-		}
-	} else {
-		offset = _pos;
-		if ( delta<0 )
-		offset = getPrevPageOffset();
-		else if ( delta>0 )
-		offset = getNextPageOffset();
-		//CRLog::trace("getPageImage: checking cache for page [%d] (delta=%d)", offset, delta);
-		ref = m_imageCache.get( offset, -1 );
-		if ( !ref.isNull() ) {
-			//CRLog::trace("getPageImage: + page [%d] found in cache", offset);
-			return ref;
-		}
-	}
-	while ( ref.isNull() ) {
-		//CRLog::trace("getPageImage: - page [%d] not found, force rendering", offset);
-		cachePageImage( delta );
-		ref = m_imageCache.get( offset, p );
-	}
-	//CRLog::trace("getPageImage: page [%d] is ready", offset);
-	return ref;
-}
-
-class LVDrawThread : public LVThread {
-	LVDocView * _view;
-	int _offset;
-	int _page;
-	LVRef<LVDrawBuf> _drawbuf;
-public:
-	LVDrawThread( LVDocView * view, int offset, int page, LVRef<LVDrawBuf> drawbuf )
-	: _view(view), _offset(offset), _page(page), _drawbuf(drawbuf)
-	{
-		start();
-	}
-	virtual void run()
-	{
-		//CRLog::trace("LVDrawThread::run() offset==%d", _offset);
-		_view->Draw( *_drawbuf, _offset, _page, true );
-		//_drawbuf->Rotate( _view->GetRotateAngle() );
-	}
-};
-#endif
-
 /// draw current page to specified buffer
 void LVDocView::Draw(LVDrawBuf & drawbuf, bool autoResize) {
 	checkPos();
@@ -673,54 +574,6 @@ void LVDocView::Draw(LVDrawBuf & drawbuf, bool autoResize) {
 			// this will find out the correct page from our page list
 	}
 }
-
-#if CR_ENABLE_PAGE_IMAGE_CACHE==1
-/// cache page image (render in background if necessary)
-void LVDocView::cachePageImage( int delta )
-{
-	int offset = -1;
-	int p = -1;
-	if ( isPageMode() ) {
-		p = _page;
-		if ( delta<0 )
-		p--;
-		else if ( delta>0 )
-		p++;
-		if ( p<0 || p>=m_pages.length() )
-		return;
-	} else {
-		offset = _pos;
-		if ( delta<0 )
-		offset = getPrevPageOffset();
-		else if ( delta>0 )
-		offset = getNextPageOffset();
-	}
-	//CRLog::trace("cachePageImage: request to cache page [%d] (delta=%d)", offset, delta);
-	if ( m_imageCache.has(offset, p) ) {
-		//CRLog::trace("cachePageImage: Page [%d] is found in cache", offset);
-		return;
-	}
-	//CRLog::trace("cachePageImage: starting new render task for page [%d]", offset);
-	LVDrawBuf * buf = NULL;
-	if ( m_bitsPerPixel==-1 ) {
-#if (COLOR_BACKBUFFER==1)
-        buf = new LVColorDrawBuf( m_dx, m_dy, DEF_COLOR_BUFFER_BPP );
-#else
-		buf = new LVGrayDrawBuf( m_dx, m_dy, m_drawBufferBits );
-#endif
-	} else {
-        if ( m_bitsPerPixel==32 || m_bitsPerPixel==16 ) {
-            buf = new LVColorDrawBuf( m_dx, m_dy, m_bitsPerPixel );
-		} else {
-			buf = new LVGrayDrawBuf( m_dx, m_dy, m_bitsPerPixel );
-		}
-	}
-	LVRef<LVDrawBuf> drawbuf( buf );
-	LVRef<LVThread> thread( new LVDrawThread( this, offset, p, drawbuf ) );
-	m_imageCache.set( offset, p, drawbuf, thread );
-	//CRLog::trace("cachePageImage: caching page [%d] is finished", offset);
-}
-#endif
 
 void dumpSection(ldomNode * elem) {
 	lvRect rc;
