@@ -64,7 +64,7 @@ struct lstring_chunk_slice_t {
     int used;
     lstring_chunk_slice_t( int size )
     {
-        pChunks = (lstring_chunk_t *) malloc(sizeof(lstring_chunk_t) * size);
+        pChunks = cr_alloc(size);
         pEnd = pChunks + size;
         pFree = pChunks;
         for (lstring_chunk_t * p = pChunks; p<pEnd; ++p)
@@ -328,10 +328,9 @@ void lString32::alloc(int sz)
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
 #else
-    pchunk = (lstring_chunk_t*)::malloc(sizeof(lstring_chunk_t));
+    pchunk = cr_alloc();
 #endif
-    pchunk->buf32 = (lChar32*) ::malloc( sizeof(lChar32) * (sz+1) );
-    assert( pchunk->buf32!=NULL );
+    pchunk->buf32 = cr_alloc(sz + 1);
     pchunk->size = sz;
     pchunk->nref = 1;
 }
@@ -1292,7 +1291,7 @@ lString32HashedCollection::lString32HashedCollection( lString32HashedCollection 
 , hashSize( v.hashSize )
 , hash( NULL )
 {
-    hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
+    hash = cr_alloc(hashSize);
     for ( int i=0; i<hashSize; i++ ) {
         hash[i].clear();
         hash[i].index = v.hash[i].index;
@@ -1309,7 +1308,7 @@ void lString32HashedCollection::addHashItem( int hashIndex, int storageIndex )
     if ( hash[ hashIndex ].index == -1 ) {
         hash[hashIndex].index = storageIndex;
     } else {
-        HashPair * np = (HashPair *)malloc(sizeof(HashPair));
+        HashPair * np = cr_alloc();
         np->index = storageIndex;
         np->next = hash[hashIndex].next;
         hash[hashIndex].next = np;
@@ -1336,7 +1335,7 @@ lString32HashedCollection::lString32HashedCollection( lUInt32 hash_size )
 : hashSize(hash_size), hash(NULL)
 {
 
-    hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
+    hash = cr_alloc(hashSize);
     for ( int i=0; i<hashSize; i++ )
         hash[i].clear();
 }
@@ -1375,7 +1374,7 @@ void lString32HashedCollection::reHash( int newSize )
     clearHash();
     hashSize = newSize;
     if (hashSize > 0) {
-        hash = (HashPair *)malloc( sizeof(HashPair) * hashSize );
+        hash = cr_alloc(hashSize);
         for ( int i=0; i<hashSize; i++ )
             hash[i].clear();
     }
@@ -1444,10 +1443,9 @@ void lString8::alloc(int sz)
 #if (LDOM_USE_OWN_MEM_MAN == 1)
     pchunk = lstring_chunk_t::alloc();
 #else
-    pchunk = (lstring_chunk_t*)::malloc(sizeof(lstring_chunk_t));
+    pchunk = cr_alloc();
 #endif
-    pchunk->buf8 = (lChar8*) ::malloc( sizeof(lChar8) * (sz+1) );
-    assert( pchunk->buf8!=NULL );
+    pchunk->buf8 = cr_alloc(sz + 1);
     pchunk->size = sz;
     pchunk->nref = 1;
 }
@@ -5112,7 +5110,7 @@ bool lString32::startsWith(const lChar8 * substring) const
 
 /// constructor of serialization buffer
 SerialBuf::SerialBuf( int sz, bool autoresize )
-	: _buf( (lUInt8*)malloc(sz) ), _ownbuf(true), _error(false), _autoresize(autoresize), _size(sz), _pos(0)
+	: _buf( cr_alloc(sz) ), _ownbuf(true), _error(false), _autoresize(autoresize), _size(sz), _pos(0)
 {
     memset( _buf, 0, _size );
 }
