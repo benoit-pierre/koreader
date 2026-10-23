@@ -12,6 +12,7 @@
 
 #include "crsetup.h"
 
+#include "lvdrawbuf.h"
 #include "lvtinydom.h"
 
 // Default border width in screen px when border requested but no width specified

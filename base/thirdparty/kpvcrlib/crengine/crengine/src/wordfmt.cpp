@@ -1,25 +1,20 @@
 #include "crsetup.h"
 
-#include "../include/lvstring.h"
-#include "../include/lvstream.h"
-#include "../include/lvtinydom.h"
-
 //#ifndef ENABLE_ANTIWORD
 //#define ENABLE_ANTIWORD 1
 //#endif
 
-
 #if ENABLE_ANTIWORD==1
-#if defined(_DEBUG) && !defined(DEBUG)
-#define DEBUG
-#endif
-#if defined(_NDEBUG) && !defined(NDEBUG)
-#define NDEBUG
-#endif
-#if !defined(DEBUG) && !defined(NDEBUG)
-#define NDEBUG
-#endif
-#include "../include/wordfmt.h"
+
+#include "wordfmt.h"
+
+#include "lvmemman.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #if (defined(_WIN32) && !defined(MINGW))
 extern "C" {

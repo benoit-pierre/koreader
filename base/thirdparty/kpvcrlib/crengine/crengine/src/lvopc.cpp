@@ -1,7 +1,11 @@
 #include "crsetup.h"
+#include "lvopc.h"
 
-#include "../include/lvopc.h"
-#include "../include/lvtinydom.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "props.h"
+
+#include <stddef.h>
 
 static const lChar32 * const OPC_PropertiesContentType = U"application/vnd.openxmlformats-package.core-properties+xml";
 

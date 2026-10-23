@@ -12,10 +12,12 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "crtxtenc.h"
 
-#include "../include/crtxtenc.h"
-#include "../include/lvstring.h"
-#include "../include/cp_stats.h"
+#include "cp_stats.h"
+#include "lvplatform.h"
+
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 

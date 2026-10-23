@@ -14,9 +14,11 @@
 
 #include "crsetup.h"
 
-#include <time.h>
-#include "lvstring.h"
 #include "lvptrvec.h"
+#include "lvstream.h"
+#include "lvstring.h"
+
+#include <time.h>
 
 enum bmk_type {
     bmkt_lastpos,
@@ -24,6 +26,9 @@ enum bmk_type {
     bmkt_comment,
     bmkt_correction
 };
+
+class ldomDocument;
+class ldomXPointer;
 
 class CRBookmark {
 private:

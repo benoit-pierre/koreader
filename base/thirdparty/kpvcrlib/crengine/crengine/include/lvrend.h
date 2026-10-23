@@ -16,10 +16,16 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvplatform.h"
+#include "cssdef.h"
+#include "lvfntman.h"
+#include "lvpagesplitter.h"
+#include "lvstring.h"
+#include "lvstyles.h"
+#include "lvtextfm.h"
 #include "lvtinydom.h"
 #include "textlang.h"
+
+#include <stddef.h>
 
 // Current direction, from dir="ltr" or dir="rtl" element attribute
 // Should map directly to the RENDER_RECT_FLAG_DIRECTION_* below
@@ -67,7 +73,10 @@
 #define REQ_BASELINE_FOR_INLINE_BLOCK 1    // use last baseline fed
 #define REQ_BASELINE_FOR_TABLE        2    // keep first baseline fed
 
+struct ldomNode;
+
 class FlowState;
+class RenderRectAccessor;
 
 // Footprint of block floats (from FlowState) on a final block,
 // to be passed to lvtextfm LFormattedText::Format().

@@ -22,12 +22,15 @@
 
 #if (USE_MD4C == 1)
 
-#include "lvtinydom.h"
 #include "mdfmt.h"
 
-#include <string.h>
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
 
 #include <md4c-html.h>
+
+#include <string.h>
 
 #define TEXT_PARSER_CHUNK_SIZE 16384
 

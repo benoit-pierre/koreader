@@ -22,6 +22,7 @@
 #else
 # include <byteswap.h>
 #endif
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -347,7 +348,7 @@ public:
         GetSystemTimeAsFileTime(&ts);
         return ((lInt64)ts.dwLowDateTime)/10000 + ((lInt64)ts.dwHighDateTime)*1000;
 #else
-        timeval ts;
+        struct timeval ts;
         gettimeofday(&ts, 0);
         return ((lInt64)ts.tv_usec)/1000 + ((lInt64)ts.tv_sec)*1000;
 #endif

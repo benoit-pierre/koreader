@@ -11,10 +11,11 @@
 */
 
 #include "crsetup.h"
+#include "lvpagesplitter.h"
 
-#include "../include/lvpagesplitter.h"
-#include "../include/lvtinydom.h"
-#include <time.h>
+#include "lvtinydom.h"
+
+#include <stddef.h>
 
 // Uncomment to use old page splitter code
 // #define USE_LEGACY_PAGESPLITTER
