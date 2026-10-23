@@ -21,7 +21,7 @@ on:
         type: boolean
       cache_epoch:
         description: 'Cache keys prefix'
-        default: 'acai9ooN'
+        default: 'qua7uy2N'
         type: string
       cache_size:
         description: 'Default cache size'
@@ -62,8 +62,6 @@ jobs:
           fetch-depth: 1
           show-progress: false
           sparse-checkout: .ci
-      - name: Checkout base
-        run: git submodule update --depth 1 --init base
       - name: Generate outputs
         id: generate
         env:
