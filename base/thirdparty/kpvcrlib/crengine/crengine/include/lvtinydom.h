@@ -27,24 +27,31 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvplatform.h"
-#include "lvstring.h"
-#include "lstridmap.h"
-#include "lvxml.h"
+#include "bookformats.h"
+#include "cssdef.h"
 #include "dtddef.h"
-#include "lvstyles.h"
-#include "lvstsheet.h"
-#include "lvpagesplitter.h"
-#include "lvptrvec.h"
+#include "lstridmap.h"
+#include "lvarray.h"
+#include "lvfntman.h"
 #include "lvhashtable.h"
 #include "lvimg.h"
+#include "lvpagesplitter.h"
+#include "lvptrvec.h"
+#include "lvref.h"
+#include "lvrefcache.h"
+#include "lvstream.h"
+#include "lvstring.h"
+#include "lvstsheet.h"
+#include "lvstyles.h"
+#include "lvtextfm.h"
+#include "lvxml.h"
 #include "props.h"
-#include "bookformats.h"
 
 #if MATHML_SUPPORT==1
 #include "mathml.h"
 #endif
+
+#include <stddef.h>
 
 // Allows for requesting older DOM building code (including bugs NOT fixed)
 extern const int gDOMVersionCurrent;

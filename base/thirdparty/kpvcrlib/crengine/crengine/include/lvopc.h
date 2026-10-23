@@ -3,9 +3,10 @@
 
 #include "crsetup.h"
 
-#include "lvstring.h"
-#include "lvstream.h"
 #include "lvhashtable.h"
+#include "lvref.h"
+#include "lvstream.h"
+#include "lvstring.h"
 #include "props.h"
 
 /*

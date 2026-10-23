@@ -30,10 +30,16 @@
  */
 
 #include "crsetup.h"
+#include "renderutil.h"
 
-#include "../include/fb2def.h"
-#include "../include/lvrend.h"
-#include "../include/renderutil.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "lvfntman.h"
+#include "lvrend.h"
+#include "lvstyles.h"
+#include "lvtinydom.h"
+
+#include <stddef.h>
 
 struct InitialLetterInkBounds
 {

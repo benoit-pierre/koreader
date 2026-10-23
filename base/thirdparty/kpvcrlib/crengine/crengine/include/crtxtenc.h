@@ -15,10 +15,9 @@
 
 #include "crsetup.h"
 
-#include <stdio.h>
-#include "lvtypes.h"
-#include "lvplatform.h"
 #include "lvstring.h"
+
+#include <stdio.h>
 
 #ifndef GBK_ENCODING_SUPPORT
 #define GBK_ENCODING_SUPPORT 1
