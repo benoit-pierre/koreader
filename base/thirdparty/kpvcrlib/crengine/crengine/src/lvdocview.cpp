@@ -5027,7 +5027,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_PAGE_VIEW_MODE, bool_options_def_true, 2);
 	props->limitValueList(PROP_FOOTNOTES, bool_options_def_true, 2);
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
-	props->limitValueList(PROP_DISPLAY_INVERSE, bool_options_def_false, 2);
 	// props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
     static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
@@ -5254,8 +5253,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                    ) {
             m_props->setString(name.c_str(), value);
             REQUEST_RENDER("propsApply -img scale")
-        } else if (name == PROP_FONT_COLOR || name == PROP_BACKGROUND_COLOR
-                   || name == PROP_DISPLAY_INVERSE || name==PROP_STATUS_FONT_COLOR) {
+        } else if (name == PROP_FONT_COLOR || name == PROP_BACKGROUND_COLOR || name==PROP_STATUS_FONT_COLOR) {
             // update current value in properties
             m_props->setString(name.c_str(), value);
             lUInt32 textColor = props->getColorDef(PROP_FONT_COLOR, m_props->getColorDef(PROP_FONT_COLOR, 0x000000));
@@ -5265,26 +5263,10 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             lUInt32 statusColor = props->getColorDef(PROP_STATUS_FONT_COLOR,
                                                      m_props->getColorDef(PROP_STATUS_FONT_COLOR,
                                                                           0xFF000000));
-            bool inverse = props->getBoolDef(PROP_DISPLAY_INVERSE, m_props->getBoolDef(PROP_DISPLAY_INVERSE, false));
-            if (inverse) {
-                CRLog::trace("Setting inverse colors");
-                //if (name == PROP_FONT_COLOR)
-                setBackgroundColor(textColor);
-                //if (name == PROP_BACKGROUND_COLOR)
-                setTextColor(backColor);
-                //if (name == PROP_BACKGROUND_COLOR)
-                setStatusColor(backColor);
-                REQUEST_RENDER("propsApply  color") // TODO: only colors to be changed
-            } else {
-                CRLog::trace("Setting normal colors");
-                //if (name == PROP_BACKGROUND_COLOR)
-                setBackgroundColor(backColor);
-                //if (name == PROP_FONT_COLOR)
-                setTextColor(textColor);
-                //if (name == PROP_STATUS_FONT_COLOR)
-                setStatusColor(statusColor);
-                REQUEST_RENDER("propsApply  color") // TODO: only colors to be changed
-            }
+            setBackgroundColor(backColor);
+            setTextColor(textColor);
+            setStatusColor(statusColor);
+            REQUEST_RENDER("propsApply  color") // TODO: only colors to be changed
         } else if (name == PROP_PAGE_MARGIN_TOP || name
                    == PROP_PAGE_MARGIN_LEFT || name == PROP_PAGE_MARGIN_RIGHT
                    || name == PROP_PAGE_MARGIN_BOTTOM) {
