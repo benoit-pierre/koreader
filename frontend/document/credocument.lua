@@ -295,9 +295,18 @@ function CreDocument:setupDefaultView()
     end
 end
 
-function CreDocument:loadDocument(full_document)
+function CreDocument:loadDocument(mode)
     if not self._loaded then
-        local only_metadata = full_document == false
+        -- mode:
+        --   nil / 0 / true : full
+        --   1 / false      : minimal metadata
+        --   2              : metadata with raw text size calculation
+        --   4              : metadata with raw text length calculation (reference: full parsing)
+        --   8              : metadata with raw text length calculation (optimized)
+        local only_metadata = tonumber(mode)
+        if only_metadata == nil then
+            only_metadata = mode == false and 1 or 0
+        end
         logger.dbg("CreDocument: loading document...")
         if self._document:loadDocument(self.file, only_metadata) then
             self._loaded = true
