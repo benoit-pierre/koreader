@@ -236,8 +236,7 @@ inline int topup(int n) {
 
 void lString32::free()
 {
-    if ( pchunk==EMPTY_STR_32 )
-        return;
+    assert(pchunk != EMPTY_STR_32);
     ::free(pchunk);
 }
 
@@ -1337,8 +1336,7 @@ const lString32 lString32::empty_str;
 
 void lString8::free()
 {
-    if ( pchunk==EMPTY_STR_8 )
-        return;
+    assert(pchunk != EMPTY_STR_8);
     ::free(pchunk);
 }
 
