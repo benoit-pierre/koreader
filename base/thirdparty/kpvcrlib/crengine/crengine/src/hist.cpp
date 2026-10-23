@@ -10,9 +10,14 @@
 */
 
 #include "crsetup.h"
+#include "hist.h"
 
-#include "../include/lvtinydom.h"
-#include "../include/hist.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+
+#include <stdio.h>
+#include <time.h>
 
 void CRFileHist::clear()
 {

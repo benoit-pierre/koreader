@@ -3,7 +3,14 @@
 
 #include "crsetup.h"
 
+#include "cssdef.h"
+#include "lvstring.h"
+#include "lvstyles.h"
+
+#include <stddef.h>
+
 class ldomDocumentWriter;
+struct ldomNode;
 
 enum MathMLParserStepType {
     MATHML_STEP_NODE_SET =1,  // new node, attributes set, before applying styles
