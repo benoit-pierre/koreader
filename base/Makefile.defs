@@ -845,7 +845,7 @@ $(foreach f, $2,
 endef
 
 define appimage_generate
-ARCH='$(APPIMAGE_ARCH)' VERSION='$2' $(MKAPPIMAGE) --appimage-extract-and-run $(APPDIR) $1-$2-$(APPIMAGE_ARCH).AppImage
+ARCH='$(APPIMAGE_ARCH)' VERSION='$2' $(MKAPPIMAGE) --appimage-extract-and-run $(APPDIR) $1-$2-$(APPIMAGE_ARCH)$(if $(APPIMAGE_ARCH_TAG),_$(APPIMAGE_ARCH_TAG)).AppImage
 endef
 
 endif
