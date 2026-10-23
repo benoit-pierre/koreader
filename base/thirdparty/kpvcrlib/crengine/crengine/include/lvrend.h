@@ -162,17 +162,8 @@ typedef struct {
     lvRect content_overflow_clip;
 } draw_extra_info_t;
 
-/// returns true if styles are identical
-bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 );
-/// removes format data from node
-void freeFormatData( ldomNode * node );
-
 /// returns best suitable font for style
 LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId, int docFragmentIdx=DOC_FRAGMENT_IDX_UNKNOWN);
-/// initializes format data for node
-void initFormatData( ldomNode * node );
-/// initializes rendering method for node
-int initRendMethod( ldomNode * node, bool recurseChildren, bool allowAutoboxing );
 /// converts style to text formatting API flags
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction=REND_DIRECTION_UNSET );
 /// renders block as single text formatter object
