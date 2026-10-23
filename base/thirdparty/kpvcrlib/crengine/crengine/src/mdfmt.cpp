@@ -85,9 +85,11 @@ bool ImportMarkdownDocument(LVStreamRef stream, const lString32& fileName, ldomD
     parseData.htmlData = &htmlData;
     int parse_res = md_html(rawData.c_str(), rawData.length(), my_md4c_process_output, (void*)&parseData,
                             MD_FLAG_COLLAPSEWHITESPACE | MD_FLAG_TABLES | MD_FLAG_TASKLISTS |
-                                    MD_FLAG_STRIKETHROUGH | MD_FLAG_PERMISSIVEURLAUTOLINKS |
-                                    MD_FLAG_PERMISSIVEEMAILAUTOLINKS | MD_FLAG_PERMISSIVEWWWAUTOLINKS |
-                                    MD_FLAG_LATEXMATHSPANS,
+                            MD_FLAG_STRIKETHROUGH | MD_FLAG_PERMISSIVEURLAUTOLINKS |
+                            MD_FLAG_PERMISSIVEEMAILAUTOLINKS | MD_FLAG_PERMISSIVEWWWAUTOLINKS |
+                            MD_FLAG_ADMONITIONS | MD_FLAG_FOOTNOTES | MD_FLAG_HIGHLIGHT | MD_FLAG_SPOILERS |
+                            MD_FLAG_SUPERSCRIPTS | MD_FLAG_SUBSCRIPTS |
+                            MD_FLAG_LATEXMATHSPANS,
                             MD_HTML_FLAG_XHTML);
     rawData.clear();
     if (0 != parse_res) {
