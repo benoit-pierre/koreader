@@ -222,7 +222,7 @@ public:
         if ( _count >= _size )
             reserve( _count * 3 / 2  + 8 );
         for (int i=_count; i>pos; --i)
-            _array[i] = _array[i-1];
+            _array[i] = _array[i-1]; // NOLINT(clang-analyzer-security.ArrayBound)
         _array[pos] = item;
         _count++;
     }
