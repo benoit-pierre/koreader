@@ -4177,7 +4177,7 @@ static void FileToArcProps(CRPropRef props) {
 }
 
 /// load document from file
-bool LVDocView::LoadDocument(const lChar32 * fname, bool metadataOnly) {
+bool LVDocView::LoadDocument(const lChar32 * fname, int metadataOnly) {
 	if (!fname || !fname[0])
 		return false;
 
@@ -4427,7 +4427,7 @@ void LVDocView::createDefaultDocument(lString32 title, lString32 message) {
 }
 
 /// load document from stream
-bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
+bool LVDocView::LoadDocument(LVStreamRef stream, int metadataOnly) {
 
 
 	m_swapDone = false;
@@ -5364,7 +5364,7 @@ void LVDocView::swapToCache() {
     m_swapDone = true;
 }
 
-bool LVDocView::LoadDocument(const char * fname, bool metadataOnly) {
+bool LVDocView::LoadDocument(const char * fname, int metadataOnly) {
 	if (!fname || !fname[0])
 		return false;
 	return LoadDocument(LocalToUnicode(lString8(fname)).c_str(), metadataOnly);
