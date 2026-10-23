@@ -589,12 +589,12 @@ public:
     /// set fallback font for this font
     virtual void setFallbackFont( LVFontRef font ) { CR_UNUSED(font); }
     /// get fallback font for this font
-    LVFontRef getFallbackFont() { return LVFontRef(); }
+    LVFontRef getFallbackFont() { return LVFontRef(); } // NOLINT(readability-convert-member-functions-to-static)
 
     /// set next fallback font for this font (for when used as a fallback font)
     virtual void setNextFallbackFont( LVFontRef font ) { CR_UNUSED(font); }
     /// get next fallback font for this font (when already used as a fallback font)
-    LVFontRef getNextFallbackFont() { return LVFontRef(); }
+    LVFontRef getNextFallbackFont() { return LVFontRef(); } // NOLINT(readability-convert-member-functions-to-static)
 
     /// get alternative font for drawing decimal list item numbers (could return same font with OTF tabular-nums)
     virtual LVFontRef getDecimalListItemFont() { return LVFontRef(this); }
