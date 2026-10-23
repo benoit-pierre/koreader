@@ -735,9 +735,9 @@ function BookInfoManager:extractInBackground(files)
     end
 
     -- Run task in sub-process, and remember its pid
-    local task_pid = FFIUtil.runInSubProcess(task)
+    local task_pid, err = FFIUtil.runInSubProcess(task)
     if not task_pid then
-        logger.warn("Failed launching background extraction sub-process (fork failed)")
+        logger.warn("Failed launching background extraction sub-process: "..err)
         return false -- let caller know it failed
     end
     -- No straight control flow exists for background task completion here, so we bump prevent
