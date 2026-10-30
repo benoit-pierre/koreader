@@ -1,0 +1,22 @@
+list(APPEND PATCH_FILES cmake_tweaks.patch)
+
+list(APPEND CMAKE_ARGS
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DBUILD_SHARED_LIBS=FALSE
+    # Project options.
+    -DBROTLI_BUILD_TOOLS=FALSE
+    -DBROTLI_DISABLE_TESTS=TRUE
+)
+
+list(APPEND BUILD_CMD COMMAND ninja)
+
+list(APPEND INSTALL_CMD COMMAND ${CMAKE_COMMAND} --install .)
+
+external_project(
+    DOWNLOAD URL 960bffba8ce7a63451cd700b8f0aaa10
+    https://github.com/google/brotli/archive/refs/tags/v1.2.1.tar.gz
+    PATCH_FILES ${PATCH_FILES}
+    CMAKE_ARGS ${CMAKE_ARGS}
+    BUILD_COMMAND ${BUILD_CMD}
+    INSTALL_COMMAND ${INSTALL_CMD}
+)
