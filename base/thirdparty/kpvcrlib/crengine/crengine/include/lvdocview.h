@@ -149,7 +149,6 @@ private:
     lString8 m_stylesheet;
     LVRendPageList m_pages;
     LVScrollInfo m_scrollinfo;
-    LVImageSourceRef m_defaultCover;
     LVImageSourceRef m_backgroundImage;
     LVRef<LVColorDrawBuf> m_backgroundImageScaled;
     bool m_backgroundTiled;
@@ -309,11 +308,6 @@ public:
     virtual CRPropRef propsApply( CRPropRef props );
     /// returns current values of supported properties
     CRPropRef propsGetCurrent();
-
-    /// get current default cover image
-    LVImageSourceRef getDefaultCover() const { return m_defaultCover; }
-    /// set default cover image (for books w/o cover)
-    void setDefaultCover(LVImageSourceRef cover) { m_defaultCover = cover; clearImageCache(); }
 
     /// get background image
     LVImageSourceRef getBackgroundImage() const { return m_backgroundImage; }
