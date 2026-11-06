@@ -294,10 +294,11 @@ void CRPropAccessor::limitValueList( const char * propName, int values[], int va
 lString32 CRPropAccessor::getStringDef( const char * propName, const char * defValue ) const
 {
     lString32 value;
-    if ( !getString( propName, value ) )
-        return lString32( defValue );
-    else
+    if (getString(propName, value))
         return value;
+    if (defValue)
+       return lString32(defValue);
+    return lString32::empty_str;
 }
 
 bool CRPropAccessor::getInt( const char * propName, int &result ) const
