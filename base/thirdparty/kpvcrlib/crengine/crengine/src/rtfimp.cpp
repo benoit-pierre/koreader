@@ -12,16 +12,18 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "rtfimp.h"
 
-#include "../include/rtfimp.h"
-#include "../include/crtxtenc.h"
-#include "../include/lvtinydom.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+
 #include <string.h>
 
 //==================================================
 // RTF file parser
 #ifdef LOG_RTF_PARSING
-#include "../include/crlog.h"
+#include "crlog.h"
 #endif
 
 #undef RTF_CMD
@@ -46,7 +48,7 @@
 #define RTF_DST( name, index ) \
     { RTF_##name, #name, CWT_DEST, index, 0 },
 static const rtf_control_word rtf_words[] = {
-#include "../include/rtfcmd.h"
+#include "rtfcmd.h"
 };
 static const int rtf_words_count = sizeof(rtf_words) / sizeof(rtf_control_word);
 

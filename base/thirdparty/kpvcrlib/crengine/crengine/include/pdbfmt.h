@@ -3,13 +3,12 @@
 
 #include "crsetup.h"
 
-#include "../include/lvtypes.h"
-#include "../include/lvplatform.h"
-#include "../include/lvtinydom.h"
+#include "bookformats.h"
+#include "lvstream.h"
 
-// Same as lvtinydom...
-#include "zlib.h"
-#define UNPACK_BUF_SIZE 0x40000
+class CacheLoadingCallback;
+class LVDocViewCallback;
+class ldomDocument;
 
 // creates PDB decoder stream for stream
 //LVStreamRef LVOpenPDBStream( LVStreamRef srcstream, int &format );

@@ -3,10 +3,13 @@
 
 #include "crsetup.h"
 
-#include "../include/lvtypes.h"
-#include "../include/lvtinydom.h"
-
 #if CHM_SUPPORT_ENABLED==1
+
+#include "lvstream.h"
+
+class CacheLoadingCallback;
+class LVDocViewCallback;
+class ldomDocument;
 
 bool DetectCHMFormat( LVStreamRef stream );
 bool ImportCHMDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback, CacheLoadingCallback * formatCallback );
