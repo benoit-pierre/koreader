@@ -248,17 +248,8 @@ void LVDocView::setTextFormatOptions(txt_format_t fmt) {
 	if (m_text_format == fmt)
 		return; // no change
 	m_props->setBool(PROP_TXT_OPTION_PREFORMATTED, (fmt == txt_format_pre));
-	if (m_doc) // not when noDefaultDocument=true
-		m_doc->setDocFlag(DOC_FLAG_PREFORMATTED_TEXT, (fmt == txt_format_pre));
-	if (getDocFormat() == doc_format_txt) {
-		requestReload();
-		CRLog::trace(
-				"setTextFormatOptions() -- new value set, reload requested");
-	} else {
-		CRLog::trace(
-				"setTextFormatOptions() -- doc format is %d, reload is necessary for %d only",
-				(int) getDocFormat(), (int) doc_format_txt);
-	}
+	// We don't support changing this property on the fly.
+	assert(!m_doc);
 }
 
 /// invalidate document data, request reload
