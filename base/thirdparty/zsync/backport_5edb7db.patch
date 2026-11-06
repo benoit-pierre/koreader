@@ -1,0 +1,30 @@
+diff --git a/lib/libzsync/zsync.c b/lib/libzsync/zsync.c
+index 54b010d..77a1306 100644
+--- a/lib/libzsync/zsync.c
++++ b/lib/libzsync/zsync.c
+@@ -220,8 +220,8 @@ struct zsync_state *zsync_begin(FILE * f, int headersOnly, const char* target_di
+             }
+             else if (!strcmp(buf, "Blocksize")) {
+                 long blocksize = atol(p);
+-                if (zs->blocksize & (zs->blocksize - 1)) {
+-                    fprintf(stderr, "nonsensical blocksize %zu\n", zs->blocksize);
++                if (blocksize < 0 || (blocksize & (blocksize - 1))) {
++                    fprintf(stderr, "nonsensical blocksize %ld\n", blocksize);
+                     free(zs);
+                     return NULL;
+                 }
+@@ -398,14 +398,6 @@ int zsync_hint_decompress(const struct zsync_state *zs) {
+     return (zs->nzurl > 0 ? 1 : 0);
+ }
+ 
+-/* zsync_blocksize(self)
+- * Returns the blocksize used by zsync on this target. */
+-/*
+-static size_t zsync_blocksize(const struct zsync_state *zs) {
+-    return zs->blocksize;
+-}
+-*/
+-
+ /* char* = zsync_filename(self)
+  * Returns the suggested filename to be used for the final result of this
+  * zsync.  Malloced string to be freed by the caller. */
