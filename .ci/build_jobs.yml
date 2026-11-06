@@ -175,6 +175,36 @@ macos: # {{{
 
 # }}}
 
+musl: # {{{
+
+  - &MUSL
+    id: musl-aarch64
+    job: Musl AArch64
+    runs-on: ubuntu-26.04-arm
+    image: koreader/koalp:1.0
+    target: linux
+    env: PARALLEL_JOBS=5 APPIMAGE_ARCH_TAG=musl
+    cache_size: 90M
+    tests: true
+
+  - <<: *MUSL
+    id: musl-armhf
+    job: Musl ARMhf
+    platform: linux/arm/v7
+
+  - <<: *MUSL
+    id: musl-x86
+    job: Musl x86
+    runs-on:
+    platform: linux/386
+
+  - <<: *MUSL
+    id: musl-x86_64
+    job: Musl x86_64
+    runs-on:
+
+# }}}
+
 pocketbook: # {{{
 
   - &POCKETBOOK
