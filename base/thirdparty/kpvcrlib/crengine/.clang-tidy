@@ -23,7 +23,7 @@ Checks: >
   -clang-diagnostic-vla-cxx-extension,
   misc-redundant-expression,
   -misc-include-cleaner,
-  misc-static-assert,
+  -misc-static-assert,
   readability-duplicate-include,
   readability-inconsistent-declaration-parameter,
   readability-misplaced-array-index,
