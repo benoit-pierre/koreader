@@ -380,36 +380,6 @@ inline bool lStr_isRTL( lChar32 c ) {
 #define CONST_STRING_BUFFER_MASK (CONST_STRING_BUFFER_SIZE - 1)
 #define CONST_STRING_BUFFER_HASH_MULT 31
 
-struct lstring_chunk_t {
-    friend class lString8;
-    friend class lString32;
-    friend class lString32Collection;
-    friend struct lstring_chunk_slice_t;
-public:
-    lstring_chunk_t(lChar8 * _buf8) : buf8(_buf8), size(1), len(0), nref(1) {}
-    const lChar8 * data8() const { return buf8; }
-    lstring_chunk_t(lChar32 * _buf32) : buf32(_buf32), size(1), len(0), nref(1) {}
-    const lChar32 * data32() const { return buf32; }
-private:
-    union {
-        lChar8  * buf8;  // z-string
-        lChar32 * buf32; // z-string
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-        lstring_chunk_t * next;
-#endif
-    };
-    lInt32 size;   // 0 for free chunk
-    lInt32 len;    // count of chars in string
-    int nref;      // reference counter
-
-    lstring_chunk_t() {}
-
-    // chunk allocation functions
-    static lstring_chunk_t * alloc();
-    static void free( lstring_chunk_t * pChunk );
-};
-
-
 namespace fmt {
     class decimal {
         lInt64 value;
@@ -462,10 +432,18 @@ public:
         lUInt64 get() { return value; }
     };
 
+    typedef struct {
+        int        nref;   // reference counter
+        size_type  size;   // 0 for free chunk
+        size_type  len;    // count of chars in string
+        value_type buf8[]; // z-string
+    } lstring_chunk_t;
+
 private:
     lstring_chunk_t * pchunk;
     static lstring_chunk_t * EMPTY_STR_8;
     void alloc(size_type sz);
+    void realloc(size_type sz);
     void free();
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
@@ -695,10 +673,18 @@ public:
     typedef const value_type *  const_pointer;
     typedef const value_type &  const_reference;
 
+    typedef struct {
+        int        nref;    // reference counter
+        size_type  size;    // 0 for free chunk
+        size_type  len;     // count of chars in string
+        value_type buf32[]; // z-string
+    } lstring_chunk_t;
+
 private:
     lstring_chunk_t * pchunk;
     static lstring_chunk_t * EMPTY_STR_32;
     void alloc(size_type sz);
+    void realloc(size_type sz);
     void free();
     inline void addref() const { ++pchunk->nref; }
     inline void release() { if (--pchunk->nref==0) free(); }
@@ -960,7 +946,7 @@ template<typename T> inline lString32 cs32(const T &str) { return lString32(str)
 class lString32Collection
 {
 private:
-    lstring_chunk_t * * chunks;
+    lString32::lstring_chunk_t * * chunks;
     int count;
     int size;
 public:
@@ -1028,7 +1014,7 @@ public:
 class lString8Collection
 {
 private:
-    lstring_chunk_t * * chunks;
+    lString8::lstring_chunk_t * * chunks;
     int count;
     int size;
 public:
