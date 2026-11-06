@@ -457,8 +457,6 @@ public:
     lString8 & assign(const value_type * str);
     /// C-string fragment assignment
     lString8 & assign(const value_type * str, size_type count);
-    /// string fragment assignment
-    lString8 & assign(const lString8 & str, size_type offset, size_type count);
     /// C-string assignment
     lString8 & operator = (const value_type * str) { return assign(str); }
     /// string copy assignment
@@ -697,8 +695,6 @@ public:
     lString32 & assign(const value_type * str, size_type count);
     /// assignment from 8-bit character array fragment (ASCII only)
     lString32 & assign(const lChar8 * str, size_type count);
-    /// assignment from string fragment
-    lString32 & assign(const lString32 & str, size_type offset, size_type count);
     /// assignment from c-string
     lString32 & operator = (const value_type * str) { return assign(str); }
     /// assignment from string 8bit ASCII only
