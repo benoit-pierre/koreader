@@ -1,0 +1,892 @@
+diff --git c/CMakeLists.txt w/CMakeLists.txt
+index 42a77467..614d7249 100644
+--- c/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -82,7 +82,7 @@ if(NOT SW_BUILD)
+   set(libs_private "")
+ 
+   find_and_handle_library(ZLIB ENABLE_ZLIB zlib)
+-  find_and_handle_library(PNG ENABLE_PNG libpng)
++  find_and_handle_library(PNG ENABLE_PNG spng)
+   find_and_handle_library(JPEG ENABLE_JPEG libjpeg)
+   find_and_handle_library(TIFF ENABLE_TIFF libtiff-4)
+ 
+diff --git c/cmake/LeptonicaFunc.cmake w/cmake/LeptonicaFunc.cmake
+index 5691de5d..f5620f26 100644
+--- c/cmake/LeptonicaFunc.cmake
++++ w/cmake/LeptonicaFunc.cmake
+@@ -1,11 +1,18 @@
+ # cmake/LeptonicaFunc.cmake
+ 
++find_package(PkgConfig REQUIRED)
++
+ # ##############################################################################
+ # FUNCTION find_and_handle_library
+ # ##############################################################################
+ function(find_and_handle_library PACKAGE_NAME ENABLE_OPTION PKG_CONFIG_NAME)
++  if(STRICT_CONF)
++    set(REQUIRED REQUIRED)
++  else()
++    set(REQUIRED)
++  endif()
+   if(${ENABLE_OPTION})
+-    find_package(${PACKAGE_NAME})
++    pkg_check_modules(${PACKAGE_NAME} ${PKG_CONFIG_NAME} ${REQUIRED})
+     if(${PACKAGE_NAME}_FOUND)
+       set(pkgs_private
+           "${pkgs_private} ${PKG_CONFIG_NAME}"
+@@ -14,9 +21,9 @@ function(find_and_handle_library PACKAGE_NAME ENABLE_OPTION PKG_CONFIG_NAME)
+       set(${PACKAGE_NAME}_FOUND
+           ${${PACKAGE_NAME}_FOUND}
+           PARENT_SCOPE)
+-      if(DEFINED ${PACKAGE_NAME}_LIBRARIES)
++      if(DEFINED ${PACKAGE_NAME}_LINK_LIBRARIES)
+         set(${PACKAGE_NAME}_LIBRARIES
+-            ${${PACKAGE_NAME}_LIBRARIES}
++            ${${PACKAGE_NAME}_LINK_LIBRARIES}
+             PARENT_SCOPE)
+       endif()
+       if(DEFINED ${PACKAGE_NAME}_INCLUDE_DIRS)
+diff --git c/prog/pngio_reg.c w/prog/pngio_reg.c
+index 583274b8..3ec775fb 100644
+--- c/prog/pngio_reg.c
++++ w/prog/pngio_reg.c
+@@ -103,7 +103,7 @@ L_REGPARAMS  *rp;
+     success = TRUE;
+     lept_rmdir("lept/pngio");  /* remove previous output files */
+     lept_mkdir("lept/pngio");
+-    lept_stderr("Test bmp 1 bpp file:\n");
++    lept_stderr("Test 1 bpp file:\n");
+     if (test_file_png(FILE_1BPP, dirout)) success = FALSE;
+     lept_stderr("Test 2 bpp file:\n");
+     if (test_file_png(FILE_2BPP, dirout)) success = FALSE;
+@@ -117,8 +117,10 @@ L_REGPARAMS  *rp;
+     if (test_file_png(FILE_8BPP, dirout)) success = FALSE;
+     lept_stderr("Test 8 bpp color file with cmap:\n");
+     if (test_file_png(FILE_8BPP_C, dirout)) success = FALSE;
++#if 0 // 16bits: unsupported
+     lept_stderr("Test 16 bpp file:\n");
+     if (test_file_png(FILE_16BPP, dirout)) success = FALSE;
++#endif
+     lept_stderr("Test 32 bpp RGB file:\n");
+     if (test_file_png(FILE_32BPP, dirout)) success = FALSE;
+     lept_stderr("Test 32 bpp RGBA file:\n");
+@@ -129,8 +131,10 @@ L_REGPARAMS  *rp;
+     if (test_file_png(FILE_CMAP_ALPHA2, dirout)) success = FALSE;
+     lept_stderr("Test spp = 1, fully transparent with alpha file:\n");
+     if (test_file_png(FILE_TRANS_ALPHA, dirout)) success = FALSE;
++#if 0 // 16bits: unsupported
+     lept_stderr("Test spp = 2, gray with alpha file:\n");
+     if (test_file_png(FILE_GRAY_ALPHA, dirout)) success = FALSE;
++#endif
+     lept_stderr("Test spp = 2, cmap with alpha file:\n");
+     if (test_file_png(FILE_TRANS_CMAP_2BPP, dirout)) success = FALSE;
+     lept_stderr("Test spp = 4, cmap with alpha file:\n");
+@@ -155,13 +159,17 @@ L_REGPARAMS  *rp;
+     if (test_mem_png(FILE_4BPP_C)) success = FALSE;
+     if (test_mem_png(FILE_8BPP)) success = FALSE;
+     if (test_mem_png(FILE_8BPP_C)) success = FALSE;
++#if 0 // 16bits: unsupported
+     if (test_mem_png(FILE_16BPP)) success = FALSE;
++#endif
+     if (test_mem_png(FILE_32BPP)) success = FALSE;
+     if (test_mem_png(FILE_32BPP_ALPHA)) success = FALSE;
+     if (test_mem_png(FILE_CMAP_ALPHA)) success = FALSE;
+     if (test_mem_png(FILE_CMAP_ALPHA2)) success = FALSE;
+     if (test_mem_png(FILE_TRANS_ALPHA)) success = FALSE;
++#if 0 // 16bits: unsupported
+     if (test_mem_png(FILE_GRAY_ALPHA)) success = FALSE;
++#endif
+     if (test_mem_png(FILE_TRANS_CMAP_2BPP)) success = FALSE;
+     if (test_mem_png(FILE_TRANS_CMAP_4BPP)) success = FALSE;
+     if (test_mem_png(FILE_TRANS_CMAP_8BPP)) success = FALSE;
+@@ -205,13 +213,17 @@ L_REGPARAMS  *rp;
+     if (get_header_data(FILE_4BPP_C)) success = FALSE;
+     if (get_header_data(FILE_8BPP)) success = FALSE;
+     if (get_header_data(FILE_8BPP_C)) success = FALSE;
++#if 0 // 16bits: unsupported
+     if (get_header_data(FILE_16BPP)) success = FALSE;
++#endif
+     if (get_header_data(FILE_32BPP)) success = FALSE;
+     if (get_header_data(FILE_32BPP_ALPHA)) success = FALSE;
+     if (get_header_data(FILE_CMAP_ALPHA)) success = FALSE;
+     if (get_header_data(FILE_CMAP_ALPHA2)) success = FALSE;
+     if (get_header_data(FILE_TRANS_ALPHA)) success = FALSE;
++#if 0 // 16bits: unsupported
+     if (get_header_data(FILE_GRAY_ALPHA)) success = FALSE;
++#endif
+     if (get_header_data(FILE_TRANS_CMAP_2BPP)) success = FALSE;
+     if (get_header_data(FILE_TRANS_CMAP_4BPP)) success = FALSE;
+     if (get_header_data(FILE_TRANS_CMAP_8BPP)) success = FALSE;
+@@ -383,7 +395,7 @@ PIXCMAP  *cmap;
+         lept_stderr("1bpp_trans: error -- no transparency found!\n");
+     if (rp->display) pixcmapWriteStream(stderr, cmap);
+     pixcmapDestroy(&cmap);
+-    return same;
++    return same && transp;
+ }
+ 
+ static l_int32
+@@ -418,7 +430,7 @@ PIXCMAP  *cmap;
+         lept_stderr("1bpp_color: correct -- no transparency found\n");
+     if (rp->display) pixcmapWriteStream(stderr, cmap);
+     pixcmapDestroy(&cmap);
+-    return same;
++    return same && !transp;
+ }
+ 
+ static l_int32
+@@ -622,6 +634,6 @@ PIXCMAP  *cmap;
+         lept_stderr("8bpp_trans: error -- no transparency found!\n");
+     if (rp->display) pixcmapWriteStream(stderr, cmap);
+     pixcmapDestroy(&cmap);
+-    return same;
++    return same && transp;
+ }
+ 
+diff --git c/src/libversions.c w/src/libversions.c
+index bb232edb..a1762733 100644
+--- c/src/libversions.c
++++ w/src/libversions.c
+@@ -55,7 +55,7 @@
+ #endif
+ 
+ #if HAVE_LIBPNG
+-#include "png.h"
++#include "spng.h"
+ #endif
+ 
+ #if HAVE_LIBTIFF
+@@ -151,8 +151,8 @@ char    *versionStrP = NULL;
+ #if HAVE_LIBPNG
+     if (!first) stringJoinIP(&versionStrP, " : ");
+     first = FALSE;
+-    stringJoinIP(&versionStrP, "libpng ");
+-    stringJoinIP(&versionStrP, png_get_libpng_ver(NULL));
++    stringJoinIP(&versionStrP, "libspng ");
++    stringJoinIP(&versionStrP, spng_version_string());
+ #endif  /* HAVE_LIBPNG */
+ 
+ #if HAVE_LIBTIFF
+diff --git c/src/pngio.c w/src/pngio.c
+index f643d259..630069ec 100644
+--- c/src/pngio.c
++++ w/src/pngio.c
+@@ -121,6 +121,7 @@
+ #include <config_auto.h>
+ #endif  /* HAVE_CONFIG_H */
+ 
++#include <assert.h>
+ #include <string.h>
+ #include "allheaders.h"
+ #include "pix_internal.h"
+@@ -129,13 +130,17 @@
+ #if  HAVE_LIBPNG   /* defined in environ.h */
+ /* --------------------------------------------*/
+ 
+-#include "png.h"
++#include "spng.h"
+ 
++#if 0
+ #if  HAVE_LIBZ
+ #include "zlib.h"
+ #else
+ #define  Z_DEFAULT_COMPRESSION (-1)
+ #endif  /* HAVE_LIBZ */
++#else
++#define Z_DEFAULT_COMPRESSION  5
++#endif
+ 
+ /* ------------------ Set default for read option -------------------- */
+     /* Strip 16 bpp --> 8 bpp on reading png; default is for stripping.
+@@ -148,6 +153,451 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
+ #endif  /* ~NO_CONSOLE_IO */
+ 
+ 
++#ifdef NO_CONSOLE_IO
++# define SPNG_STRERROR(E)  ""
++#else
++# define SPNG_STRERROR(E)  spng_strerror(E)
++#endif
++
++static l_ok
++_pixWritePng(FILE       *fp,
++             l_uint8   **pfiledata,
++             size_t     *pfilesize,
++             PIX        *pix,
++             l_float32   gamma)
++{
++l_int32           d, spp, valid;
++PIXCMAP          *cmap;
++struct spng_ihdr  ihdr;
++struct spng_phys  phys;
++spng_ctx         *ctx;
++int               err;
++
++    if (!pix)
++        return ERROR_INT("pix not defined", __func__, 1);
++
++    d = pixGetDepth(pix);
++    spp = pixGetSpp(pix);
++
++    ihdr.width = pixGetWidth(pix);
++    ihdr.height = pixGetHeight(pix);
++    ihdr.compression_method = 0;
++    ihdr.filter_method = 0;
++    ihdr.interlace_method = 0;
++
++        /* Do not set pad bits for d = 24 ! */
++    if (d != 24) pixSetPadBits(pix, 0);
++
++        /* Set the color type and bit depth. */
++    if (d == 32 && spp == 4) {
++        ihdr.bit_depth = 8;
++        ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA;
++        cmap = NULL;
++    } else if (d == 24 || d == 32) {
++        ihdr.bit_depth = 8;
++        ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
++        cmap = NULL;
++    } else {
++        ihdr.bit_depth = d;
++        cmap = pixGetColormap(pix);
++        ihdr.color_type = cmap ? SPNG_COLOR_TYPE_INDEXED : SPNG_COLOR_TYPE_GRAYSCALE;
++    }
++
++    /* fprintf(stderr, "%s: %d×%d, d=%d, spp=%d, cmflag=%d\n", __func__, ihdr.width, ihdr.height, d, spp, cmflag); */
++    /* pixWrite("write.pnm", pix, IFF_PNM); */
++
++#if  DEBUG_WRITE
++    lept_stderr("cmflag = %d, bit_depth = %d, color_type = %d\n",
++                cmflag, ihdr.bit_depth, ihdr.color_type);
++#endif  /* DEBUG_WRITE */
++
++    ctx = spng_ctx_new(SPNG_CTX_ENCODER);
++    if (!ctx)
++        return ERROR_INT("spng_ctx_new failed", __func__, 1);
++
++    if (fp) {
++        err = spng_set_png_file(ctx, fp);
++    } else {
++        err = spng_set_option(ctx, SPNG_ENCODE_TO_BUFFER, 1);
++    }
++    if (err) {
++        err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++    {
++        l_int32 compval = Z_DEFAULT_COMPRESSION;
++        if (pix->special >= 10 && pix->special < 20)
++            compval = pix->special - 10;
++        err = spng_set_option(ctx, SPNG_IMG_COMPRESSION_LEVEL, 5);
++        if (err) {
++            err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++            goto end;
++        }
++    }
++
++    err = spng_set_ihdr(ctx, &ihdr);
++    if (err) {
++        err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++        /* Store resolution in ppm, if known */
++    phys.ppu_x = (uint32_t)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);
++    phys.ppu_y = (uint32_t)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);
++    if ((phys.ppu_x == 0) || (phys.ppu_y == 0))
++        phys.unit_specifier = 0; // pixels/unknown
++    else
++        phys.unit_specifier = 1; // pixels/metter
++    err = spng_set_phys(ctx, &phys);
++    if (err) {
++        err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++        /* Make and save the palette */
++    if (cmap) {
++        int              opaque;
++        struct spng_plte plte;
++        struct spng_trns trns;
++
++        trns.gray = 0;
++        trns.red = 0;
++        trns.green = 0;
++        trns.blue = 0;
++        trns.n_type3_entries = 0;
++
++        plte.n_entries = pixcmapGetCount(cmap);
++        if (plte.n_entries > 256) {
++            err = ERROR_INT("colormap depth > 8 not supported", __func__, 1);
++            goto end;
++        }
++
++        for (uint32_t n = 0; n < plte.n_entries; ++n) {
++            l_int32 rval, gval, bval, aval;
++            pixcmapGetRGBA(cmap, n, &rval, &gval, &bval, &aval);
++            plte.entries[n].red = rval;
++            plte.entries[n].green = gval;
++            plte.entries[n].blue = bval;
++            if (aval != 255)
++                trns.type3_alpha[trns.n_type3_entries++] = aval;
++        }
++
++        err = spng_set_plte(ctx, &plte);
++        if (err) {
++            err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++            goto end;
++        }
++
++            /* Add the tRNS chunk.  If the non-opaque colors are listed
++             * first in the colormap, as in the spec, we can use that in
++             * the 4th arg of png_set_tRNS.  Otherwise, transparency will
++             * be lost for some colors.  To prevent that, see the comments
++             * in pixcmapNonOpaqueColorsInfo(). */
++        if (trns.n_type3_entries) {  /* alpha channel has some transparency; assume valid */
++            err = spng_set_trns(ctx, &trns);
++            if (err) {
++                err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++                goto end;
++            }
++        }
++    }
++
++        /* 0.4545 is treated as the default by some image
++         * display programs (not gqview).  A value > 0.4545 will
++         * lighten an image as displayed by xv, display, etc. */
++    if (gamma > 0.0) {
++        err = spng_set_gama(ctx, gamma);
++        if (err) {
++            err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++            goto end;
++        }
++    }
++
++    {
++        char *t = pixGetText(pix);
++        if (t) {
++            struct spng_text text = {
++                .keyword = "Comment",
++                .type = SPNG_TEXT,
++                .length = strlen(t),
++                .text = t,
++            };
++            err = spng_set_text(ctx, &text, 1);
++            if (err) {
++                err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++                goto end;
++            }
++        }
++    }
++
++    err = spng_encode_image(ctx, NULL, 0, SPNG_FMT_PNG, SPNG_ENCODE_PROGRESSIVE | SPNG_ENCODE_FINALIZE);
++    if (err) {
++        err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++    if ((d != 32) && (d != 24)) {  /* not rgb color */
++            /* Generate a temporary pix with bytes swapped.
++             * For writing a 1 bpp image as png:
++             *    ~ if no colormap, invert the data, because png writes
++             *      black as 0
++             *    ~ if colormapped, do not invert the data; the two RGBA
++             *      colors can have any value.  */
++        PIX *pix1;
++        if (d == 1 && !cmap) {
++            pix1 = pixInvert(NULL, pix);
++            pixEndianByteSwap(pix1);
++        } else {
++            pix1 = pixEndianByteSwapNew(pix);
++        }
++        if (!pix1) {
++            err = ERROR_INT("pix1 not made", __func__, 1);
++            goto end;
++        }
++
++            /* Transfer the data */
++        l_int32 wpl = pixGetWpl(pix1);
++        l_uint32 *data = pixGetData(pix1);
++        for (int y = 0; y < ihdr.height; y++) {
++            err = spng_encode_row(ctx, data + y * wpl, wpl * 4);
++            if (err && err != SPNG_EOI && y == ihdr.height - 1) {
++                err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++                goto end;
++            }
++        }
++
++        pixDestroy(&pix1);
++    }
++    else {
++        /* For rgb and rgba, compose and write a row at a time */
++        l_uint32 *data = pixGetData(pix);
++        l_int32 wpl = pixGetWpl(pix);
++        if (d == 24) {  /* See note 7 in pixWriteStreamPng() */
++            for (int y = 0; y < ihdr.height; y++) {
++                err = spng_encode_row(ctx, data + y * wpl, ihdr.width * 3);
++                if (err && err != SPNG_EOI && y == ihdr.height - 1) {
++                    err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++                    goto end;
++                }
++            }
++        } else {  /* 32 bpp rgb and rgba.  If spp = 4, write the alpha channel */
++            uint8_t *rowbuffer = LEPT_CALLOC(ihdr.width, 4);
++            for (int y = 0; y < ihdr.height; y++) {
++                l_uint32 *ppixel = data + y * wpl;
++                uint8_t *p = rowbuffer;
++                for (int x = 0; x < ihdr.width; ++x) {
++                    *p++ = GET_DATA_BYTE(ppixel, COLOR_RED);
++                    *p++ = GET_DATA_BYTE(ppixel, COLOR_GREEN);
++                    *p++ = GET_DATA_BYTE(ppixel, COLOR_BLUE);
++                    if (spp == 4)
++                        *p++ = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
++                    ppixel++;
++                }
++
++                err = spng_encode_row(ctx, rowbuffer, spp * ihdr.width);
++                if (err && err != SPNG_EOI && y == ihdr.height - 1) {
++                    err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++                    goto end;
++                }
++            }
++            LEPT_FREE(rowbuffer);
++        }
++    }
++
++    if (!fp) {
++        *pfiledata = spng_get_png_buffer(ctx, pfilesize, &err);
++        if (err) {
++            err = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++            goto end;
++        }
++    }
++
++    err = 0;
++
++end:
++    spng_ctx_free(ctx);
++
++    return err;
++}
++
++PIX *
++_pixReadPng(FILE *fp, const l_uint8 *filedata, size_t filesize)
++{
++l_int32           d, spp;
++PIXCMAP          *cmap;
++struct spng_ihdr  ihdr;
++enum spng_format  fmt;
++spng_ctx         *ctx;
++int               err;
++PIX              *pix;
++PIX              *ret;
++
++    pix = ret = NULL;
++    cmap = NULL;
++
++    ctx = spng_ctx_new(0);
++    if (!ctx)
++        return ERROR_PTR("spng_ctx_new failed", __func__, NULL);
++
++    err = fp ? spng_set_png_file(ctx, fp) : spng_set_png_buffer(ctx, filedata, filesize);
++    if (err) {
++        ret = ERROR_PTR(SPNG_STRERROR(err), __func__, NULL);
++        goto end;
++    }
++
++    err = spng_get_ihdr(ctx, &ihdr);
++    if (err) {
++        ret = ERROR_PTR(SPNG_STRERROR(err), __func__, NULL);
++        goto end;
++    }
++
++    if (ihdr.bit_depth > 8) {
++        ret = ERROR_PTR("not bit depth > 8 is unsupported", __func__, NULL);
++        goto end;
++    }
++
++    switch (ihdr.color_type) {
++    case SPNG_COLOR_TYPE_GRAYSCALE:
++        d = ihdr.bit_depth;
++        spp = 1;
++        fmt = SPNG_FMT_PNG;
++        break;
++    case SPNG_COLOR_TYPE_TRUECOLOR:
++        d = 32;
++        spp = 3;
++        fmt = SPNG_FMT_RGBA8;
++        break;
++    case SPNG_COLOR_TYPE_INDEXED:
++        {
++            struct spng_trns trns;
++            if (spng_get_trns(ctx, &trns)) {
++                // No transparency.
++                d = ihdr.bit_depth;
++                spp = 1;
++                fmt = SPNG_FMT_PNG;
++            }
++            else {
++                // Transparency: convert to RGBA.
++                L_INFO("converting %d bpp cmap with alpha ==> RGBA\n", __func__, ihdr.bit_depth);
++                d = 32;
++                spp = 4;
++                fmt = SPNG_FMT_RGBA8;
++            }
++        }
++        break;
++    case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
++        L_INFO("converting (gray + alpha) ==> RGBA\n", __func__);
++        d = 32;
++        spp = 4;
++        fmt = SPNG_FMT_RGBA8;
++        break;
++    case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
++        d = 32;
++        spp = 4;
++        fmt = SPNG_FMT_RGBA8;
++        break;
++    default:
++        assert(0);
++        ret = ERROR_PTR("invalid color type", __func__, NULL);
++        goto end;
++    }
++
++    /* fprintf(stderr, "%s: %d×%d, d=%d, spp=%d, fmt=%d\n", __func__, ihdr.width, ihdr.height, d, spp, fmt); */
++
++    cmap = NULL;
++    if (ihdr.color_type == SPNG_COLOR_TYPE_INDEXED && fmt == SPNG_FMT_PNG) {
++        struct spng_plte plte;
++        err = spng_get_plte(ctx, &plte);
++        if (err) {
++            ret = ERROR_PTR(SPNG_STRERROR(err), __func__, NULL);
++            goto end;
++        }
++        cmap = pixcmapCreate(d);
++        for (uint32_t n = 0; n < plte.n_entries; ++n)
++            pixcmapAddColor(cmap, plte.entries[n].red, plte.entries[n].green, plte.entries[n].blue);
++    }
++
++    if ((pix = pixCreate(ihdr.width, ihdr.height, d)) == NULL) {
++        ret = ERROR_PTR("pix not made", __func__, NULL);
++        goto end;
++    }
++    pixSetInputFormat(pix, IFF_PNG);
++    l_int32 wpl = pixGetWpl(pix);
++    l_uint32 *data = pixGetData(pix);
++    pixSetSpp(pix, spp);
++    if (cmap && pixSetColormap(pix, cmap)) {
++        ret = ERROR_PTR("invalid colormap", __func__, NULL);
++        goto end;
++    }
++
++    err = spng_decode_image(ctx, NULL, 0, fmt, SPNG_DECODE_PROGRESSIVE | SPNG_DECODE_TRNS);
++    if (err) {
++        ret = ERROR_PTR(SPNG_STRERROR(err), __func__, NULL);
++        goto end;
++    }
++
++    for (;;) {
++        struct spng_row_info row_info;
++        err = spng_get_row_info(ctx, &row_info);
++        if (err)
++            break;
++        l_uint32 *ppixel = data + row_info.row_num * wpl;
++        err = spng_decode_row(ctx, ppixel, wpl * 4);
++        if (err)
++            break;
++    }
++    if (err != SPNG_EOI) {
++        ret = ERROR_PTR(SPNG_STRERROR(err), __func__, NULL);
++        goto end;
++    }
++
++        /* Get the resolution if there is any */
++    {
++        struct spng_phys phys;
++
++        if (!spng_get_phys(ctx, &phys)) {
++            pixSetXRes(pix, (l_int32)((l_float32)phys.ppu_x / 39.37 + 0.5));  /* to ppi */
++            pixSetYRes(pix, (l_int32)((l_float32)phys.ppu_y / 39.37 + 0.5));  /* to ppi */
++        }
++    }
++
++        /* Get the text if there is any */
++    {
++        uint32_t n_text;
++
++        if (!spng_get_text(ctx, NULL, &n_text) && n_text) {
++            struct spng_text *text = malloc(sizeof (struct spng_text) * n_text);
++            if (text && !spng_get_text(ctx, text, &n_text))
++                for (uint32_t n = 0; n < n_text; ++n)
++                    if (text[n].type == SPNG_TEXT) {
++                        pixSetText(pix, text[n].text);
++                        break;
++                    }
++            free(text);
++        }
++    }
++
++    pixEndianByteSwap(pix);
++    if (d == 1 && !cmap)
++        pixInvert(pix, pix);
++    pixSetPadBits(pix, 0);
++
++    ret = pix;
++
++end:
++    spng_ctx_free(ctx);
++    if (!ret) {
++        if (cmap && (!pix || cmap != pixGetColormap(pix)))
++            pixcmapDestroy(&cmap);
++        if (pix)
++            pixDestroy(&pix);
++    }
++
++    return ret;
++}
++
++
+ /*---------------------------------------------------------------------*
+  *                     Reading png through stream                      *
+  *---------------------------------------------------------------------*/
+@@ -187,6 +637,7 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
+ PIX *
+ pixReadStreamPng(FILE  *fp)
+ {
++#if 0
+ l_uint8      byte;
+ l_int32      i, j, k, index, ncolors, rval, gval, bval, valid;
+ l_int32      wpl, d, spp, cindex, bitval, bival, quadval, tRNS;
+@@ -545,6 +996,11 @@ PIXCMAP     *cmap;
+ 
+     pixSetPadBits(pix, 0);
+     return pix;
++#else
++    if (!fp)
++        return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
++    return _pixReadPng(fp, NULL, 0);
++#endif
+ }
+ 
+ 
+@@ -764,6 +1220,7 @@ fgetPngResolution(FILE     *fp,
+                   l_int32  *pxres,
+                   l_int32  *pyres)
+ {
++#if 0
+ png_uint_32  xres, yres;
+ png_structp  png_ptr;
+ png_infop    info_ptr;
+@@ -804,6 +1261,44 @@ png_infop    info_ptr;
+     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+     rewind(fp);
+     return 0;
++#else
++struct spng_phys  phys;
++spng_ctx         *ctx;
++int               err;
++int               ret;
++
++    if (!pxres || !pyres)
++        return ERROR_INT("&xres and &yres not both defined", __func__, 1);
++    if (!fp)
++        return ERROR_INT("stream not opened", __func__, 1);
++
++    *pxres = 0;
++    *pyres = 0;
++
++    ctx = spng_ctx_new(0);
++    if (!ctx)
++        return ERROR_INT("spng_ctx_new failed", __func__, 1);
++
++    rewind(fp);
++
++    err = spng_set_png_file(ctx, fp);
++    if (err) {
++        ret = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++    if (!spng_get_phys(ctx, &phys)) {
++        *pxres = (l_int32)((l_float32)phys.ppu_x / 39.37 + 0.5);  /* to ppi */
++        *pyres = (l_int32)((l_float32)phys.ppu_y / 39.37 + 0.5);
++    }
++
++    ret = 0;
++
++end:
++    spng_ctx_free(ctx);
++    rewind(fp);
++    return ret;
++#endif
+ }
+ 
+ 
+@@ -861,6 +1356,7 @@ fgetPngColormapInfo(FILE      *fp,
+                     PIXCMAP  **pcmap,
+                     l_int32   *ptransparency)
+ {
++#if 0
+ l_int32      i, cindex, rval, gval, bval, num_palette, num_trans;
+ png_byte     bit_depth, color_type;
+ png_bytep    trans;
+@@ -935,6 +1431,75 @@ png_infop    info_ptr;
+     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+     rewind(fp);
+     return 0;
++#else
++struct spng_ihdr  ihdr;
++struct spng_plte  plte;
++struct spng_trns  trns;
++spng_ctx         *ctx;
++int               err;
++int               ret;
++
++    if (!pcmap && !ptransparency)
++        return ERROR_INT("no output defined", __func__, 1);
++    if (!fp)
++        return ERROR_INT("stream not opened", __func__, 1);
++
++    *pcmap = NULL;
++    *ptransparency = 0;
++
++    ctx = spng_ctx_new(0);
++    if (!ctx)
++        return ERROR_INT("spng_ctx_new failed", __func__, 1);
++
++    rewind(fp);
++
++    err = spng_set_png_file(ctx, fp);
++    if (err) {
++        ret = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++    err = spng_get_ihdr(ctx, &ihdr);
++    if (err) {
++        ret = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++        goto end;
++    }
++
++    if (ihdr.color_type != SPNG_COLOR_TYPE_INDEXED) {
++        ret = 0;
++        goto end;
++    }
++
++        /* Optionally, read the colormap */
++    if (pcmap) {
++        *pcmap = pixcmapCreate(ihdr.bit_depth);
++        err = spng_get_plte(ctx, &plte);
++        if (err) {
++            ret = ERROR_INT(SPNG_STRERROR(err), __func__, 1);
++            goto end;
++        }
++        for (uint32_t n = 0; n < plte.n_entries; ++n)
++            pixcmapAddColor(*pcmap, plte.entries[n].red, plte.entries[n].green, plte.entries[n].blue);
++    }
++
++        /* Optionally, look for transparency.  Note that the colormap
++         * has been initialized to fully opaque. */
++    if (ptransparency && !spng_get_trns(ctx, &trns)) {
++        for (uint32_t n = 0; n < trns.n_type3_entries; ++n)
++            if (trns.type3_alpha[n] < 255) {  /* not fully opaque */
++                *ptransparency = 1;
++                if (pcmap)
++                    pixcmapSetAlpha(*pcmap, n, trns.type3_alpha[n]);
++            }
++    }
++
++    ret = 0;
++
++end:
++    spng_ctx_free(ctx);
++    rewind(fp);
++    return ret;
++#endif
+ }
+ 
+ 
+@@ -1053,6 +1618,7 @@ pixWriteStreamPng(FILE      *fp,
+                   PIX       *pix,
+                   l_float32  gamma)
+ {
++#if 0
+ char         commentstring[] = "Comment";
+ l_int32      i, j, k, wpl, d, spp, compval, valid;
+ l_int32      cmflag, opaque, max_trans, ncolors;
+@@ -1276,6 +1842,11 @@ char        *text;
+     png_write_end(png_ptr, info_ptr);
+     png_destroy_write_struct(&png_ptr, &info_ptr);
+     return 0;
++#else
++    if (!fp)
++        return ERROR_INT("stream not open", __func__, 1);
++    return _pixWritePng(fp, NULL, NULL, pix, gamma);
++#endif
+ }
+ 
+ 
+@@ -1331,6 +1902,7 @@ l_pngSetReadStrip16To8(l_int32  flag)
+     var_PNG_STRIP_16_TO_8 = flag;
+ }
+ 
++#if 0
+ 
+ /*-------------------------------------------------------------------------*
+  *                               Memio utility                             *
+@@ -1552,6 +2124,7 @@ MEMIODATA  *buffer, *old;
+     }
+ }
+ 
++#endif
+ 
+ /*---------------------------------------------------------------------*
+  *                       Reading png from memory                       *
+@@ -1572,6 +2145,7 @@ PIX *
+ pixReadMemPng(const l_uint8  *filedata,
+               size_t          filesize)
+ {
++#if 0
+ l_uint8      byte;
+ l_int32      i, j, k, index, ncolors, rval, gval, bval, valid;
+ l_int32      wpl, d, spp, cindex, bitval, bival, quadval, tRNS;
+@@ -1937,6 +2511,13 @@ PIXCMAP     *cmap;
+ 
+     pixSetPadBits(pix, 0);
+     return pix;
++#else
++    if (!filedata)
++        return (PIX *)ERROR_PTR("filedata not defined", __func__, NULL);
++    if (filesize < 1)
++        return (PIX *)ERROR_PTR("invalid filesize", __func__, NULL);
++    return _pixReadPng(NULL, filedata, filesize);
++#endif
+ }
+ 
+ 
+@@ -1963,6 +2544,7 @@ pixWriteMemPng(l_uint8  **pfiledata,
+                PIX       *pix,
+                l_float32  gamma)
+ {
++#if 0
+ char         commentstring[] = "Comment";
+ l_int32      i, j, k, wpl, d, spp, cmflag, opaque, ncolors, compval, valid;
+ l_int32     *rmap, *gmap, *bmap, *amap;
+@@ -2193,6 +2775,15 @@ MEMIODATA    state;
+     *pfilesize = state.m_Count;
+     memio_free(&state);
+     return 0;
++#else
++    if (!pfiledata)
++        return ERROR_INT("&filedata not defined", __func__, 1);
++    if (!pfilesize)
++        return ERROR_INT("&filesize not defined", __func__, 1);
++    *pfiledata = NULL;
++    *pfilesize = 0;
++    return _pixWritePng(NULL, pfiledata, pfilesize, pix, gamma);
++#endif
+ }
+ 
+ /* --------------------------------------------*/
