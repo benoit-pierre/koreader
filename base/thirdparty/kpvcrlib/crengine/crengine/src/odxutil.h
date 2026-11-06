@@ -234,8 +234,8 @@ public:
     inline odx_rPr * get_rPrDefault() { return &m_rPrDefault; }
     inline odx_pPr * get_pPrDefault() { return &m_pPrDefault; }
     void setLanguage(const lChar32 *lang);
-    lString32 getListStyleCss(css_list_style_type_t listType);
-    void startDocument(ldomDocumentWriter& writer);
+    static lString32 getListStyleCss(css_list_style_type_t listType);
+    static void startDocument(ldomDocumentWriter& writer);
     void endDocument(ldomDocumentWriter& writer);
 };
 
@@ -446,7 +446,7 @@ class odx_styleTagsHandler
     lString32 m_styleTags;
     int styleTagPos(lChar32 ch);
 protected:
-    const lChar32 * getStyleTagName( lChar32 ch );
+    static const lChar32 * getStyleTagName( lChar32 ch );
     void closeStyleTag( lChar32 ch, ldomDocumentWriter *writer);
     void openStyleTag(lChar32 ch, ldomDocumentWriter *writer);
 public:
