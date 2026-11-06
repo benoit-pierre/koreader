@@ -147,7 +147,7 @@ struct ldomMemSlice {
     inline ldomMemBlock * alloc_block()
     {
         ldomMemBlock * res = pFree;
-        pFree = res->nextfree;
+        pFree = res->nextfree; // NOLINT(clang-analyzer-core.uninitialized.Assign)
         ++blocks_used;
         return res;
     }
