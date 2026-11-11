@@ -522,6 +522,7 @@ function CoverBrowser:addToMainMenu(menu_items)
                 sub_item_table = {
                     genSeriesSubMenuItem(_("Do not show series metadata"), nil),
                     genSeriesSubMenuItem(_("Show series metadata in separate line"), "series_in_separate_line"),
+                    genSeriesSubMenuItem(_("Prepend series metadata to title"), "prepend_series_to_title"),
                     genSeriesSubMenuItem(_("Append series metadata to title"), "append_series_to_title"),
                     genSeriesSubMenuItem(_("Append series metadata to authors"), "append_series_to_authors"),
                 },
