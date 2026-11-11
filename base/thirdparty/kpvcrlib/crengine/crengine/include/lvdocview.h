@@ -370,13 +370,9 @@ protected:
     int getPrevPageOffset();
     /// create document and set flags
     void createEmptyDocument();
-    /// get document rectangle for specified cursor position, returns false if not visible
-    bool getCursorDocRect( ldomXPointer ptr, lvRect & rc );
 public:
     /// get outer (before margins are applied) page rectangle
     virtual void getPageRectangle( int pageIndex, lvRect & pageRect, bool mergeTwoPages=false );
-    /// get screen rectangle for specified cursor position, returns false if not visible
-    bool getCursorRect( ldomXPointer ptr, lvRect & rc, bool scrollToCursor = false );
     /// set status bar and clock mode
     void setStatusMode( int newMode, bool showClock, bool showTitle, bool showAuthor, bool showBattery, bool showChapterMarks, bool showPercent, bool showPageNumber, bool showPageCount );
     /// draw to specified buffer by either Y pos or page number (unused param should be -1)
@@ -397,11 +393,6 @@ public:
     void setPageHeaderOverride( lString32 s );
     /// substitute page info (curpage / nbpages %) with custom text
     void setPageInfoOverride( lString32 s );
-    /// get screen rectangle for current cursor position, returns false if not visible
-    bool getCursorRect( lvRect & rc, bool scrollToCursor = false )
-    {
-        return getCursorRect( m_cursorPos, rc, scrollToCursor );
-    }
     /// returns cursor position
     ldomXPointer getCursorPos() { return m_cursorPos; }
     /// set cursor position
