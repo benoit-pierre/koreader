@@ -21,9 +21,10 @@ class MathMLHelper {
         bool skip_specific_handling;
     public:
         bool handleMathMLtag( ldomDocumentWriter * writer, int step, lUInt16 tag_id, const lChar32 * text=NULL, int len=0 );
-        lString32 getMathMLAdjustedText(ldomNode * node, const lChar32 * text, int len);
         MathMLHelper() : skip_specific_handling(false) {}
 };
+
+lString32 getMathMLAdjustedText(ldomNode * node, const lChar32 * text, int len);
 
 bool getLengthFromMathMLAttributeValue( lString32 value, css_length_t & length,
                                             bool accept_percent=true,
