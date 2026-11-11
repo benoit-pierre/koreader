@@ -509,8 +509,7 @@ static int isCorrectHyphFile(LVStream * stream)
     stream->SetPos(0);
     stream->Read( &HDR, 78, &dw);
     stream->SetPos(0);
-    lvByteOrderConv cnv;
-    w=cnv.msf(HDR.numrec);
+    w=lvByteOrderConv::msf(HDR.numrec);
     if (dw!=78 || w>0xff)
         w = 0;
 
@@ -751,8 +750,6 @@ bool TexHyph::load( LVStreamRef stream )
         int        i;
         lvsize_t   dw;
 
-        lvByteOrderConv cnv;
-
         int hyph_count = w;
         thyph hyph;
 
@@ -767,13 +764,13 @@ bool TexHyph::load( LVStreamRef stream )
         {
             if ( stream->Read( &hyph, 522, &dw )!=LVERR_OK || dw!=522 )
                 return false;
-            cnv.msf( &hyph.len ); //rword(_main_hyph[i].len);
+            lvByteOrderConv::msf( &hyph.len ); //rword(_main_hyph[i].len);
             lvpos_t newPos;
             if ( stream->Seek( hyph.len, LVSEEK_CUR, &newPos )!=LVERR_OK )
                 return false;
 
-            cnv.msf( hyph.wl );
-            cnv.msf( hyph.wu );
+            lvByteOrderConv::msf( hyph.wl );
+            lvByteOrderConv::msf( hyph.wu );
             charMap[ (unsigned char)hyph.al ] = hyph.wl;
             charMap[ (unsigned char)hyph.au ] = hyph.wu;
 //            lChar32 ch = hyph.wl;
@@ -810,7 +807,7 @@ bool TexHyph::load( LVStreamRef stream )
             stream->Read( &hyph, 522, &dw );
             if (dw!=522)
                 return false;
-            cnv.msf( &hyph.len );
+            lvByteOrderConv::msf( &hyph.len );
 
             stream->Read(buf, hyph.len, &dw);
             if (dw!=hyph.len)
