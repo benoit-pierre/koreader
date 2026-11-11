@@ -1,8 +1,14 @@
 # For some reason we need to include this again…
 include(${CMAKE_KOVARS})
 
+set(TOOLCHAIN_FILE ${CMAKE_CURRENT_BINARY_DIR}/toolchain.cmake)
+file(WRITE ${TOOLCHAIN_FILE}
+    "include(${CMAKE_TOOLCHAIN_FILE})\n"
+    "set(CMAKE_CXX_FLAGS_INIT \"${CMAKE_CXX_FLAGS_INIT} ${VECTO_CFLAGS}\")\n"
+)
+
 list(APPEND CMAKE_ARGS
-    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=FALSE
     # Project options.
     # Disable all auto features…
