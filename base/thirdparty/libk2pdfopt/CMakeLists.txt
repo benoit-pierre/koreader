@@ -1,9 +1,3 @@
-if(NOT MONOLIBTIC)
-    set(CMAKE_PATCH_FILE ${CMAKE_BINARY_DIR}/k2pdfopt_exports.cmake)
-    target_exports(k2pdfopt FILELIST_VAR CDECLS_FILES WRITE_TO_FILE ${CMAKE_PATCH_FILE} CDECLS koptcontext_cdecl)
-    list(APPEND PATCH_CMD COMMAND ${ISED} "\$p" -e "\$s|.*|include(${CMAKE_PATCH_FILE})|" lib/CMakeLists.txt)
-endif()
-
 list(APPEND CMAKE_ARGS
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=$<NOT:$<BOOL:${MONOLIBTIC}>>
@@ -11,6 +5,12 @@ list(APPEND CMAKE_ARGS
     -DANDROID=${ANDROID}
     -DLEPTONICA_PATCH=FALSE
 )
+
+if(NOT MONOLIBTIC)
+    set(CMAKE_PATCH_FILE ${CMAKE_BINARY_DIR}/k2pdfopt_exports.cmake)
+    target_exports(k2pdfopt FILELIST_VAR CDECLS_FILES WRITE_TO_FILE ${CMAKE_PATCH_FILE} CDECLS koptcontext_cdecl)
+    list(APPEND CMAKE_ARGS -DPROJECT_PATCH=${CMAKE_BINARY_DIR}/k2pdfopt_exports.cmake)
+endif()
 
 list(APPEND BUILD_CMD COMMAND ninja)
 
@@ -21,9 +21,6 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD GIT 64aa9ccfcd55921c596458cb8a7197339d5f32c3
-    https://github.com/koreader/libk2pdfopt.git
-    PATCH_COMMAND ${PATCH_CMD}
     CMAKE_ARGS ${CMAKE_ARGS}
     SOURCE_SUBDIR lib
     BUILD_COMMAND ${BUILD_CMD}
