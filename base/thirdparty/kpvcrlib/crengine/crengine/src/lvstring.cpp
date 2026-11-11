@@ -41,15 +41,29 @@ extern "C" {
 }
 #endif
 
+static union
+{
+    lString8::lstring_chunk_t chunk;
+    struct {
+        int        nref;
+        int        size;
+        int        len;
+        lChar8     buf8[1];
+    };
+} empty_chunk_8 = { .nref = 1, .size = 0, .len = 0, .buf8 = { '\0' } };
+lString8::lstring_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8.chunk;
 
-static lChar8 empty_str_8[] = {0};
-static lstring_chunk_t empty_chunk_8(empty_str_8);
-lstring_chunk_t * lString8::EMPTY_STR_8 = &empty_chunk_8;
-
-static lChar32 empty_str_32[] = {0};
-static lstring_chunk_t empty_chunk_32(empty_str_32);
-lstring_chunk_t * lString32::EMPTY_STR_32 = &empty_chunk_32;
-
+static union
+{
+    lString32::lstring_chunk_t chunk;
+    struct {
+        int        nref;
+        int        size;
+        int        len;
+        lChar32    buf32[1];
+    };
+} empty_chunk_32 = { .nref = 1, .size = 0, .len = 0, .buf32 = { '\0' } };
+lString32::lstring_chunk_t * lString32::EMPTY_STR_32 = &empty_chunk_32.chunk;
 
 // UTF-8 -> UTF-32
 static void DecodeUtf8(const char *, lChar32 *, int);
@@ -59,105 +73,6 @@ static int Utf8CharCount(const lChar8 *, int);
 static void EncodeUtf8(const lChar32 *, lChar8 *, int);
 static int Utf8ByteCount(const lChar32 *);
 static int Utf8ByteCount(const lChar32 *, int);
-
-
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-
-//================================================================================
-// memory allocation slice
-//================================================================================
-struct lstring_chunk_slice_t {
-    lstring_chunk_t * pChunks; // first chunk
-    lstring_chunk_t * pEnd;    // first free byte after last chunk
-    lstring_chunk_t * pFree;   // first free chunk
-    int used;
-    lstring_chunk_slice_t( int size )
-    {
-        pChunks = cr_alloc(size);
-        pEnd = pChunks + size;
-        pFree = pChunks;
-        for (int n = 0; n < size; ++n)
-            pChunks[n].next = pChunks + n + 1;
-        pChunks[size - 1].next = NULL;
-    }
-    ~lstring_chunk_slice_t()
-    {
-        free( pChunks );
-    }
-    inline lstring_chunk_t * alloc_chunk()
-    {
-        lstring_chunk_t * res = pFree;
-        pFree = res->next;
-        return res;
-    }
-    inline bool free_chunk( lstring_chunk_t * chunk )
-    {
-        if (chunk < pChunks || chunk >= pEnd)
-            return false;
-        chunk->next = pFree;
-        pFree = chunk;
-        return true;
-    }
-};
-
-static lstring_chunk_slice_t * slices[MAX_SLICE_COUNT];
-static int slices_count = 0;
-static bool slices_initialized = false;
-
-static void init_ls_storage()
-{
-    slices[0] = new lstring_chunk_slice_t( FIRST_SLICE_SIZE );
-    slices_count = 1;
-    slices_initialized = true;
-}
-
-void free_ls_storage()
-{
-    if (!slices_initialized)
-        return;
-    for (int i=0; i<slices_count; i++)
-    {
-        delete slices[i];
-    }
-    slices_count = 0;
-    slices_initialized = false;
-}
-
-lstring_chunk_t * lstring_chunk_t::alloc()
-{
-    if (!slices_initialized)
-        init_ls_storage();
-    // search for existing slice
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->pFree != NULL)
-            return slices[i]->alloc_chunk();
-    }
-    // alloc new slice
-    if (slices_count >= MAX_SLICE_COUNT)
-        crFatalError();
-    lstring_chunk_slice_t * new_slice = new lstring_chunk_slice_t( FIRST_SLICE_SIZE << (slices_count+1) );
-    slices[slices_count++] = new_slice;
-    return slices[slices_count-1]->alloc_chunk();
-}
-
-void lstring_chunk_t::free( lstring_chunk_t * pChunk )
-{
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk(pChunk))
-            return;
-    }
-    crFatalError(); // wrong pointer!!!
-}
-
-#else
-
-lstring_chunk_t * lstring_chunk_t::alloc() {
-    return cr_alloc();
-}
-
-#endif
 
 ////////////////////////////////////////////////////////////////////////////
 // Utility functions
@@ -323,27 +238,31 @@ void lString32::free()
 {
     if ( pchunk==EMPTY_STR_32 )
         return;
-    //assert(pchunk->buf32[pchunk->len]==0);
-    ::free(pchunk->buf32);
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk(pchunk))
-            return;
-    }
-    crFatalError(); // wrong pointer!!!
-#else
     ::free(pchunk);
-#endif
 }
 
-void lString32::alloc(int sz)
+void lString32::alloc(size_type sz)
 {
     sz = topup(sz);
-    pchunk = lstring_chunk_t::alloc();
-    pchunk->buf32 = cr_alloc(sz + 1);
+    pchunk = (lstring_chunk_t *)malloc(sizeof (lstring_chunk_t) + sz * 4 + 4);
+    if (!pchunk) {
+        crFatalError(-2, "malloc failed");
+        return;
+    }
     pchunk->size = sz;
     pchunk->nref = 1;
+}
+
+void lString32::realloc(int sz) {
+    lstring_chunk_t *newchunk = (lstring_chunk_t *)::realloc(pchunk, sizeof (lstring_chunk_t) + sz * 4 + 4);
+    if (!newchunk) {
+        crFatalError(-2, "realloc failed");
+        ::free(pchunk);
+        pchunk = NULL;
+        return;
+    }
+    pchunk = newchunk;
+    pchunk->size = sz;
 }
 
 lString32::lString32(const value_type * str)
@@ -422,11 +341,8 @@ void lString32::_assign(const T * str, size_type len)
     if (pchunk->nref == 1)
     {
         if (pchunk->size < len)
-        {
             // resize is necessary
-            pchunk->buf32 = cr_realloc( pchunk->buf32, len+1 );
-            pchunk->size = len;
-        }
+            realloc(len);
     }
     else
     {
@@ -526,8 +442,7 @@ void lString32::reserve(size_type n)
         if (pchunk->size < n)
         {
             n = topup(n);
-            pchunk->buf32 = cr_realloc( pchunk->buf32, n+1 );
-            pchunk->size = n;
+            realloc(n);
         }
     }
     else
@@ -572,10 +487,7 @@ void lString32::resize(size_type n, lChar32 e)
 {
     lock( n );
     if (pchunk->size < n)
-    {
-        pchunk->buf32 = cr_realloc( pchunk->buf32, n+1 );
-        pchunk->size = n;
-    }
+        realloc(n);
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
         pchunk->buf32[i] = e;
@@ -689,14 +601,9 @@ lString32 & lString32::pack()
     if (pchunk->len < pchunk->size)
     {
         if (pchunk->nref>1)
-        {
             lock(pchunk->len);
-        }
         else
-        {
-            pchunk->buf32 = cr_realloc( pchunk->buf32, pchunk->len+1 );
-            pchunk->size = pchunk->len;
-        }
+            realloc(pchunk->len);
     }
     return *this;
 }
@@ -1038,28 +945,28 @@ lString32 lString32Collection::join(lChar32 separator)
 
 static int (str32_comparator)(const void * n1, const void * n2)
 {
-    lstring_chunk_t ** s1 = (lstring_chunk_t **)n1;
-    lstring_chunk_t ** s2 = (lstring_chunk_t **)n2;
-    return lStr_cmp( (*s1)->data32(), (*s2)->data32() );
+    lString32::lstring_chunk_t ** s1 = (lString32::lstring_chunk_t **)n1;
+    lString32::lstring_chunk_t ** s2 = (lString32::lstring_chunk_t **)n2;
+    return lStr_cmp( (*s1)->buf32, (*s2)->buf32 );
 }
 
 static int(*custom_lstr32_comparator_ptr)(lString32 & s1, lString32 & s2);
 static int (str32_custom_comparator)(const void * n1, const void * n2)
 {
-    lString32 s1(*((lstring_chunk_t **)n1));
-    lString32 s2(*((lstring_chunk_t **)n2));
+    lString32 s1(*((lString32::lstring_chunk_t **)n1));
+    lString32 s2(*((lString32::lstring_chunk_t **)n2));
     return custom_lstr32_comparator_ptr(s1, s2);
 }
 
 void lString32Collection::sort(int(comparator)(lString32 & s1, lString32 & s2))
 {
     custom_lstr32_comparator_ptr = comparator;
-    qsort(chunks,count,sizeof(lstring_chunk_t*), str32_custom_comparator);
+    qsort(chunks,count,sizeof(lString32::lstring_chunk_t*), str32_custom_comparator);
 }
 
 void lString32Collection::sort()
 {
-    qsort(chunks,count,sizeof(lstring_chunk_t*), str32_comparator);
+    qsort(chunks,count,sizeof(lString32::lstring_chunk_t*), str32_comparator);
 }
 
 int lString32Collection::add( const lString32 & str )
@@ -1432,26 +1339,31 @@ void lString8::free()
 {
     if ( pchunk==EMPTY_STR_8 )
         return;
-    ::free(pchunk->buf8);
-#if (LDOM_USE_OWN_MEM_MAN == 1)
-    for (int i=slices_count-1; i>=0; --i)
-    {
-        if (slices[i]->free_chunk(pchunk))
-            return;
-    }
-    crFatalError(); // wrong pointer!!!
-#else
     ::free(pchunk);
-#endif
 }
 
 void lString8::alloc(int sz)
 {
     sz = topup(sz);
-    pchunk = lstring_chunk_t::alloc();
-    pchunk->buf8 = cr_alloc(sz + 1);
+    pchunk = (lstring_chunk_t *)malloc(sizeof (lstring_chunk_t) + sz + 1);
+    if (!pchunk) {
+        crFatalError(-2, "malloc failed");
+        return;
+    }
     pchunk->size = sz;
     pchunk->nref = 1;
+}
+
+void lString8::realloc(int sz) {
+    lstring_chunk_t *newchunk = (lstring_chunk_t *)::realloc(pchunk, sizeof (lstring_chunk_t) + sz + 1);
+    if (!newchunk) {
+        crFatalError(-2, "realloc failed");
+        ::free(pchunk);
+        pchunk = NULL;
+        return;
+    }
+    pchunk = newchunk;
+    pchunk->size = sz;
 }
 
 lString8::lString8(const lChar8 * str)
@@ -1529,11 +1441,8 @@ void lString8::_assign(const lChar8 * str, size_type len)
     if (pchunk->nref == 1)
     {
         if (pchunk->size < len)
-        {
             // resize is necessary
-            pchunk->buf8 = cr_realloc( pchunk->buf8, len+1 );
-            pchunk->size = len;
-        }
+            realloc(len);
     }
     else
     {
@@ -1607,8 +1516,7 @@ void lString8::reserve(size_type n)
         if (pchunk->size < n)
         {
             n = topup(n);
-            pchunk->buf8 = cr_realloc( pchunk->buf8, n+1 );
-            pchunk->size = n;
+            realloc(n);
         }
     }
     else
@@ -1653,10 +1561,7 @@ void lString8::resize(size_type n, lChar8 e)
 {
     lock( n );
     if (pchunk->size < n)
-    {
-        pchunk->buf8 = cr_realloc( pchunk->buf8, n+1 );
-        pchunk->size = n;
-    }
+        realloc(n);
     // fill with data if expanded
     for (size_type i=pchunk->len; i<n; i++)
         pchunk->buf8[i] = e;
@@ -2143,14 +2048,9 @@ lString8 & lString8::pack()
     if (pchunk->len < pchunk->size)
     {
         if (pchunk->nref>1)
-        {
             lock(pchunk->len);
-        }
         else
-        {
-            pchunk->buf8 = cr_realloc( pchunk->buf8, pchunk->len+1 );
-            pchunk->size = pchunk->len;
-        }
+            realloc(pchunk->len);
     }
     return *this;
 }
