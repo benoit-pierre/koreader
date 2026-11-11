@@ -10849,7 +10849,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted, int * ct
                 printf(" %d %s %s vs. %d\n", i, LCSTR(ldomXPointer((ldomNode*)(src->object),src->t.offset).toStringV1()),
                                     LCSTR(ldomXPointer(((ldomNode*)(src->object))->getEffectiveNode() ,src->t.offset).toStringV1()), offset); */
                 // Check and handle the case of ::first-letter
-                if ( src->t.offset > 0 && offset < src->t.offset) {
+                if (!isObject && src->t.offset > 0 && offset < src->t.offset) {
                     // Currently, we can only get a non-0 src->t.offset if that text
                     // node gets its first char(s) rendered as ::first-letter and
                     // only the remainig chars are to be rendered normally.
