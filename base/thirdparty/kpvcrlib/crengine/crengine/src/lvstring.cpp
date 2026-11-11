@@ -54,6 +54,16 @@ static lstring_chunk_t empty_chunk_32(empty_str_32);
 lstring_chunk_t * lString32::EMPTY_STR_32 = &empty_chunk_32;
 
 
+// UTF-8 -> UTF-32
+static void DecodeUtf8(const char *, lChar32 *, int);
+static int Utf8CharCount(const lChar8 *);
+static int Utf8CharCount(const lChar8 *, int);
+// UTF-32 -> UTF-8
+static void EncodeUtf8(const lChar32 *, lChar8 *, int);
+static int Utf8ByteCount(const lChar32 *);
+static int Utf8ByteCount(const lChar32 *, int);
+
+
 #if (LDOM_USE_OWN_MEM_MAN == 1)
 
 //================================================================================
@@ -323,62 +333,57 @@ void lString32::alloc(int sz)
     pchunk->nref = 1;
 }
 
-lString32::lString32(const lChar32 * str)
+lString32::lString32(const value_type * str)
 {
-    if (!str || !(*str))
-    {
+    size_type len = lStr_len(str);
+    if (len <= 0) {
         pchunk = EMPTY_STR_32;
         addref();
         return;
     }
-    size_type len = lStr_len(str);
-    alloc( len );
+    alloc(len);
+    lStr_memcpy(pchunk->buf32, str, len + 1);
     pchunk->len = len;
-    lStr_cpy( pchunk->buf32, str );
+}
+
+lString32::lString32(const value_type * str, size_type count)
+{
+    size_type len = lStr_nlen(str, count);
+    if (len <= 0) {
+        pchunk = EMPTY_STR_32;
+        addref();
+        return;
+    }
+    alloc(len);
+    lStr_memcpy(pchunk->buf32, str, len);
+    pchunk->buf32[len] = '\0';
+    pchunk->len = len;
 }
 
 lString32::lString32(const lChar8 * str)
 {
-    if (!str || !(*str))
-    {
+    int len = Utf8CharCount(str);
+    if (len <= 0) {
         pchunk = EMPTY_STR_32;
         addref();
         return;
     }
-    pchunk = EMPTY_STR_32;
-    addref();
-	*this = Utf8ToUnicode( str );
+    alloc(len);
+    DecodeUtf8(str, pchunk->buf32, len);
+    pchunk->len = len;
 }
 
-/// constructor from utf8 character array fragment
 lString32::lString32(const lChar8 * str, size_type count)
 {
-    if (!str || !(*str))
-    {
+    int len = Utf8CharCount(str, count);
+    if (len <= 0) {
         pchunk = EMPTY_STR_32;
         addref();
         return;
     }
-    pchunk = EMPTY_STR_32;
-    addref();
-	*this = Utf8ToUnicode( str, count );
-}
-
-
-lString32::lString32(const value_type * str, size_type count)
-{
-    if ( !str || !(*str) || count<=0 )
-    {
-        pchunk = EMPTY_STR_32; addref();
-    }
-    else
-    {
-        size_type len = lStr_nlen(str, count);
-        alloc(len);
-        lStr_memcpy( pchunk->buf32, str, len );
-        pchunk->buf32[len] = '\0';
-        pchunk->len = len;
-    }
+    alloc(len);
+    DecodeUtf8(str, pchunk->buf32, len);
+    pchunk->len = len;
 }
 
 lString32::lString32(const lString32 & str, size_type offset, size_type count)
@@ -1436,31 +1441,29 @@ void lString8::alloc(int sz)
 
 lString8::lString8(const lChar8 * str)
 {
-    if (!str || !(*str))
-    {
+    size_type len = lStr_len(str);
+    if (len <= 0) {
         pchunk = EMPTY_STR_8;
         addref();
         return;
     }
-    size_type len = lStr_len(str);
-    alloc( len );
+    alloc(len);
+    lStr_memcpy(pchunk->buf8, str, len + 1);
     pchunk->len = len;
-    lStr_cpy( pchunk->buf8, str );
 }
 
 lString8::lString8(const value_type * str, size_type count)
 {
-    if ( !str || !(*str) || count<=0 )
-    {
-        pchunk = EMPTY_STR_8; addref();
+    size_type len = lStr_nlen(str, count);
+    if (len <= 0) {
+        pchunk = EMPTY_STR_8;
+        addref();
+        return;
     }
-    else
-    {
-        size_type len = lStr_nlen(str, count);
-        alloc(len);
-        lStr_ncpy( pchunk->buf8, str, len );
-        pchunk->len = len;
-    }
+    alloc(len);
+    lStr_memcpy(pchunk->buf8, str, len);
+    pchunk->buf8[len] = '\0';
+    pchunk->len = len;
 }
 
 lString8::lString8(const lString8 & str, size_type offset, size_type count)
@@ -1478,6 +1481,32 @@ lString8::lString8(const lString8 & str, size_type offset, size_type count)
         pchunk->buf8[count]=0;
         pchunk->len = count;
     }
+}
+
+lString8::lString8(const lChar32 * str)
+{
+    int len = Utf8ByteCount(str);
+    if (len <= 0) {
+        pchunk = EMPTY_STR_8;
+        addref();
+        return;
+    }
+    alloc(len);
+    pchunk->len = len;
+    EncodeUtf8(str, pchunk->buf8, len);
+}
+
+lString8::lString8(const lChar32 * str, int count)
+{
+    int len = Utf8ByteCount(str, count);
+    if (len <= 0) {
+        pchunk = EMPTY_STR_8;
+        addref();
+        return;
+    }
+    alloc(len);
+    pchunk->len = len;
+    EncodeUtf8(str, pchunk->buf8, len);
 }
 
 void lString8::_assign(const lChar8 * str, size_type len)
@@ -2609,59 +2638,46 @@ lUInt32 lString8::getHash() const
 
 const lString8 lString8::empty_str;
 
-int Utf8CharCount( const lChar8 * str )
+static int Utf8CharCount( const lChar8 * str )
 {
     int count = 0;
-    lUInt8 ch;
-    while ( (ch=*str++) ) {
-        if ( (ch & 0x80) == 0 ) {
-        } else if ( (ch & 0xE0) == 0xC0 ) {
-            if ( !(*str++) )
+    for (; *str; ++str, ++count) {
+        if ((*str & 0x80) == 0) {
+        } else if ((*str & 0xE0) == 0xC0) {
+            if (!*++str)
                 break;
-        } else if ( (ch & 0xF0) == 0xE0 ) {
-            if ( !(*str++) )
+        } else if ((*str & 0xF0) == 0xE0) {
+            if (!*++str || !*++str)
                 break;
-            if ( !(*str++) )
-                break;
-        } else if ( (ch & 0xF8) == 0xF0 ) {
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
-                break;
-            if ( !(*str++) )
+        } else if ((*str & 0xF8) == 0xF0) {
+            if (!*++str || !*++str || !*++str)
                 break;
         } else {
             // In Unicode standard maximum length of UTF-8 sequence is 4 byte!
             // invalid first byte in UTF-8 sequence, just leave as is
-            ;
         }
-        count++;
     }
     return count;
 }
 
-int Utf8CharCount( const lChar8 * str, int len )
+static int Utf8CharCount( const lChar8 * str, int len )
 {
-    if (len == 0)
-        return 0;
     int count = 0;
-    lUInt8 ch;
-    const lChar8 * endp = str + len;
-    while ((ch=*str++)) {
-        if ( (ch & 0x80) == 0 ) {
-        } else if ( (ch & 0xE0) == 0xC0 ) {
-            str++;
-        } else if ( (ch & 0xF0) == 0xE0 ) {
-            str+=2;
-        } else if ( (ch & 0xF8) == 0xF0 ) {
-            str+=3;
+    for (const lChar8 *endp = str + len; str < endp && *str; ++str, ++count) {
+        if ((*str & 0x80) == 0) {
+        } else if ((*str & 0xE0) == 0xC0) {
+            if (str + 2 > endp || !*++str)
+                break;
+        } else if ((*str & 0xF0) == 0xE0) {
+            if (str + 3 > endp || !*++str || !*++str)
+                break;
+        } else if ((*str & 0xF8) == 0xF0) {
+            if (str + 4 > endp || !*++str || !*++str || !*++str)
+                break;
         } else {
-            // invalid first byte of UTF-8 sequence, just leave as is
-            ;
+            // In Unicode standard maximum length of UTF-8 sequence is 4 byte!
+            // invalid first byte in UTF-8 sequence, just leave as is
         }
-        if (str > endp)
-            break;
-        count++;
     }
     return count;
 }
@@ -2680,63 +2696,52 @@ inline int charUtf8ByteCount(int ch) {
     return 1;
 }
 
-int Utf8ByteCount(const lChar32 * str)
+static int Utf8ByteCount(const lChar32 * str)
 {
     int count = 0;
-    lUInt32 ch;
-    while ( (ch=*str++) ) {
+    for (lUInt32 ch; (ch = *str++); )
         count += charUtf8ByteCount(ch);
-    }
     return count;
 }
 
-int Utf8ByteCount(const lChar32 * str, int len)
+static int Utf8ByteCount(const lChar32 * str, int len)
 {
     int count = 0;
-    lUInt32 ch;
-    while ((len--) > 0) {
-        ch = *str++;
+    for (lUInt32 ch; len-- > 0 && (ch = *str++); )
         count += charUtf8ByteCount(ch);
-    }
     return count;
 }
 
-lString32 Utf8ToUnicode( const lString8 & str )
+lString32 Utf8ToUnicode(const lString8 & str)
 {
-	return Utf8ToUnicode( str.c_str() );
+    return lString32(str.c_str());
 }
 
 #define CONT_BYTE(index,shift) (((lChar32)(s[index]) & 0x3F) << shift)
 
-static void DecodeUtf8(const char * s,  lChar32 * p, int len)
+static void DecodeUtf8(const char * s, lChar32 * p, int len)
 {
-    lChar32 * endp = p + len;
-    lUInt32 ch;
-    while (p < endp) {
-        ch = *s++;
-        if ( (ch & 0x80) == 0 ) {
-            *p++ = (char)ch;
-        } else if ( (ch & 0xE0) == 0xC0 ) {
-            *p++ = ((ch & 0x1F) << 6)
-                    | CONT_BYTE(0,0);
-            s++;
-        } else if ( (ch & 0xF0) == 0xE0 ) {
-            *p++ = ((ch & 0x0F) << 12)
-                | CONT_BYTE(0,6)
-                | CONT_BYTE(1,0);
+    for (const lChar32 *endp = p + len; p < endp; ) {
+        if ((*s & 0x80) == 0) {
+            *p++ = *s;
+            s += 1;
+        } else if ((*s & 0xE0) == 0xC0) {
+            *p++ = ((*s & 0x1F) << 6) | CONT_BYTE(1, 0);
             s += 2;
-        } else if ( (ch & 0xF8) == 0xF0 ) {
-            *p++ = ((ch & 0x07) << 18)
-                | CONT_BYTE(0,12)
-                | CONT_BYTE(1,6)
-                | CONT_BYTE(2,0);
+        } else if ((*s & 0xF0) == 0xE0) {
+            *p++ = ((*s & 0x0F) << 12) | CONT_BYTE(1, 6) | CONT_BYTE(2, 0);
             s += 3;
+        } else if ((*s & 0xF8) == 0xF0) {
+            *p++ = ((*s & 0x07) << 18) | CONT_BYTE(1, 12) | CONT_BYTE(2, 6) | CONT_BYTE(3, 0);
+            s += 4;
         } else {
             // Invalid first byte in UTF-8 sequence
             // Pass with mask 0x7F, to resolve exception around env->NewStringUTF()
-            *p++ = (char) (ch & 0x7F);
+            *p++ = *s & 0x7F;
+            s += 1;
         }
     }
+    *p = '\0';
 }
 
 // Top two bits are 10, i.e. original & 11000000(2) == 10000000(2)
@@ -2828,70 +2833,48 @@ void Utf8ToUnicode(const lUInt8 * src,  int &srclen, lChar32 * dst, int &dstlen)
 }
 
 lString32 Utf8ToUnicode( const char * s ) {
-    if (!s || !s[0])
-      return lString32::empty_str;
-    int len = Utf8CharCount( s );
-    if (!len)
-      return lString32::empty_str;
-    lString32 dst(len, len);
-    lChar32 * p = dst.modify();
-    DecodeUtf8(s, p, len);
-    return dst;
+    return lString32(s);
 }
 
 lString32 Utf8ToUnicode( const char * s, int sz ) {
-    if (!s || !s[0] || sz <= 0)
-      return lString32::empty_str;
-    int len = Utf8CharCount( s, sz );
-    if (!len)
-      return lString32::empty_str;
-    lString32 dst(len, len);
-    lChar32 * p = dst.modify();
-    DecodeUtf8(s, p, len);
-    return dst;
+    return lString32(s, sz);
 }
 
+static void EncodeUtf8(const lChar32 * s, lChar8 * p, int len)
+{
+    for (const lChar8 *endp = p + len; p < endp; ) {
+        lUInt32 ch = *s++;
+        if (!(ch & ~0x7F)) {
+            *p++ = ( (lUInt8)ch );
+        } else if (!(ch & ~0x7FF)) {
+            *p++ = ( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
+            *p++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+        } else if (!(ch & ~0xFFFF)) {
+            *p++ = ( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
+            *p++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+            *p++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+        } else if (!(ch & ~0x1FFFFF)) {
+            *p++ = ( (lUInt8) ( ((ch >> 18) & 0x07) | 0xF0 ) );
+            *p++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
+            *p++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
+            *p++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
+        } else {
+            // invalid codepoint
+            // In Unicode Standard codepoint must be in range U+0000 .. U+10FFFF
+            *p++ = '?';
+        }
+    }
+    *p = '\0';
+}
 
 lString8 UnicodeToUtf8(const lChar32 * s, int count)
 {
-    if (count <= 0)
-      return lString8::empty_str;
-    int len = Utf8ByteCount(s, count);
-    if (len <= 0)
-      return lString8::empty_str;
-    lString8 dst(len, len);
-    lChar8 * buf = dst.modify();
-    {
-        lUInt32 ch;
-        while ((count--) > 0) {
-            ch = *s++;
-            if (!(ch & ~0x7F)) {
-                *buf++ = ( (lUInt8)ch );
-            } else if (!(ch & ~0x7FF)) {
-                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x1F) | 0xC0 ) );
-                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
-            } else if (!(ch & ~0xFFFF)) {
-                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x0F) | 0xE0 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
-            } else if (!(ch & ~0x1FFFFF)) {
-                *buf++ = ( (lUInt8) ( ((ch >> 18) & 0x07) | 0xF0 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 12) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch >> 6) & 0x3F) | 0x80 ) );
-                *buf++ = ( (lUInt8) ( ((ch ) & 0x3F) | 0x80 ) );
-            } else {
-                // invalid codepoint
-                // In Unicode Standard codepoint must be in range U+0000 .. U+10FFFF
-                *buf++ = '?';
-            }
-        }
-    }
-    return dst;
+    return lString8(s, count);
 }
 
 lString8 UnicodeToUtf8( const lString32 & str )
 {
-    return UnicodeToUtf8(str.c_str(), str.length());
+    return lString8(str.c_str());
 }
 
 lString32 ByteToUnicode( const lString8 & str, const lChar32 * table )
