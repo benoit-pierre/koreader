@@ -15,14 +15,14 @@
 
 #include "crsetup.h"
 
-#include <stdlib.h>
-#include <time.h>
-#include "lvtypes.h"
 #include "lvarray.h"
+#include "lvhashtable.h"
+#include "lvmemman.h"
 #include "lvptrvec.h"
 #include "lvref.h"
 #include "lvstring.h"
-#include "lvhashtable.h"
+
+#include <stddef.h>
 
 #ifndef RENDER_PROGRESS_INTERVAL_MILLIS
 #define RENDER_PROGRESS_INTERVAL_MILLIS 300

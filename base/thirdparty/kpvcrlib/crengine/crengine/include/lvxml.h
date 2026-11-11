@@ -17,12 +17,12 @@
 
 #include "crsetup.h"
 
-#include <time.h>
-#include "lvtypes.h"
-#include "lvstring.h"
-#include "lvstream.h"
 #include "crtxtenc.h"
-#include "dtddef.h"
+#include "lvstream.h"
+#include "lvstring.h"
+
+#include <stddef.h>
+#include <time.h>
 
 #define XML_CHAR_BUFFER_SIZE 4096
 #define XML_FLAG_NO_SPACE_TEXT 1

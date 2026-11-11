@@ -17,9 +17,12 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvstream.h"
 #include "lvhashtable.h"
+#include "lvptrvec.h"
+#include "lvstream.h"
+#include "lvstring.h"
+
+#include <stddef.h>
 
 #define WORD_LENGTH   64
 #define MAX_REAL_WORD 24

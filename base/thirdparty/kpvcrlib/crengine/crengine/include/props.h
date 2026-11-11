@@ -14,13 +14,13 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvstring.h"
-#include "lvptrvec.h"
 #include "lvref.h"
-#include "lvstream.h"
+#include "lvstring.h"
+
+#include <stddef.h>
 
 class CRPropAccessor;
+class LVStream;
 typedef LVFastRef<CRPropAccessor> CRPropRef;
 
 /// interface to get/set properties

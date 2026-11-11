@@ -1,5 +1,12 @@
-#include <lvxml.h>
-#include <lvtinydom.h>
+#ifndef ODXUTIL_H_INCLUDED
+#define ODXUTIL_H_INCLUDED
+
+#include "cssdef.h"
+#include "lvhashtable.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+
+#include <stddef.h>
 
 // build FB2 DOM, comment out to build HTML DOM
 #define DOCX_FB2_DOM_STRUCTURE 1
@@ -490,3 +497,5 @@ private:
     ldomNode *m_section;
     bool m_hasTitle;
 };
+
+#endif

@@ -11,6 +11,46 @@
 
 *******************************************************/
 
+#include "crsetup.h"
+#include "lvtinydom.h"
+
+#include "bookformats.h"
+#include "chmfmt.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "hyphman.h"
+#include "lstridmap.h"
+#include "lvdocviewprops.h"
+#include "lvfntman.h"
+#include "lvimg.h"
+#include "lvmemman.h"
+#include "lvpagesplitter.h"
+#include "lvplatform.h"
+#include "lvrend.h"
+#include "lvstream.h"
+#include "lvstsheet.h"
+#include "lvstyles.h"
+#include "lvtextfm.h"
+#include "lvxml.h"
+#include "props.h"
+#include "renderutil.h"
+#include "textlang.h"
+
+#if (USE_ZSTD == 1)
+#include <zstd.h>
+#else
+#include <zlib.h>
+#endif
+#include <xxhash.h>
+#if USE_UTF8PROC == 1
+#include <utf8proc.h>
+#endif
+
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /// Change this in case of incompatible changes in XML parsing or DOM
 // building that could result in XPATHs being different than previously
@@ -94,8 +134,6 @@
 // costly forward sibling scans.
 // Also allows MOBI documents to inject a standalone <a> marker inside text
 // for resolving 'filepos' links (which may split a text node).
-
-#include "crsetup.h"
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
@@ -223,35 +261,6 @@ enum CacheFileBlockType {
     CBT_BLOB_DATA,
     CBT_FONT_DATA  //18
 };
-
-
-#include <stdlib.h>
-#include <string.h>
-#include "../include/lvstring.h"
-#include "../include/lvtinydom.h"
-#include "../include/fb2def.h"
-#if BUILD_LITE!=1
-#include "../include/lvrend.h"
-#include "../include/chmfmt.h"
-#endif
-#include <stddef.h>
-#include <math.h>
-#if (USE_ZSTD == 1)
-#include <zstd.h>
-#else
-#include <zlib.h>
-
-#define PACK_BUF_SIZE 0x10000
-#define UNPACK_BUF_SIZE 0x40000
-#endif
-#include <xxhash.h>
-#include <lvtextfm.h>
-#include "../include/lvdocviewprops.h"
-#include "../include/renderutil.h"
-#if USE_UTF8PROC == 1
-#include <utf8proc.h>
-#endif
-
 
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
@@ -1307,6 +1316,7 @@ bool CacheFile::create( LVStreamRef stream )
 }
 
 #if (USE_ZSTD == 1)
+
 bool CacheFile::allocCompRess(void)
 {
     // printf("CacheFile::allocCompRess\n");
@@ -1517,7 +1527,12 @@ bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &d
     // printf("ldomUnpack() done: %zu -> %zu\n", compsize, uncompressed_size);
     return true;
 }
+
 #else
+
+#define PACK_BUF_SIZE 0x10000
+#define UNPACK_BUF_SIZE 0x40000
+
 /// pack data from buf to dstbuf
 bool CacheFile::ldomPack( const lUInt8 * buf, size_t bufsize, lUInt8 * &dstbuf, lUInt32 & dstsize )
 {
@@ -1602,6 +1617,7 @@ bool CacheFile::ldomUnpack( const lUInt8 * compbuf, size_t compsize, lUInt8 * &d
     // printf("inflate() done %d > %d\n", compsize, uncompressed_size);
     return true;
 }
+
 #endif
 
 // BLOB storage
