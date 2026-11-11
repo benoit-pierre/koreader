@@ -177,8 +177,6 @@ private:
     void makeTop( int index );
 public:
     LVPtrVector<CRFileHistRecord> & getRecords() { return _records; }
-    bool loadFromStream( LVStreamRef stream );
-    bool saveToStream( LVStream * stream );
     CRFileHistRecord * savePosition( lString32 fpathname, size_t sz,
         const lString32 & title,
         const lString32 & author,
