@@ -14,6 +14,21 @@
 */
 
 #include "crsetup.h"
+#include "hyphman.h"
+
+#include "lvfnt.h"
+#include "lvstream.h"
+#include "lvxml.h"
+#include "textlang.h"
+
+#if USE_UTF8PROC==1
+# include <utf8proc.h>
+#endif
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // set to 1 for debug dump
 #if 0
@@ -23,26 +38,6 @@
 #define DUMP_HYPHENATION_WORDS 0
 #define DUMP_PATTERNS 0
 #endif
-
-#include <stdlib.h>
-#include <string.h>
-#if USE_UTF8PROC==1
-#include <utf8proc.h>
-#endif
-#include "../include/lvxml.h"
-
-#if !defined(__SYMBIAN32__)
-#include <stdio.h>
-#include <wchar.h>
-#endif
-
-#include "../include/lvtypes.h"
-#include "../include/lvstream.h"
-#include "../include/hyphman.h"
-#include "../include/lvfnt.h"
-#include "../include/lvstring.h"
-#include "../include/textlang.h"
-
 
 #define _32(x) lString32(x)
 

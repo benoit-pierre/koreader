@@ -3,7 +3,15 @@
 
 #include "crsetup.h"
 
-#include "../include/lvtinydom.h"
+#include "dtddef.h"
+#include "lvstream.h"
+#include "lvstring.h"
+
+#include <stddef.h>
+
+class CacheLoadingCallback;
+class LVDocViewCallback;
+class ldomDocument;
 
 bool DetectEpubFormat( LVStreamRef stream );
 bool ImportEpubDocument( LVStreamRef stream, ldomDocument * doc, LVDocViewCallback * progressCallback,
