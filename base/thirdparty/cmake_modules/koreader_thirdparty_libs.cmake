@@ -44,7 +44,7 @@ target_link_libraries(
     libunibreak::unibreak
     fribidi::fribidi
     libjpeg-turbo::jpeg
-    libpng::png16
+    libspng::spng
     libwebp::webpdemux
     lunasvg::lunasvg
     md4c::html
@@ -130,6 +130,9 @@ if(MONOLIBTIC)
 endif()
 declare_dependency(libressl::crypto MONOLIBTIC crypto LIBRARIES ${CRYPTO_LIBS})
 declare_dependency(libressl::ssl MONOLIBTIC ssl LIBRARIES ${SSL_LIBS})
+
+# libspng
+declare_dependency(libspng::spng MONOLIBTIC spng LIBRARIES m)
 
 # libunibreak
 declare_dependency(libunibreak::unibreak MONOLIBTIC unibreak)
