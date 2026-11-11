@@ -282,64 +282,6 @@ bool LVDocView::isDocumentOpened() {
 			DOC_PROP_FILE_NAME, "").empty();
 }
 
-/// rotate rectangle by current angle, winToDoc==false for doc->window translation, true==ccw
-lvRect LVDocView::rotateRect(lvRect & rc, bool winToDoc) {
-#if CR_INTERNAL_PAGE_ORIENTATION==1
-	lvRect rc2;
-	cr_rotate_angle_t angle = m_rotateAngle;
-	if ( winToDoc )
-	angle = (cr_rotate_angle_t)((4 - (int)angle) & 3);
-	switch ( angle ) {
-		case CR_ROTATE_ANGLE_0:
-		rc2 = rc;
-		break;
-		case CR_ROTATE_ANGLE_90:
-		/*
-		 . . . . . .      . . . . . . . .
-		 . . . . . .      . . . . . 1 . .
-		 . 1 . . . .      . . . . . . . .
-		 . . . . . .  ==> . . . . . . . .
-		 . . . . . .      . 2 . . . . . .
-		 . . . . . .      . . . . . . . .
-		 . . . . 2 .
-		 . . . . . .
-
-		 */
-		rc2.left = m_dy - rc.bottom - 1;
-		rc2.right = m_dy - rc.top - 1;
-		rc2.top = rc.left;
-		rc2.bottom = rc.right;
-		break;
-		case CR_ROTATE_ANGLE_180:
-		rc2.left = m_dx - rc.left - 1;
-		rc2.right = m_dx - rc.right - 1;
-		rc2.top = m_dy - rc.top - 1;
-		rc2.bottom = m_dy - rc.bottom - 1;
-		break;
-		case CR_ROTATE_ANGLE_270:
-		/*
-		 . . . . . .      . . . . . . . .
-		 . . . . . .      . 1 . . . . . .
-		 . . . . 2 .      . . . . . . . .
-		 . . . . . .  <== . . . . . . . .
-		 . . . . . .      . . . . . 2 . .
-		 . . . . . .      . . . . . . . .
-		 . 1 . . . .
-		 . . . . . .
-
-		 */
-		rc2.left = rc.top;
-		rc2.right = rc.bottom;
-		rc2.top = m_dx - rc.right - 1;
-		rc2.bottom = m_dx - rc.left - 1;
-		break;
-	}
-	return rc2;
-#else
-	return rc;
-#endif
-}
-
 /// rotate point by current angle, winToDoc==false for doc->window translation, true==ccw
 lvPoint LVDocView::rotatePoint(lvPoint & pt, bool winToDoc) {
 #if CR_INTERNAL_PAGE_ORIENTATION==1
@@ -2626,57 +2568,6 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
         return res;
     res = LVRef<ldomXRange> (new ldomXRange(start, end));
     return res;
-}
-
-/// returns number of non-space characters on current page
-int LVDocView::getCurrentPageCharCount()
-{
-    lString32 text = getPageText(true);
-    int count = 0;
-    for (int i=0; i<text.length(); i++) {
-        lChar32 ch = text[i];
-        if (ch>='0')
-            count++;
-    }
-    return count;
-}
-
-/// returns number of images on current page
-int LVDocView::getCurrentPageImageCount()
-{
-    CHECK_RENDER("getCurPageImgCount()")
-    LVRef<ldomXRange> range = getPageDocumentRange(-1);
-    class ImageCounter : public ldomNodeCallback {
-        int count;
-    public:
-        int get() { return count; }
-        ImageCounter() : count(0) { }
-        /// called for each found text fragment in range
-        virtual void onText(ldomXRange *) { }
-        /// called for each found node in range
-        virtual bool onElement(ldomXPointerEx * ptr) {
-            lString32 nodeName = ptr->getNode()->getNodeName();
-            if (nodeName == "img" || nodeName == "image")
-                count++;
-			return true;
-        }
-
-    };
-    ImageCounter cnt;
-    if (!range.isNull())
-        range->forEach(&cnt);
-    return cnt.get();
-}
-
-/// get page text, -1 for current page
-lString32 LVDocView::getPageText(bool, int pageIndex) {
-	LVLock lock(getMutex());
-    CHECK_RENDER("getPageText()")
-	lString32 txt;
-	LVRef < ldomXRange > range = getPageDocumentRange(pageIndex);
-	if (!range.isNull())
-		txt = range->getRangeText();
-	return txt;
 }
 
 void LVDocView::setRenderProps(int dx, int dy) {
