@@ -11243,7 +11243,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted, int * ct
                             return true;
                         }
                         lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
-                        font->measureText(
+                        int count = font->measureText(
                             str.c_str()+word->t.start,
                             word->t.len,
                             w,
@@ -11254,6 +11254,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted, int * ct
                             src->letter_spacing + word->added_letter_spacing,
                             false,
                             hints );
+                        for (; count <= word->t.len; ++count)
+                            w[count] = 0;
                         // chx is the width of previous chars in the word
                         int chx = (offset > word->t.start) ? w[ offset - word->t.start - 1 ] : 0;
                         rect.left = word->x + chx + rc.left + frmline->x;
