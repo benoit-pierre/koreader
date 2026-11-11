@@ -198,7 +198,7 @@ LVDocView::LVDocView(int bitsPerPixel, bool noDefaultDocument) :
             m_backgroundTiled(true),
             m_stylesheetUseMacros(true),
             m_stylesheetNeedsUpdate(true),
-            m_highlightBookmarks(1),
+            m_highlightBookmarks(highlight_mode_none),
 			m_pageMargins(DEFAULT_PAGE_MARGIN,
 					DEFAULT_PAGE_MARGIN / 2 /*+ INFO_FONT_SIZE + 4 */,
 					DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN / 2),
@@ -2405,7 +2405,7 @@ void LVDocView::setRenderProps(int dx, int dy) {
     updateDocStyleSheet();
 
     text_highlight_options_t h;
-    h.bookmarkHighlightMode = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
+    h.bookmarkHighlightMode = m_props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_none);
     h.selectionColor = (m_props->getColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0) & 0xFFFFFF);
     h.commentColor = (m_props->getColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08000) & 0xFFFFFF);
     h.correctionColor = (m_props->getColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA00000) & 0xFFFFFF);
@@ -2609,7 +2609,7 @@ void LVDocView::updateBookMarksRanges()
     LVLock lock(getMutex());
 
     ldomXRangeList ranges;
-    CRFileHistRecord * rec = m_highlightBookmarks ? getCurrentFileHistRecord() : NULL;
+    CRFileHistRecord * rec = m_highlightBookmarks != highlight_mode_none ? getCurrentFileHistRecord() : NULL;
     if (rec) {
         LVPtrVector<CRBookmark> &bookmarks = rec->getBookmarks();
         for (int i = 0; i < bookmarks.length(); i++) {
@@ -4641,9 +4641,9 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 	props->limitValueList(PROP_SHOW_TIME, bool_options_def_false, 2);
 	// props->limitValueList(PROP_FONT_KERNING_ENABLED, bool_options_def_false, 2);
     //props->limitValueList(PROP_FLOATING_PUNCTUATION, bool_options_def_true, 2);
-    static int def_bookmark_highlight_modes[] = { 0, 1, 2 };
-    props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
-    props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, def_bookmark_highlight_modes, sizeof(def_bookmark_highlight_modes)/sizeof(int));
+    static int def_bookmark_highlight_modes[] = { highlight_mode_none, highlight_mode_solid, highlight_mode_underline };
+    props->setIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_none);
+    props->limitValueList(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, def_bookmark_highlight_modes, sizeof(def_bookmark_highlight_modes)/sizeof(def_bookmark_highlight_modes[0]));
     props->setColorDef(PROP_HIGHLIGHT_SELECTION_COLOR, 0xC0C0C0); // silver
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_COMMENT, 0xA08020); // yellow
     props->setColorDef(PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xA04040); // red
@@ -5112,7 +5112,7 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
                 if (getDocument()->setCJKWidthScalePercent(value))
                     REQUEST_RENDER("propsApply CJK width scale percent")
         } else if (name == PROP_HIGHLIGHT_COMMENT_BOOKMARKS) {
-            int value = props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_underline);
+            highlight_mode_e value = (highlight_mode_e)props->getIntDef(PROP_HIGHLIGHT_COMMENT_BOOKMARKS, highlight_mode_none);
             if (m_highlightBookmarks != value) {
                 m_highlightBookmarks = value;
                 updateBookMarksRanges();
