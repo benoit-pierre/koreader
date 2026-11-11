@@ -273,7 +273,7 @@ endif
 BINCHECK_LD_PATH += $(STAGING_DIR)/bincheck $(OUTPUT_DIR)/libs
 
 # Sysroot.
-BINCHECK_LD_PATH += $(shell $(CC) -print-search-dirs | sed -n '/^libraries: =/{s///;s/:/ /gp}')
+BINCHECK_LD_PATH += $(shell env LC_ALL=C $(CC) -print-search-dirs | sed -n '/^libraries: =/{s///;s/:/ /gp}')
 
 bincheck: $(BINCHECK_DEPS)
 	$(KOR_BASE)/utils/bincheck.py $(if $(GLIBC_VERSION_MAX),--glibc-version-max $(GLIBC_VERSION_MAX) )'$(subst $(empty) $(empty),:,$(strip $(BINCHECK_LD_PATH)))' $(BINARY_PATHS)
