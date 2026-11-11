@@ -23,7 +23,7 @@ case "${linker_version}" in
         vsarg='--version-script=%s\n'
         vsfmt='version'
         ;;
-    GNU\ gold | LLD\ *)
+    GNU\ gold | LLD\ * | Wild\ *)
         symarg='--undefined=%s\n'
         vsarg='--version-script=%s\n'
         vsfmt='version'
