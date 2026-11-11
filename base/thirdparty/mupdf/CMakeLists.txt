@@ -58,12 +58,15 @@ string(APPEND XCFLAGS
     # - builtin fonts
     # - CMYK plotter only 100 kB
     # - hyphenation (~700 kB)
-    # - formats already supported by crengine: Markdown
+    # - formats already supported by crengine: FB2, EPUB, Markdown, MOBI
     # - miscellaneous output formats: DOCX, OCR, ODT
     " -DNOBUILTINFONT"
     " -DFZ_ENABLE_DOCX_OUTPUT=0"
+    " -DFZ_ENABLE_EPUB=0"
+    " -DFZ_ENABLE_FB2=0"
     " -DFZ_ENABLE_HYPHEN=0"
     " -DFZ_ENABLE_MD=0"
+    " -DFZ_ENABLE_MOBI=0"
     " -DFZ_ENABLE_OCR_OUTPUT=0"
     " -DFZ_ENABLE_ODT_OUTPUT=0"
     " -DFZ_PLOTTERS_CMYK=0"
