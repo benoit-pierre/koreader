@@ -1681,7 +1681,7 @@ public:
         return true;
     }
     /// add one paragraph
-    void AddEmptyLine( LVXMLParserCallback * callback )
+    static void AddEmptyLine( LVXMLParserCallback * callback )
     {
         callback->OnTagOpenAndClose( NULL, U"empty-line" );
     }
@@ -1804,7 +1804,7 @@ public:
                 line << ch;
         }
 
-        const lChar32 * getStyleTagName( lChar32 ch ) {
+        static const lChar32 * getStyleTagName( lChar32 ch ) {
             switch ( ch ) {
             case 'b':
             case 'B':
@@ -2016,7 +2016,7 @@ public:
             }
         }
 
-        lString32 readParam( const lChar32 * str, int & j ) {
+        static lString32 readParam( const lChar32 * str, int & j ) {
             lString32 res;
             if ( str[j]!='=' || str[j+1]!='\"' )
                 return res;
