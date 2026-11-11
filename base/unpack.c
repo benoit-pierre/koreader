@@ -111,81 +111,6 @@ end:
     return err;
 }
 
-static int _archive_total_size(struct archive *archive, const char *path, la_int64_t *ps, struct archive_entry **pe) {
-    enum {
-        SIZE_FROM_FILE_SIZE,
-        SIZE_FROM_GZIP_FOOTER,
-        SIZE_FROM_XZ_INDEX,
-    }                     mode;
-    struct archive_entry *entry;
-    int                   err;
-
-    if (!path) {
-        archive_set_error(archive, ARCHIVE_FAILED, "Cannot determize size of standard input");
-        return ARCHIVE_FAILED;
-    }
-
-    err = archive_read_next_header(archive, &entry);
-    if (err != ARCHIVE_OK)
-        return err;
-
-    switch (archive_format(archive)) {
-    case ARCHIVE_FORMAT_TAR:
-    case ARCHIVE_FORMAT_TAR_USTAR:
-    case ARCHIVE_FORMAT_TAR_PAX_INTERCHANGE:
-    case ARCHIVE_FORMAT_TAR_PAX_RESTRICTED:
-    case ARCHIVE_FORMAT_TAR_GNUTAR:
-        {
-            switch (archive_filter_code(archive, 0)) {
-            case ARCHIVE_FILTER_NONE:
-                mode = SIZE_FROM_FILE_SIZE;
-                break;
-            case ARCHIVE_FILTER_GZIP:
-                mode = SIZE_FROM_GZIP_FOOTER;
-                break;
-            case ARCHIVE_FILTER_XZ:
-                mode = SIZE_FROM_XZ_INDEX;
-                break;
-            default:
-                archive_set_error(archive, ARCHIVE_FAILED, "Unsupported TAR compression filter");
-                return ARCHIVE_FAILED;
-            }
-        }
-        break;
-    case ARCHIVE_FORMAT_ZIP:
-        mode = SIZE_FROM_FILE_SIZE;
-        break;
-    default:
-        archive_set_error(archive, ARCHIVE_FAILED, "Unrecognized or unsupported archive format");
-        return ARCHIVE_FAILED;
-    }
-
-    switch (mode) {
-    case SIZE_FROM_FILE_SIZE:
-        {
-            struct stat st;
-
-            if (stat(path, &st)) {
-                archive_set_error(archive, ARCHIVE_FAILED, "%s", strerror(errno));
-                return ARCHIVE_FAILED;
-            }
-
-            *ps = st.st_size;
-        }
-        break;
-    case SIZE_FROM_GZIP_FOOTER:
-        err = _gzip_size(archive, path, ps);
-        break;
-    case SIZE_FROM_XZ_INDEX:
-        err = _xz_size(archive, path, ps);
-        break;
-    }
-
-    *pe = entry;
-
-    return ARCHIVE_OK;
-}
-
 static int _archive_list(struct archive *archive) {
     struct archive_entry *entry;
     int                   err;
@@ -204,6 +129,7 @@ static int _archive_list(struct archive *archive) {
 
 struct progress_ctx {
     struct archive *archive;
+    int             filter;
     la_int64_t      progress;
     double          percent;
     double          size;
@@ -254,13 +180,107 @@ static void print_progress(struct progress_ctx *ctx, la_int64_t progress) {
         line_length = snprintf(line, sizeof (line), "\r%5.1f%c", size, size_unit);
     }
 
+#if 0 // for debuging
+    fprintf(stderr, "%lu/%lu\n", ctx->progress, ctx->total_size);
+#else
     write(1, line, line_length);
+#endif
 }
 
 static void extract_progress(void *u) {
     struct progress_ctx *ctx = u;
 
-    print_progress(ctx, archive_filter_bytes(ctx->archive, 0));
+    print_progress(ctx, archive_filter_bytes(ctx->archive, ctx->filter));
+}
+
+static int _archive_progress_setup(struct archive *archive, const char *path, struct progress_ctx *ctx, struct archive_entry **pe) {
+    enum {
+        SIZE_FROM_FILE_SIZE,
+        SIZE_FROM_GZIP_FOOTER,
+        SIZE_FROM_XZ_INDEX,
+    }                     mode;
+    struct archive_entry *entry;
+    int                   err;
+
+    ctx->archive = archive;
+    ctx->progress = 0;
+    ctx->filter = 0;
+    ctx->percent = -1;
+    ctx->size_unit = '\0';
+    ctx->size = 0;
+    ctx->total_size = 0;
+
+    archive_read_extract_set_progress_callback(archive, extract_progress, ctx);
+
+    if (!path)
+        return ARCHIVE_OK;
+
+    err = archive_read_next_header(archive, &entry);
+    if (err != ARCHIVE_OK)
+        return err;
+
+    switch (archive_format(archive)) {
+    case ARCHIVE_FORMAT_TAR:
+    case ARCHIVE_FORMAT_TAR_USTAR:
+    case ARCHIVE_FORMAT_TAR_PAX_INTERCHANGE:
+    case ARCHIVE_FORMAT_TAR_PAX_RESTRICTED:
+    case ARCHIVE_FORMAT_TAR_GNUTAR:
+        {
+            switch (archive_filter_code(archive, 0)) {
+            case ARCHIVE_FILTER_NONE:
+                mode = SIZE_FROM_FILE_SIZE;
+                break;
+            case ARCHIVE_FILTER_GZIP:
+                mode = SIZE_FROM_GZIP_FOOTER;
+                break;
+            case ARCHIVE_FILTER_XZ:
+                mode = SIZE_FROM_XZ_INDEX;
+                break;
+            case ARCHIVE_FILTER_ZSTD:
+                // No way to know how much uncompressed data there will be:
+                // there might be multiple ZSTD frames, and their uncompressed
+                // size fields won't be set if streaming compression was used.
+                mode = SIZE_FROM_FILE_SIZE;
+                break;
+            default:
+                archive_set_error(archive, ARCHIVE_FAILED, "Unsupported TAR compression filter");
+                return ARCHIVE_FAILED;
+            }
+        }
+        break;
+    case ARCHIVE_FORMAT_ZIP:
+        mode = SIZE_FROM_FILE_SIZE;
+        break;
+    default:
+        archive_set_error(archive, ARCHIVE_FAILED, "Unrecognized or unsupported archive format");
+        return ARCHIVE_FAILED;
+    }
+
+    switch (mode) {
+    case SIZE_FROM_FILE_SIZE:
+        {
+            struct stat st;
+
+            if (stat(path, &st)) {
+                archive_set_error(archive, ARCHIVE_FAILED, "%s", strerror(errno));
+                return ARCHIVE_FAILED;
+            }
+
+            ctx->filter = -1;
+            ctx->total_size = st.st_size;
+        }
+        break;
+    case SIZE_FROM_GZIP_FOOTER:
+        err = _gzip_size(archive, path, &ctx->total_size);
+        break;
+    case SIZE_FROM_XZ_INDEX:
+        err = _xz_size(archive, path, &ctx->total_size);
+        break;
+    }
+
+    *pe = entry;
+
+    return ARCHIVE_OK;
 }
 
 static int _archive_extract(struct archive *archive, const char *path, int progress) {
@@ -272,23 +292,11 @@ static int _archive_extract(struct archive *archive, const char *path, int progr
     o = archive_write_disk_new();
 
     if (progress) {
-        progress_ctx.archive = archive;
-        progress_ctx.progress = 0;
-        progress_ctx.percent = -1;
-        progress_ctx.size_unit = '\0';
-        progress_ctx.size = 0;
-        progress_ctx.total_size = 0;
-
-        // Disable output buffering.
-        setvbuf(stdout, NULL, _IONBF, 0);
-
-        archive_read_extract_set_progress_callback(archive, extract_progress, &progress_ctx);
-        if (path) {
-            err = _archive_total_size(archive, path, &progress_ctx.total_size, &entry);
-            if (err != ARCHIVE_OK)
-                return err;
-            goto direct_to_extract;
-        }
+        err = _archive_progress_setup(archive, path, &progress_ctx, &entry);
+        if (err != ARCHIVE_OK)
+            return err;
+        if (path)
+            goto direct_to_extract; // first header already read
     }
 
     for (;;) {
@@ -350,6 +358,7 @@ int main(int argc, char **argv) {
     archive_read_support_filter_gzip(archive);
     archive_read_support_filter_none(archive);
     archive_read_support_filter_xz(archive);
+    archive_read_support_filter_zstd(archive);
     archive_read_support_format_tar(archive);
     archive_read_support_format_zip(archive);
 
