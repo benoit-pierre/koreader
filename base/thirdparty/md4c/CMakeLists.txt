@@ -1,0 +1,20 @@
+list(APPEND PATCH_FILES cmake_tweaks.patch)
+
+list(APPEND CMAKE_ARGS
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DBUILD_MD2HTML_EXECUTABLE=FALSE
+    -DBUILD_SHARED_LIBS=FALSE
+)
+
+list(APPEND BUILD_CMD COMMAND ninja)
+
+list(APPEND INSTALL_CMD COMMAND ${CMAKE_COMMAND} --install .)
+
+external_project(
+    DOWNLOAD URL 772ec5cb73185df15d3df89cf5d942eb
+    https://github.com/mity/md4c/archive/refs/tags/v0.6.0.tar.gz
+    PATCH_FILES ${PATCH_FILES}
+    CMAKE_ARGS ${CMAKE_ARGS}
+    BUILD_COMMAND ${BUILD_CMD}
+    INSTALL_COMMAND ${INSTALL_CMD}
+)
