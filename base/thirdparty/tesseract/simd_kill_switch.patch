@@ -1,0 +1,65 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index acc47e26..5465c563 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -95,6 +95,7 @@ option(ENABLE_LTO "Enable link-time optimization" OFF)
+ option(FAST_FLOAT "Enable float for LSTM" ON)
+ option(ENABLE_NATIVE
+        "Enable optimization for host CPU (could break HW compatibility)" OFF)
++option(ENABLE_SIMD "Enable SIMD optimization" ON)
+ # see
+ # https://stackoverflow.com/questions/52653025/why-is-march-native-used-so-rarely
+ option(BUILD_TRAINING_TOOLS "Build training tools" ON)
+@@ -172,6 +173,8 @@ endif(ENABLE_NATIVE)
+ 
+ message(STATUS "CMAKE_SYSTEM_PROCESSOR=<${CMAKE_SYSTEM_PROCESSOR}>")
+ 
++if(ENABLE_SIMD)
++add_definitions("-DENABLE_SIMD")
+ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
+ 
+   set(HAVE_NEON FALSE)
+@@ -280,6 +283,7 @@ else()
+   set(HAVE_SSE4_1 FALSE)
+ 
+ endif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64|amd64|i386|i686")
++endif()
+ 
+ if(HAVE_NEON)
+   message(STATUS "LTO build is not supported on arm/RBPi.")
+diff --git a/src/arch/simddetect.cpp b/src/arch/simddetect.cpp
+index 132ef8e4..6b0b1c93 100644
+--- a/src/arch/simddetect.cpp
++++ b/src/arch/simddetect.cpp
+@@ -174,6 +174,7 @@ SIMDDetect::SIMDDetect() {
+   // The fallback is a generic dot product calculation.
+   SetDotProduct(DotProductGeneric);
+ 
++#if defined(ENABLE_SIMD)
+ #if defined(HAS_CPUID)
+ #  if defined(__GNUC__)
+   unsigned int eax, ebx, ecx, edx;
+@@ -306,6 +307,7 @@ SIMDDetect::SIMDDetect() {
+     SetDotProduct(DotProductGeneric, &IntSimdMatrix::intSimdMatrixRVV);
+ #endif
+   }
++#endif
+ 
+ }
+ 
+@@ -325,6 +327,7 @@ void SIMDDetect::Update() {
+     // Native optimized code selected by config variable.
+     SetDotProduct(DotProductNative, IntSimdMatrix::intSimdMatrix);
+     dotproduct_method = "native";
++#if defined(ENABLE_SIMD)
+ #if defined(HAVE_AVX2)
+   } else if (dotproduct == "avx2") {
+     // AVX2 selected by config variable.
+@@ -358,6 +361,7 @@ void SIMDDetect::Update() {
+     // NEON selected by config variable.
+     SetDotProduct(DotProductNEON, &IntSimdMatrix::intSimdMatrixNEON);
+     dotproduct_method = "neon";
++#endif
+ #endif
+   } else if (dotproduct == "std::inner_product") {
+     // std::inner_product selected by config variable.
