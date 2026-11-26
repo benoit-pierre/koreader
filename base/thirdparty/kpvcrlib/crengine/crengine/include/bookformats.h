@@ -3,9 +3,6 @@
 
 #include "crsetup.h"
 
-#include "lvtypes.h"
-#include "lvstring.h"
-
 /// source document formats
 typedef enum {
     doc_format_none,

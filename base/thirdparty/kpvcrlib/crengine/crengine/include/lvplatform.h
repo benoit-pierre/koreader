@@ -13,7 +13,10 @@
 
 #include "crsetup.h"
 
-#include <fcntl.h>
+#include <fcntl.h> // NOLINT(misc-include-cleaner)
+#if !defined(__APPLE__)
+# include <features.h>
+#endif
 
 /// platform-dependent path separator
 #if defined(_WIN32) && !defined(__WINE__)

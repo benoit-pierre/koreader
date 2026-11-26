@@ -12,27 +12,51 @@
  *******************************************************/
 
 #include "crsetup.h"
+#include "lvdocview.h"
+#include "lvdocviewprops.h"
 
-#include "../include/fb2def.h"
-#include "../include/lvdocview.h"
-#include "../include/rtfimp.h"
+#include "bookformats.h"
+#include "cssdef.h"
+#include "fb2def.h"
+#include "hist.h"
+#include "hyphman.h"
+#include "lvdrawbuf.h"
+#include "lvfntman.h"
+#include "lvimg.h"
+#include "lvpagesplitter.h"
+#include "lvrend.h"
+#include "lvstream.h"
+#include "lvtextfm.h"
+#include "lvthread.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+#include "props.h"
+#include "rtfimp.h"
+#include "textlang.h"
 
-#include "../include/lvstyles.h"
-#include "../include/lvrend.h"
-#include "../include/lvstsheet.h"
-#include "../include/textlang.h"
+#if (USE_ZLIB==1)
+# if CHM_SUPPORT_ENABLED==1
+#  include "chmfmt.h"
+# endif
+# include "docxfmt.h"
+# include "fb3fmt.h"
+# include "epubfmt.h"
+# if (USE_MD4C == 1)
+#  include "mdfmt.h"
+# endif
+# include "odtfmt.h"
+# include "pdbfmt.h"
+# if ENABLE_ANTIWORD==1
+#  include "wordfmt.h"
+# endif
+#endif
 
-// #include "../include/wolutil.h"
-#include "../include/crtxtenc.h"
-#include "../include/crtrace.h"
-#include "../include/epubfmt.h"
-#include "../include/chmfmt.h"
-#include "../include/wordfmt.h"
-#include "../include/pdbfmt.h"
-#include "../include/fb3fmt.h"
-#include "../include/docxfmt.h"
-#include "../include/odtfmt.h"
-#include "mdfmt.h"
+#define XS_IMPLEMENT_SCHEME 1
+#include "fb2def.h"
+
+#include <assert.h>
+#include <stdio.h>
+#include <time.h>
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
@@ -3250,9 +3274,6 @@ void LVDocView::Resize(int dx, int dy) {
 	m_dx = dx;
 	m_dy = dy;
 }
-
-#define XS_IMPLEMENT_SCHEME 1
-#include "../include/fb2def.h"
 
 /// returns pointer to bookmark/last position containter of currently opened file
 CRFileHistRecord * LVDocView::getCurrentFileHistRecord() {

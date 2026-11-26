@@ -1,11 +1,22 @@
 #include "crsetup.h"
+#include "epubfmt.h"
 
-#include "../include/epubfmt.h"
-#include "../include/fb2def.h"
+#include "fb2def.h"
+#include "lvimg.h"
+#include "lvstream.h"
+#include "lvtinydom.h"
+#include "lvxml.h"
+#include "props.h"
 
 #if (USE_ZLIB==1)
 #include <zlib.h>
 #endif
+
+#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 class EpubItem {
 public:

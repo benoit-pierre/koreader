@@ -12,8 +12,9 @@
 *******************************************************/
 
 #include "crsetup.h"
+#include "lvstyles.h"
 
-#include "../include/lvstyles.h"
+#include "cssdef.h"
 
 // #include <stdio.h>
 
