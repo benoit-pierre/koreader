@@ -60,7 +60,6 @@ set(CRE_SRCS
     crengine/src/renderutil.cpp
     crengine/src/rtfimp.cpp
     crengine/src/textlang.cpp
-    crengine/src/txtselector.cpp
     crengine/src/wordfmt.cpp
 )
 
