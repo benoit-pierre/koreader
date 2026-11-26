@@ -4652,5 +4652,4 @@ __attribute__((destructor)) static void cre_teardown(void) {
     ShutdownFontManager();
     CRLog::setLogger( NULL );
     ldomDocCache::close();
-    clear_cs();
 }
