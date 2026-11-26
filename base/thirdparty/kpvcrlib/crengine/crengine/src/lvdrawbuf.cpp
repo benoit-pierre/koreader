@@ -271,6 +271,8 @@ lUInt8 revByteBits2( lUInt8 b )
         |  ( (b&0xC0)>>6 );
 }
 
+#if (COLOR_BACKBUFFER==1)
+
 /// rotates buffer contents by specified angle
 void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
 {
@@ -335,6 +337,8 @@ void LVGrayDrawBuf::Rotate( cr_rotate_angle_t angle )
     _dy = tmp;
     _rowsize = newrowsize;
 }
+
+#endif
 
 /// rotates buffer contents by specified angle
 void LVColorDrawBuf::Rotate( cr_rotate_angle_t angle )
@@ -889,6 +893,8 @@ int  LVBaseDrawBuf::GetHeight() const
 {
     return _dy;
 }
+
+#if (COLOR_BACKBUFFER==1)
 
 int  LVGrayDrawBuf::GetBitsPerPixel() const
 {
@@ -1518,6 +1524,8 @@ void LVGrayDrawBuf::Invert()
         *p++ ^= 0xFF;
     }
 }
+
+#endif
 
 //=======================================================
 // 32-bit RGB buffer
