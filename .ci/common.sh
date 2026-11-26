@@ -10,7 +10,7 @@ declare -r ANSI_BLUE=$'\033[34;1m'
 declare -r ANSI_RESET=$'\033[0m'
 
 # shellcheck disable=SC2034
-declare -r OTA_RELEASE='ota'
+declare -r OTA_RELEASE='bpierre'
 
 DRY_RUN="${DRY_RUN:-}"
 
