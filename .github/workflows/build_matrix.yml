@@ -17,6 +17,9 @@ on:
       jobs:
         required: true
         type: string
+      ref:
+        required: false
+        type: string
 
 jobs:
 
@@ -52,6 +55,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           filter: tree:0
+          ref: ${{ inputs.ref }}
           show-progress: false
 
       - name: Checkout submodules

@@ -37,6 +37,10 @@ on:
         default: false
         required: false
         type: boolean
+      ref:
+        description: 'The branch, tag or SHA to build'
+        required: false
+        type: string
       tests:
         description: 'Run tests'
         default: false
@@ -60,6 +64,7 @@ jobs:
         with:
           clean: false
           fetch-depth: 1
+          ref: ${{ inputs.ref }}
           show-progress: false
           sparse-checkout: .ci
       - name: Generate outputs
@@ -68,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -o noglob
-          ./.ci/build_matrix_generate.sh '${{ toJSON(inputs) }}' ${{ github.ref_type == 'branch' && github.ref || 'master' }} ${{ github.base_ref }}
+          ./.ci/build_matrix_generate.sh '${{ toJSON(inputs) }}' ${{ inputs.ref || (github.ref_type == 'branch' && github.ref || 'master') }} ${{ inputs.ref && 'master' || github.base_ref }}
     outputs:
       jobs: ${{ steps.generate.outputs.jobs }}
 
@@ -83,6 +88,7 @@ jobs:
       cache_epoch: ${{ inputs.cache_epoch }}
       fail_fast: ${{ inputs.fail_fast || true }}
       jobs: ${{ fromJSON(needs.prepare.outputs.jobs).emulator }}
+      ref: ${{ inputs.ref }}
 
   platform:
     needs: [prepare, emulator]
@@ -96,5 +102,6 @@ jobs:
       cache_epoch: ${{ inputs.cache_epoch }}
       fail_fast: ${{ inputs.fail_fast }}
       jobs: ${{ fromJSON(needs.prepare.outputs.jobs).platform }}
+      ref: ${{ inputs.ref }}
 
 # vim: foldmethod=marker foldlevel=0
