@@ -1,38 +1,13 @@
+diff --git a/lib/dictBuilder/cover.c b/lib/dictBuilder/cover.c
+index 9210526..c23464c 100644
 --- a/lib/dictBuilder/cover.c
 +++ b/lib/dictBuilder/cover.c
-@@ -241,7 +241,7 @@
-   unsigned d;
- } COVER_ctx_t;
+@@ -76,6 +76,8 @@
+ #define ZDICT_QSORT_C11 ZDICT_QSORT_MAX
+ #define ZDICT_QSORT_MAX 4
  
--#if !defined(_GNU_SOURCE) && !defined(__APPLE__) && !defined(_MSC_VER)
-+#if 1
- /* C90 only offers qsort() that needs a global context. */
- static COVER_ctx_t *g_coverCtx = NULL;
- #endif
-@@ -290,7 +290,7 @@
-  */
- #if (defined(_WIN32) && defined(_MSC_VER)) || defined(__APPLE__)
- static int WIN_CDECL COVER_strict_cmp(void* g_coverCtx, const void* lp, const void* rp) {
--#elif defined(_GNU_SOURCE)
-+#elif 0
- static int COVER_strict_cmp(const void *lp, const void *rp, void *g_coverCtx) {
- #else /* C90 fallback.*/
- static int COVER_strict_cmp(const void *lp, const void *rp) {
-@@ -306,7 +306,7 @@
-  */
- #if (defined(_WIN32) && defined(_MSC_VER)) || defined(__APPLE__)
- static int WIN_CDECL COVER_strict_cmp8(void* g_coverCtx, const void* lp, const void* rp) {
--#elif defined(_GNU_SOURCE)
-+#elif 0
- static int COVER_strict_cmp8(const void *lp, const void *rp, void *g_coverCtx) {
- #else /* C90 fallback.*/
- static int COVER_strict_cmp8(const void *lp, const void *rp) {
-@@ -328,7 +328,7 @@
-     qsort_r(ctx->suffix, ctx->suffixSize, sizeof(U32),
-             ctx,
-             (ctx->d <= 8 ? &COVER_strict_cmp8 : &COVER_strict_cmp));
--#elif defined(_GNU_SOURCE)
-+#elif 0
-     qsort_r(ctx->suffix, ctx->suffixSize, sizeof(U32),
-             (ctx->d <= 8 ? &COVER_strict_cmp8 : &COVER_strict_cmp),
-             ctx);
++#define ZDICT_QSORT  ZDICT_QSORT_C90
++
+ #ifndef ZDICT_QSORT
+ # if defined(__APPLE__)
+ #   define ZDICT_QSORT ZDICT_QSORT_APPLE /* uses qsort_r() with a different order for parameters */
