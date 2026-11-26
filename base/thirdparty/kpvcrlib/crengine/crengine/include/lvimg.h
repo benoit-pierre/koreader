@@ -78,10 +78,7 @@ typedef LVRef< LVImageSource > LVImageSourceRef;
 
 class LVImageSource : public CacheableObject
 {
-	CR9PatchInfo * _ninePatch;
 public:
-	virtual const CR9PatchInfo * GetNinePatchInfo() { return _ninePatch; }
-	virtual CR9PatchInfo *  DetectNinePatch();
     virtual ldomDocument * GetSourceDocument() = 0;
     virtual ldomNode * GetSourceNode() = 0;
     virtual LVStream * GetSourceStream() = 0;
@@ -95,8 +92,6 @@ public:
     }
     virtual LVImageSourceRef GetImageSource() { return LVImageSourceRef(this); }
     virtual bool   Decode( LVImageDecoderCallback * callback ) = 0;
-    LVImageSource() : _ninePatch(NULL) {}
-    virtual ~LVImageSource();
 };
 
 /// type of image transform
