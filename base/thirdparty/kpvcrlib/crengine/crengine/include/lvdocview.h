@@ -217,8 +217,6 @@ private:
     /// custom page info (curpage / nbpages %) can be set by frontend
     lString32 m_pageInfoOverride;
 
-    int m_drawBufferBits;
-
     /// sets current document format
     void setDocFormat( doc_format_t fmt );
 
@@ -233,15 +231,10 @@ private:
     bool ParseDocument( );
     /// format of document from cache is known
     virtual void OnCacheFileFormatDetected( doc_format_t fmt );
-    void insertBookmarkPercentInfo(int start_page, int end_y, int percent);
 
     void updateDocStyleSheet();
 
 protected:
-    /// returns document offset for next page
-    int getNextPageOffset();
-    /// returns document offset for previous page
-    int getPrevPageOffset();
     /// create document and set flags
     void createEmptyDocument();
 public:
@@ -261,8 +254,6 @@ public:
 
     /// close document
     void close();
-    /// set buffer format
-    void setDrawBufferBits( int bits ) { m_drawBufferBits = bits; }
     /// substitute page header with custom text (e.g. to be used while loading)
     void setPageHeaderOverride( lString32 s );
     /// substitute page info (curpage / nbpages %) with custom text
@@ -310,7 +301,7 @@ public:
     /// get background image
     LVImageSourceRef getBackgroundImage() const { return m_backgroundImage; }
     /// set background image
-    void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; m_backgroundImageScaled.Clear(); clearImageCache(); }
+    void setBackgroundImage(LVImageSourceRef bgImage, bool tiled=true) { m_backgroundImage = bgImage; m_backgroundTiled=tiled; m_backgroundImageScaled.Clear(); }
     /// clears page background
     virtual void drawPageBackground( LVDrawBuf & drawbuf, int offsetX, int offsetY, int alpha = 0);
 
@@ -356,8 +347,6 @@ public:
     void setStatusFontFace( const lString8 & newFace );
     /// invalidate formatted data, request render
     void requestRender();
-    /// invalidate image cache, request redraw
-    void clearImageCache();
     /// return view mutex
     LVMutex & getMutex() { return _mutex; }
     /// update selection ranges
@@ -473,7 +462,6 @@ public:
     void setBackgroundColor( lUInt32 cl )
     {
         m_backgroundColor = cl;
-        clearImageCache();
     }
     /// returns text color
     lUInt32 getTextColor()
@@ -485,7 +473,6 @@ public:
     {
         m_textColor = cl;
         m_props->setColor(PROP_FONT_COLOR, cl);
-        clearImageCache();
     }
 
     /// returns text color
@@ -497,7 +484,6 @@ public:
     void setStatusColor( lUInt32 cl )
     {
         m_statusColor = cl;
-        clearImageCache();
     }
 
     /// returns xpointer for specified window point
