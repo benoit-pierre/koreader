@@ -92,6 +92,7 @@ local _SOURCE_FILE_EXTS = {
   [".cc"] = true,
   [".cxx"] = true,
   [".c"] = true,
+  [".h"] = true,
 }
 
 local function is_source_file (path)
@@ -188,13 +189,52 @@ local function load_compile_db (first_src_file)
   return bcache.parse_json(load_file(compile_db_path))
 end
 
+local function get_common_path_prefix(path1, path2)
+  local it1 = bcache.get_dir_part(path1):gmatch("([^/]+)")
+  local it2 = bcache.get_dir_part(path2):gmatch("([^/]+)")
+  local prefix = {}
+  while true do
+    local seg1, seg2 = it1(), it2()
+    if not seg1 or seg1 ~= seg2 then
+      break
+    end
+    table.insert(prefix, seg1)
+  end
+  return table.concat(prefix, "/"), #prefix
+end
+
 local function get_compile_cmd (compile_db, src_path)
   for _, entry in ipairs(compile_db) do
     if entry.file == src_path then
       return entry.command, entry.directory
     end
   end
-  error("Entry for " .. src_path .. " not found in compilation database")
+  bcache.log_debug("Entry for " .. src_path .. " not found in compilation database")
+  local src_base = bcache.get_file_part(src_path, true)
+  local src_stem = bcache.get_file_part(src_path, false)
+  local src_ext = bcache.get_extension(src_path)
+  local best_match = { score=0 }
+  for _, entry in ipairs(compile_db) do
+    if is_source_file(entry.file) then
+      local score = 10 * select(2, get_common_path_prefix(entry.file, src_path))
+      if bcache.get_file_part(entry.file, true) == src_base then
+        score = score + 3
+      elseif bcache.get_file_part(entry.file, false) == src_stem then
+        score = score + 2
+      elseif bcache.get_extension(entry.file) == src_ext then
+        score = score + 1
+      end
+      if score > best_match.score then
+        best_match.score = score
+        best_match.entry = entry
+      end
+    end
+  end
+  if best_match.score > 0 then
+    bcache.log_debug("Falling back to entry for " .. best_match.entry.file)
+    return best_match.entry.command, best_match.entry.directory
+  end
+  error("No match for " .. src_path .. " found in compilation database")
 end
 
 local function extract_compiler_flags (compile_args)
