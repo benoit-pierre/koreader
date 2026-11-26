@@ -252,41 +252,6 @@ void LVDocView::setTextFormatOptions(txt_format_t fmt) {
 	assert(!m_doc);
 }
 
-/// invalidate document data, request reload
-void LVDocView::requestReload() {
-	if (getDocFormat() != doc_format_txt)
-		return; // supported for text files only
-	if (m_callback) {
-        if (m_callback->OnRequestReload()) {
-            CRLog::info("LVDocView::requestReload() : reload request will be processed by external code");
-            return;
-        }
-        m_callback->OnLoadFileStart(m_doc_props->getStringDef(
-				DOC_PROP_FILE_NAME, ""));
-	}
-	if (m_stream.isNull() && isDocumentOpened()) {
-		savePosition();
-		CRFileHist * hist = getHistory();
-		if (!hist || hist->getRecords().length() <= 0)
-			return;
-        //lString32 fn = hist->getRecords()[0]->getFilePathName();
-        lString32 fn = m_filename;
-		bool res = LoadDocument(fn.c_str());
-		if (res) {
-			//swapToCache();
-			restorePosition();
-		} else {
-            createDefaultDocument(lString32::empty_str, lString32(
-					"Error while opening document ") + fn);
-		}
-		checkRender();
-		return;
-	}
-	ParseDocument();
-	// TODO: save position
-	checkRender();
-}
-
 /// returns true if document is opened
 bool LVDocView::isDocumentOpened() {
 	return m_doc && m_doc->getRootNode() && !m_doc_props->getStringDef(
@@ -3347,39 +3312,6 @@ CRFileHistRecord * LVDocView::getCurrentFileHistRecord() {
 			authors, series, bmk);
 	//CRLog::trace("savePosition() returned");
 	return res;
-}
-
-/// save last file position
-void LVDocView::savePosition() {
-	getCurrentFileHistRecord();
-}
-
-/// restore last file position
-void LVDocView::restorePosition() {
-	//CRLog::trace("LVDocView::restorePosition()");
-	if (m_filename.empty())
-		return;
-	LVLock lock(getMutex());
-	//checkRender();
-    lString32 fn = m_filename;
-#ifdef ORIGINAL_FILENAME_PATCH
-    if ( !m_originalFilename.empty() )
-        fn = m_originalFilename;
-#endif
-//    CRLog::debug("m_hist.restorePosition(%s, %d)", LCSTR(fn),
-//			m_filesize);
-    ldomXPointer pos = m_hist.restorePosition(m_doc, fn, m_filesize);
-	if (!pos.isNull()) {
-		//goToBookmark( pos );
-		CRLog::info("LVDocView::restorePosition() - last position is found");
-		_posBookmark = pos; //getBookmark();
-                updateBookMarksRanges();
-		_posIsSet = false;
-	} else {
-		CRLog::info(
-				"LVDocView::restorePosition() - last position not found for file %s, size %d",
-				UnicodeToUtf8(m_filename).c_str(), (int) m_filesize);
-	}
 }
 
 static void FileToArcProps(CRPropRef props) {
