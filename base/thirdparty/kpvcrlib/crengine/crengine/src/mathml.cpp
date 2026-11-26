@@ -563,7 +563,7 @@ static lChar32 substitute_codepoint(lChar32 c, mathml_mathvariant_t mathvariant)
 // MathML text nodes specific handling
 // ====================================================================
 
-lString32 MathMLHelper::getMathMLAdjustedText(ldomNode * node, const lChar32 * text, int len) {
+lString32 getMathMLAdjustedText(ldomNode * node, const lChar32 * text, int len) {
     // https://www.w3.org/TR/MathML/chapter2.html#fund.collapse
     // "MathML ignores whitespace occurring outside token elements.
     //  Non-whitespace characters are not allowed there. Whitespace
