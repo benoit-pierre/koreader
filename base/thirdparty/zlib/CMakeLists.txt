@@ -1,12 +1,17 @@
-list(APPEND PATCH_FILES fix_visibility_check.patch)
+list(APPEND PATCH_FILES cmake_tweaks.patch)
 
 list(APPEND CMAKE_ARGS
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
     # Project options.
-    -DZLIB_BUILD_TESTING=FALSE
+    -DBUILD_TESTING=FALSE
+    -DWITH_GTEST=FALSE
+    -DZLIB_COMPAT=TRUE
 )
 if(MONOLIBTIC)
     list(APPEND CMAKE_ARGS -DBUILD_SHARED_LIBS=FALSE)
+endif()
+if(ANDROID AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86)")
+    list(APPEND CMAKE_ARGS -DWITH_SSE2=FALSE)
 endif()
 
 list(APPEND BUILD_CMD COMMAND ninja)
@@ -18,8 +23,8 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL ae8baba210d81247293bca36babcb429
-    https://github.com/madler/zlib/releases/download/v1.4/zlib-1.4.tar.xz
+    DOWNLOAD URL 72337e6a7d2662af50a4ed0274c61b7e
+    https://github.com/zlib-ng/zlib-ng/archive/refs/tags/2.3.3.tar.gz
     PATCH_FILES ${PATCH_FILES}
     CMAKE_ARGS ${CMAKE_ARGS}
     BUILD_COMMAND ${BUILD_CMD}
