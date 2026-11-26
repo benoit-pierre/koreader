@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index acc47e26..5465c563 100644
+index e788748c..76060196 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -95,6 +95,7 @@ option(ENABLE_LTO "Enable link-time optimization" OFF)
@@ -28,10 +28,10 @@ index acc47e26..5465c563 100644
  if(HAVE_NEON)
    message(STATUS "LTO build is not supported on arm/RBPi.")
 diff --git a/src/arch/simddetect.cpp b/src/arch/simddetect.cpp
-index 132ef8e4..6b0b1c93 100644
+index cf84cb39..c8b0ee57 100644
 --- a/src/arch/simddetect.cpp
 +++ b/src/arch/simddetect.cpp
-@@ -174,6 +174,7 @@ SIMDDetect::SIMDDetect() {
+@@ -289,6 +289,7 @@ SIMDDetect::SIMDDetect() {
    // The fallback is a generic dot product calculation.
    SetDotProduct(DotProductGeneric);
  
@@ -39,7 +39,7 @@ index 132ef8e4..6b0b1c93 100644
  #if defined(HAS_CPUID)
  #  if defined(__GNUC__)
    unsigned int eax, ebx, ecx, edx;
-@@ -306,6 +307,7 @@ SIMDDetect::SIMDDetect() {
+@@ -441,6 +442,7 @@ SIMDDetect::SIMDDetect() {
      SetDotProduct(DotProductGeneric, &IntSimdMatrix::intSimdMatrixRVV);
  #endif
    }
@@ -47,7 +47,7 @@ index 132ef8e4..6b0b1c93 100644
  
  }
  
-@@ -325,6 +327,7 @@ void SIMDDetect::Update() {
+@@ -460,6 +462,7 @@ void SIMDDetect::Update() {
      // Native optimized code selected by config variable.
      SetDotProduct(DotProductNative, IntSimdMatrix::intSimdMatrix);
      dotproduct_method = "native";
@@ -55,9 +55,9 @@ index 132ef8e4..6b0b1c93 100644
  #if defined(HAVE_AVX2)
    } else if (dotproduct == "avx2") {
      // AVX2 selected by config variable.
-@@ -358,6 +361,7 @@ void SIMDDetect::Update() {
-     // NEON selected by config variable.
-     SetDotProduct(DotProductNEON, &IntSimdMatrix::intSimdMatrixNEON);
+@@ -495,6 +498,7 @@ void SIMDDetect::Update() {
+                                       ? &IntSimdMatrix::intSimdMatrixNEONDotProd
+                                       : &IntSimdMatrix::intSimdMatrixNEON);
      dotproduct_method = "neon";
 +#endif
  #endif

@@ -1,8 +1,8 @@
 diff --git a/src/api/baseapi.cpp b/src/api/baseapi.cpp
-index 1331db5d..e9727fc5 100644
+index f74f7ee4..5905ada0 100644
 --- a/src/api/baseapi.cpp
 +++ b/src/api/baseapi.cpp
-@@ -118,6 +118,7 @@ static const char *kOldVarsFile = "failed_vars.txt";
+@@ -121,6 +121,7 @@ static const char *kOldVarsFile = "failed_vars.txt";
  static const char *kInputFile = "noname.tif";
  static const char kUnknownFontName[] = "UnknownFont";
  
@@ -10,7 +10,7 @@ index 1331db5d..e9727fc5 100644
  static STRING_VAR(classify_font_name, kUnknownFontName,
                    "Default font name to be used in training");
  
-@@ -145,6 +146,7 @@ static void ExtractFontName(std::string_view filename, std::string* fontname) {
+@@ -148,6 +149,7 @@ static void ExtractFontName(std::string_view filename, std::string* fontname) {
    }
  }
  #endif
@@ -18,15 +18,43 @@ index 1331db5d..e9727fc5 100644
  
  /* Add all available languages recursively.
   */
-@@ -775,6 +777,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+@@ -771,7 +773,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+   }
+   // Training line recognition (tessedit_train_line_recognizer, used by the
+   // lstm.train config together with tessedit_init_config_only) needs no model.
+-  if (!tesseract_->tessedit_train_line_recognizer &&
++  if (
+       tesseract_->unicharset.size() <= SPECIAL_UNICHAR_CODES_COUNT) {
+     // Only the special unichars are present, so no language data was loaded:
+     // Init was called without a language (which loads nothing), Init failed
+@@ -794,8 +796,8 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+   // training data or show the results need the normal path.
+   bool by_columns = tesseract_->textord_auto_columns &&
+                     PSM_COL_FIND_ENABLED(tesseract_->tessedit_pageseg_mode) &&
+-                    !tesseract_->tessedit_train_line_recognizer &&
+-                    !tesseract_->interactive_display_mode;
++                    1;
++#if 0
+ #ifndef DISABLED_LEGACY_ENGINE
+   if (tesseract_->tessedit_resegment_from_line_boxes ||
+       tesseract_->tessedit_resegment_from_boxes ||
+@@ -805,6 +807,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+     by_columns = false;
+   }
+ #endif // ndef DISABLED_LEGACY_ENGINE
++#endif
+   if (by_columns) {
+     const int result = RecognizeMultiColumn(monitor);
+     if (result != 0) {
+@@ -822,6 +825,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+   }
  
    tesseract_->SetBlackAndWhitelist();
-   recognition_done_ = true;
 +#if 0
  #ifndef DISABLED_LEGACY_ENGINE
    if (tesseract_->tessedit_resegment_from_line_boxes) {
      page_res_ = tesseract_->ApplyBoxes(input_file_.c_str(), true, block_list_);
-@@ -782,6 +785,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+@@ -829,6 +833,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
      page_res_ = tesseract_->ApplyBoxes(input_file_.c_str(), false, block_list_);
    } else
  #endif // ndef DISABLED_LEGACY_ENGINE
@@ -34,7 +62,7 @@ index 1331db5d..e9727fc5 100644
    {
      page_res_ =
          new PAGE_RES(tesseract_->AnyLSTMLang(), block_list_, &tesseract_->prev_word_best_choice_);
-@@ -791,6 +795,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+@@ -838,6 +843,7 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
      return -1;
    }
  
@@ -42,7 +70,7 @@ index 1331db5d..e9727fc5 100644
    if (tesseract_->tessedit_train_line_recognizer) {
      if (!tesseract_->TrainLineRecognizer(input_file_.c_str(), output_file_, block_list_)) {
        return -1;
-@@ -804,8 +809,10 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+@@ -851,8 +857,10 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
      return 0;
    }
  #endif // ndef DISABLED_LEGACY_ENGINE
@@ -53,7 +81,7 @@ index 1331db5d..e9727fc5 100644
    if (tesseract_->interactive_display_mode) {
  #ifndef GRAPHICS_DISABLED
      tesseract_->pgeditor_main(rect_width_, rect_height_, page_res_);
-@@ -815,7 +822,10 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
+@@ -862,7 +870,10 @@ int TessBaseAPI::Recognize(ETEXT_DESC *monitor) {
      delete page_res_;
      page_res_ = nullptr;
      return -1;
@@ -65,7 +93,7 @@ index 1331db5d..e9727fc5 100644
    } else if (tesseract_->tessedit_train_from_boxes) {
      std::string fontname;
      ExtractFontName(output_file_, &fontname);
-@@ -1002,10 +1012,12 @@ bool TessBaseAPI::ProcessPages(const char *filename, const char *retry_config, i
+@@ -1057,10 +1068,12 @@ bool TessBaseAPI::ProcessPages(const char *filename, const char *retry_config, i
    bool result = ProcessPagesInternal(filename, retry_config, timeout_millisec, renderer);
  #ifndef DISABLED_LEGACY_ENGINE
    if (result) {
@@ -103,7 +131,7 @@ index e04c2336..b7fdcd0e 100644
  static void PrintRowRange(const std::vector<RowScratchRegisters> &rows, int row_start,
                            int row_end) {
 diff --git a/src/ccmain/recogtraining.cpp b/src/ccmain/recogtraining.cpp
-index eeb667b6..e77fb5ab 100644
+index 0a6d0af1..e50e9fe8 100644
 --- a/src/ccmain/recogtraining.cpp
 +++ b/src/ccmain/recogtraining.cpp
 @@ -34,12 +34,14 @@ const int16_t kMaxBoxEdgeDiff = 2;
@@ -135,7 +163,7 @@ index 3463806b..22635e00 100644
                                       use_ambigs_for_adaption, &unicharset);
    }
 diff --git a/src/ccmain/tesseractclass.cpp b/src/ccmain/tesseractclass.cpp
-index ce896a84..79791e87 100644
+index 102a3832..cb52e8d7 100644
 --- a/src/ccmain/tesseractclass.cpp
 +++ b/src/ccmain/tesseractclass.cpp
 @@ -51,6 +51,7 @@
@@ -178,10 +206,10 @@ index ce896a84..79791e87 100644
      , BOOL_MEMBER(tessedit_override_permuter, true, "According to dict_word", this->params())
      , STRING_MEMBER(tessedit_load_sublangs, "", "List of languages to load with this one",
 diff --git a/src/ccmain/tesseractclass.h b/src/ccmain/tesseractclass.h
-index 9a8875c3..8014aab7 100644
+index 0735695b..80b85216 100644
 --- a/src/ccmain/tesseractclass.h
 +++ b/src/ccmain/tesseractclass.h
-@@ -742,11 +742,13 @@ public:
+@@ -765,11 +765,13 @@ public:
    float ComputeCompatibleXheight(WERD_RES *word_res, float *baseline_shift);
    //// Data members ///////////////////////////////////////////////////////
    // TODO(ocr-team): Find and remove obsolete parameters.
@@ -195,7 +223,7 @@ index 9a8875c3..8014aab7 100644
    BOOL_VAR_H(tessedit_dump_pageseg_images);
    // TODO: remove deprecated tessedit_do_invert in release 6.
    BOOL_VAR_H(tessedit_do_invert);
-@@ -763,7 +765,9 @@ public:
+@@ -786,7 +788,9 @@ public:
    STRING_VAR_H(tessedit_char_blacklist);
    STRING_VAR_H(tessedit_char_whitelist);
    STRING_VAR_H(tessedit_char_unblacklist);
@@ -205,7 +233,7 @@ index 9a8875c3..8014aab7 100644
    INT_VAR_H(pageseg_devanagari_split_strategy);
    INT_VAR_H(ocr_devanagari_split_strategy);
    STRING_VAR_H(tessedit_write_params_to_file);
-@@ -932,7 +936,9 @@ public:
+@@ -955,7 +959,9 @@ public:
    BOOL_VAR_H(tessedit_create_boxfile);
    INT_VAR_H(tessedit_page_number);
    BOOL_VAR_H(tessedit_write_images);
@@ -216,10 +244,10 @@ index 9a8875c3..8014aab7 100644
    BOOL_VAR_H(tessedit_override_permuter);
    STRING_VAR_H(tessedit_load_sublangs);
 diff --git a/src/classify/adaptmatch.cpp b/src/classify/adaptmatch.cpp
-index 43b79b5b..b8ffb760 100644
+index 15945139..2d1702d0 100644
 --- a/src/classify/adaptmatch.cpp
 +++ b/src/classify/adaptmatch.cpp
-@@ -2162,6 +2162,8 @@ void Classify::ShowBestMatchFor(int shape_id, const INT_FEATURE_STRUCT *features
+@@ -2179,6 +2179,8 @@ void Classify::ShowBestMatchFor(int shape_id, const INT_FEATURE_STRUCT *features
  
  #endif // !GRAPHICS_DISABLED
  
@@ -228,7 +256,7 @@ index 43b79b5b..b8ffb760 100644
  // Returns a string for the classifier class_id: either the corresponding
  // unicharset debug_str or the shape_table_ debug str.
  std::string Classify::ClassIDToDebugStr(const INT_TEMPLATES_STRUCT *templates, int class_id,
-@@ -2176,6 +2178,8 @@ std::string Classify::ClassIDToDebugStr(const INT_TEMPLATES_STRUCT *templates, i
+@@ -2193,6 +2195,8 @@ std::string Classify::ClassIDToDebugStr(const INT_TEMPLATES_STRUCT *templates, i
    return class_string;
  }
  
@@ -255,7 +283,7 @@ index fcbcfbb7..dc9e815e 100644
    // shape_table_ present: a shape_table_ index OR
    // No shape_table_: a font ID.
 diff --git a/src/classify/intmatcher.cpp b/src/classify/intmatcher.cpp
-index d4b81c56..69d9e759 100644
+index d374f146..0bb19b8e 100644
 --- a/src/classify/intmatcher.cpp
 +++ b/src/classify/intmatcher.cpp
 @@ -314,6 +314,8 @@ for (int bit = 0; bit < BITS_PER_WERD/NUM_BITS_PER_CLASS; bit++) {

@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index bdd19c7d..acc47e26 100644
+index 3a9689de..e788748c 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -9,7 +9,7 @@
@@ -27,7 +27,7 @@ index bdd19c7d..acc47e26 100644
  
  # Check for optional libraries.
  if(DISABLE_TIFF)
-@@ -806,6 +808,11 @@ if(BUILD_SHARED_LIBS)
+@@ -810,6 +812,11 @@ if(BUILD_SHARED_LIBS)
      PRIVATE -DTESS_EXPORTS
      INTERFACE -DTESS_IMPORTS)
    # generate_export_header          (libtesseract EXPORT_MACRO_NAME TESS_API)
@@ -39,7 +39,7 @@ index bdd19c7d..acc47e26 100644
  endif()
  target_link_libraries(libtesseract PRIVATE ${LIB_Ws2_32} ${LIB_pthread})
  if(OpenMP_CXX_FOUND)
-@@ -851,18 +858,20 @@ if(WIN32
+@@ -855,18 +862,20 @@ if(WIN32
  endif()
  
  if(ANDROID)
@@ -61,7 +61,7 @@ index bdd19c7d..acc47e26 100644
  add_executable(tesseract src/tesseract.cpp)
  target_link_libraries(tesseract libtesseract)
  if(HAVE_TIFFIO_H AND WIN32)
-@@ -872,6 +881,7 @@ endif()
+@@ -876,6 +885,7 @@ endif()
  if(OPENMP_BUILD AND UNIX)
    target_link_libraries(tesseract pthread)
  endif()
@@ -69,7 +69,7 @@ index bdd19c7d..acc47e26 100644
  
  # ##############################################################################
  
-@@ -927,7 +937,6 @@ install(
+@@ -931,7 +941,6 @@ install(
    FILES ${CMAKE_CURRENT_BINARY_DIR}/tesseract_$<CONFIG>.pc
    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
    RENAME tesseract.pc)
